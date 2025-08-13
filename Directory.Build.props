@@ -1,0 +1,11 @@
+<Project>
+<PropertyGroup>
+  <Authors>Knight</Authors>
+  <Company>Knight</Company>
+  <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
+  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  <PackageReadmeFile>README.md</PackageReadmeFile>
+  <PackageVersion>1.0.0</PackageVersion>
+  <PackageTags>response results error-handling</PackageTags>
+</PropertyGroup>
+</Project>

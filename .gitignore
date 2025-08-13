@@ -416,3 +416,26 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Build output
+bin/
+obj/
+TestResults/
+
+# Rider / IntelliJ
+.idea/
+.idea/*
+*.sln.iml
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# OS generated
+.DS_Store
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/

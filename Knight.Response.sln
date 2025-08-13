@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B0840E78-51EB-4184-959C-D9CA9EC85B01}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3DD0FB79-BEB3-4C37-BE8C-9E73CD989D4B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response", "src\Knight.Response\Knight.Response.csproj", "{3A18BD4B-02DF-423F-A191-A6A0A64E4489}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.Tests", "tests\Knight.Response.Tests\Knight.Response.Tests.csproj", "{DC8C072F-8C36-4162-8E3C-CCE98C8DBDB7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3A18BD4B-02DF-423F-A191-A6A0A64E4489} = {B0840E78-51EB-4184-959C-D9CA9EC85B01}
+		{DC8C072F-8C36-4162-8E3C-CCE98C8DBDB7} = {3DD0FB79-BEB3-4C37-BE8C-9E73CD989D4B}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3A18BD4B-02DF-423F-A191-A6A0A64E4489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A18BD4B-02DF-423F-A191-A6A0A64E4489}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A18BD4B-02DF-423F-A191-A6A0A64E4489}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A18BD4B-02DF-423F-A191-A6A0A64E4489}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC8C072F-8C36-4162-8E3C-CCE98C8DBDB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC8C072F-8C36-4162-8E3C-CCE98C8DBDB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC8C072F-8C36-4162-8E3C-CCE98C8DBDB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC8C072F-8C36-4162-8E3C-CCE98C8DBDB7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

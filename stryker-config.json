@@ -1,0 +1,17 @@
+{
+  "stryker-config": {
+    "project": "src/Knight.Response/Knight.Response.csproj",
+    "solution": "Knight.Response.sln",
+    "test-projects": [
+      "tests/Knight.Response.Tests/Knight.Response.Tests.csproj"
+    ],
+    "reporters": [ "html", "progress", "cleartext", "json" ],
+    "coverage-analysis": "off",
+    "verbosity": "info",
+    "concurrency": 1,
+    "mutate": [ "**/*.cs" ],
+    "ignore-methods": [],
+    "thresholds": { "high": 85, "low": 75, "break": 70 },
+    "language-version": "latest"
+  }
+}
