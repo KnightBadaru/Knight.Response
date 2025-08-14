@@ -139,7 +139,7 @@ public static class Results
     /// <summary>
     /// Creates a "not found" result. Defaults to <see cref="Status.Completed"/> with a <see cref="MessageType.Warning"/>.
     /// </summary>
-    /// <param name="message">The description (e.g., "User not found").</param>
+    /// <param name="message">The description (e.g. "User not found").</param>
     /// <param name="status">
     /// Optional override status. Use <see cref="Status.Failed"/> if "not found" is a business failure,
     /// or <see cref="Status.Cancelled"/> when a lookup was aborted.
