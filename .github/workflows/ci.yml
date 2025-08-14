@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-test-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Knight.Response.sln
+
+      - name: Build
+        run: dotnet build Knight.Response.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test Knight.Response.sln -c Release --no-build --verbosity normal
+
+      - name: Pack (dry run)
+        run: dotnet pack src/Knight.Response/Knight.Response.csproj -c Release -o ./artifacts --no-build
+
+      - name: Show package contents
+        run: |
+          ls -lah ./artifacts
+          unzip -l ./artifacts/*.nupkg
