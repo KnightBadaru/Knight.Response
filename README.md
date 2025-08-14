@@ -8,8 +8,6 @@ This repository contains the Knight.Response family of .NET libraries, focused o
 
 ### 1. Knight.Response
 
-**NuGet:**&#x20;
-
 A lightweight, immutable `Result`/`Result<T>` library with factories, functional extensions, and pattern matching for C# service layers.
 
 * Immutable results for safer, predictable state handling
