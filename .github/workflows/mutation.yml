@@ -34,7 +34,12 @@ jobs:
         if: github.ref == 'refs/heads/main'
         env:
           STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
-        run: dotnet stryker --config-file stryker-config.json
+        run: |
+          dotnet stryker \
+            --config-file stryker-config.json \
+            --reporter dashboard \
+            --reporter html \
+            --reporter json
 
       - name: Upload Stryker report (artifact)
         if: always()
