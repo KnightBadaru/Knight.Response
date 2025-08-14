@@ -26,17 +26,15 @@ jobs:
       - name: Build
         run: dotnet build Knight.Response.sln -c Release --no-restore
 
-      # PRs: run Stryker without dashboard upload
       - name: Run Stryker (PR)
         if: github.event_name == 'pull_request'
-        run: dotnet stryker --config-file stryker-config.json --reporter html --reporter json --log-level info
+        run: dotnet stryker --config-file stryker-config.json --reporter html --reporter json
 
-      # main: run Stryker and upload to dashboard
       - name: Run Stryker (main - upload to dashboard)
         if: github.ref == 'refs/heads/main'
         env:
           STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
-        run: dotnet stryker --config-file stryker-config.json --log-level info
+        run: dotnet stryker --config-file stryker-config.json
 
       - name: Upload Stryker report (artifact)
         if: always()
