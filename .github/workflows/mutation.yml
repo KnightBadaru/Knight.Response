@@ -30,33 +30,22 @@ jobs:
 
       - name: Run Stryker (PR)
         if: github.event_name == 'pull_request'
-        run: |
-          dotnet stryker \
-            --config-file stryker-config.json \
-            --reporter html \
-            --reporter json
+        run: dotnet stryker --config-file stryker-config.json
 
-      - name: Print Stryker context (debug)
+      - name: Check Dashboard secret (debug)
         if: github.ref == 'refs/heads/main'
         run: |
-          dotnet tool list --global | grep -i stryker || true
-          echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
-          echo "GITHUB_REF=$GITHUB_REF"
-          echo "GITHUB_REF_NAME=$GITHUB_REF_NAME"
           if [ -z "${{ secrets.STRYKER_DASHBOARD_API_KEY }}" ]; then
-            echo "::error::STRYKER_DASHBOARD_API_KEY is empty or not configured"; exit 1
+            echo "::error::STRYKER_DASHBOARD_API_KEY is not configured"; exit 1
           fi
+          echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
+          echo "Expecting dashboard name: github.com/$GITHUB_REPOSITORY"
 
       - name: Run Stryker (main - upload to dashboard)
         if: github.ref == 'refs/heads/main'
         env:
           STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
-        run: |
-          dotnet stryker \
-            --config-file stryker-config.json \
-            --reporter dashboard \
-            --reporter html \
-            --reporter json
+        run: dotnet stryker --config-file stryker-config.json
 
       - name: Upload Stryker report (artifact)
         if: always()

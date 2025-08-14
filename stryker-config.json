@@ -13,8 +13,9 @@
     "ignore-methods": [],
     "thresholds": { "high": 85, "low": 75, "break": 70 },
     "language-version": "latest",
+
     "project-info": {
-      "name": "KnightBadaru/Knight.Response",
+      "name": "github.com/KnightBadaru/Knight.Response",
       "version": "main"
     }
   }

@@ -4,8 +4,8 @@
 It provides a clean and consistent way to handle outcomes, success/failure states, messages, and functional chaining — making your code simpler, safer, and more expressive.
 
 [![NuGet Version](https://img.shields.io/nuget/v/Knight.Response.svg)](https://www.nuget.org/packages/Knight.Response)
-[![Build](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/Knight.Response/actions)
-[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https://badge-api.stryker-mutator.io/github.com/KnightBadaru/Knight.Response/main)](https://dashboard.stryker-mutator.io/reports/github.com/KnightBadaru/Knight.Response/main)
+[![ci](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml/badge.svg)](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml)
+[![Mutation score](https://badge.stryker-mutator.io/github.com/KnightBadaru/Knight.Response/main)](https://dashboard.stryker-mutator.io/reports/github.com/KnightBadaru/Knight.Response/main)
 
 ---
 
