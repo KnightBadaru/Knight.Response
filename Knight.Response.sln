@@ -22,6 +22,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution-items", "solution-
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{6227B87C-09D6-4AB9-A6A2-90A1639DC794}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{68F3AC89-06C9-4E8D-AF54-02AFB37E1D81}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\mutation.yml = .github\workflows\mutation.yml
+		.github\workflows\publish-response.yml = .github\workflows\publish-response.yml
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +42,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{3A18BD4B-02DF-423F-A191-A6A0A64E4489} = {B0840E78-51EB-4184-959C-D9CA9EC85B01}
 		{DC8C072F-8C36-4162-8E3C-CCE98C8DBDB7} = {3DD0FB79-BEB3-4C37-BE8C-9E73CD989D4B}
+		{68F3AC89-06C9-4E8D-AF54-02AFB37E1D81} = {6227B87C-09D6-4AB9-A6A2-90A1639DC794}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3A18BD4B-02DF-423F-A191-A6A0A64E4489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
