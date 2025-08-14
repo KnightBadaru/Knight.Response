@@ -20,23 +20,6 @@ A lightweight, immutable `Result`/`Result<T>` library with factories, functional
 
 ---
 
-## Publishing
-
-Each project in this repo is independently versioned and published to NuGet.
-
-Example: To release **Knight.Response**
-
-```bash
-git checkout main
-git pull
-git tag response-v1.0.0 -m "Knight.Response v1.0.0"
-git push origin response-v1.0.0
-```
-
-This triggers the corresponding GitHub Action workflow to build, test, pack, and publish the package.
-
----
-
 ## Contributing
 
 We welcome contributions! Please read the following before getting started:
