@@ -12,6 +12,10 @@
     "mutate": [ "**/*.cs" ],
     "ignore-methods": [],
     "thresholds": { "high": 85, "low": 75, "break": 70 },
-    "language-version": "latest"
+    "language-version": "latest",
+    "project-info": {
+      "name": "KnightBadaru/Knight.Response",
+      "version": "main"
+    }
   }
 }
