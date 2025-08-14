@@ -10,8 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout (full history)
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -28,7 +30,22 @@ jobs:
 
       - name: Run Stryker (PR)
         if: github.event_name == 'pull_request'
-        run: dotnet stryker --config-file stryker-config.json --reporter html --reporter json
+        run: |
+          dotnet stryker \
+            --config-file stryker-config.json \
+            --reporter html \
+            --reporter json
+
+      - name: Print Stryker context (debug)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          dotnet tool list --global | grep -i stryker || true
+          echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
+          echo "GITHUB_REF=$GITHUB_REF"
+          echo "GITHUB_REF_NAME=$GITHUB_REF_NAME"
+          if [ -z "${{ secrets.STRYKER_DASHBOARD_API_KEY }}" ]; then
+            echo "::error::STRYKER_DASHBOARD_API_KEY is empty or not configured"; exit 1
+          fi
 
       - name: Run Stryker (main - upload to dashboard)
         if: github.ref == 'refs/heads/main'
@@ -39,7 +56,11 @@ jobs:
             --config-file stryker-config.json \
             --reporter dashboard \
             --reporter html \
-            --reporter json
+            --reporter json \
+            --dashboard-api-key "$STRYKER_DASHBOARD_API_KEY" \
+            --project-info.name "KnightBadaru/Knight.Response" \
+            --project-info.version "main" \
+            --verbosity info
 
       - name: Upload Stryker report (artifact)
         if: always()
