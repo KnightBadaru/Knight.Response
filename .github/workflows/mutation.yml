@@ -1,0 +1,45 @@
+name: mutation
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  stryker:
+    runs-on: ubuntu-latest
+    env:
+      STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore tools & packages
+        run: |
+          dotnet tool restore
+          dotnet restore Knight.Response.sln
+
+      - name: Build
+        run: dotnet build Knight.Response.sln -c Release --no-restore
+
+      - name: Run Stryker (PR)
+        if: github.event_name == 'pull_request'
+        run: dotnet stryker --config-file stryker-config.json --reporters "html,json" --log-level info
+
+      - name: Run Stryker (main - upload to dashboard)
+        if: github.ref == 'refs/heads/main'
+        run: dotnet stryker --config-file stryker-config.json --log-level info
+
+      - name: Upload Stryker report (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stryker-report
+          path: |
+            StrykerOutput/**/reports/*
