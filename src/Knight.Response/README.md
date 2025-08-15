@@ -1,11 +1,12 @@
-# Knight.Response ⚔️
+# Knight.Response
 
 **Knight.Response** is a lightweight, immutable, fluent result library for C# services, APIs, and applications.
 It provides a clean and consistent way to handle outcomes, success/failure states, messages, and functional chaining — making your code simpler, safer, and more expressive.
 
 [![NuGet Version](https://img.shields.io/nuget/v/Knight.Response.svg)](https://www.nuget.org/packages/Knight.Response)
 [![ci](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml/badge.svg)](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml)
-[![Mutation score](https://badge.stryker-mutator.io/github.com/KnightBadaru/Knight.Response/main)](https://dashboard.stryker-mutator.io/reports/github.com/KnightBadaru/Knight.Response/main)
+[![Mutation score](https://img.shields.io/endpoint?url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FKnightBadaru%2FKnight.Response%2Fmain&label=mutation%20score)](https://dashboard.stryker-mutator.io/reports/github.com/KnightBadaru/Knight.Response/main)
+
 
 ---
 

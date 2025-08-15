@@ -4,9 +4,17 @@
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        
+
+        <!-- NuGet metadata -->
         <PackageId>Knight.Response</PackageId>
-        <Version>1.0.0</Version>
+        <Version>1.0.1</Version>
+        <PackageReleaseNotes>
+            - Stryker mutation testing integration and CI improvements.
+            - 100% mutation coverage achieved.
+            - Mutation dashboard publishing configured in GitHub Actions.
+            - Updated README badges for NuGet, build, and mutation coverage.
+            - No breaking changes — fully backward compatible.
+        </PackageReleaseNotes>
         <Title>Knight.Response</Title>
         <Description>Lightweight, immutable Result/Result&lt;T&gt; library with factories, functional extensions, and pattern matching for C# service layers.</Description>
         <PackageTags>result;response;functional;service-layer;error-handling;patterns;csharp</PackageTags>
@@ -15,7 +23,8 @@
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        
+
+        <!-- Build quality -->
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <Deterministic>true</Deterministic>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
