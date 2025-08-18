@@ -1,10 +1,10 @@
 <Project>
-<PropertyGroup>
-  <Authors>Knight</Authors>
-  <Company>Knight</Company>
-  <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
-  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-  <PackageReadmeFile>README.md</PackageReadmeFile>
-  <PackageTags>response results error-handling</PackageTags>
-</PropertyGroup>
+    <PropertyGroup>
+      <Authors>Knight</Authors>
+      <Company>Knight</Company>
+      <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
+      <PackageReadmeFile>README.md</PackageReadmeFile>
+      <PackageTags>response results error-handling</PackageTags>
+    </PropertyGroup>
 </Project>

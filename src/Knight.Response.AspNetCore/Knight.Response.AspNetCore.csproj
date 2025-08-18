@@ -1,24 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
-        <LangVersion>latest</LangVersion>
-        <Nullable>enable</Nullable>
+        <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
 
         <!-- NuGet metadata -->
-        <PackageId>Knight.Response</PackageId>
-        <Version>1.0.1</Version>
-        <PackageReleaseNotes>
-            - Stryker mutation testing integration and CI improvements.
-            - 100% mutation coverage achieved.
-            - Mutation dashboard publishing configured in GitHub Actions.
-            - Updated README badges for NuGet, build, and mutation coverage.
-            - No breaking changes — fully backward compatible.
-        </PackageReleaseNotes>
-        <Title>Knight.Response</Title>
-        <Description>Lightweight, immutable Result/Result&lt;T&gt; library with factories, functional extensions, and pattern matching for C# service layers.</Description>
-        <PackageTags>result;response;functional;service-layer;error-handling;patterns;csharp</PackageTags>
+        <PackageId>Knight.Response.AspNetCore</PackageId>
+        <Version>0.1.0</Version>
+        <Authors>Knight</Authors>
+        <Description>ASP.NET Core helpers for Knight.Response: map Result/Result&lt;T&gt; to IResult/ActionResult with consistent HTTP semantics.</Description>
+        <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+        <PackageTags>result;response;aspnetcore;minimal-apis;http;problem-details</PackageTags>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <IncludeSymbols>true</IncludeSymbols>
@@ -31,7 +25,11 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <PackageReference Include="System.Text.Json" Version="9.0.4" />
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Knight.Response" Version="1.0.1" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
     </ItemGroup>
