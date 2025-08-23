@@ -10,13 +10,17 @@
     "verbosity": "info",
     "concurrency": 1,
     "mutate": [ "**/*.cs" ],
-    "ignore-methods": [],
+    "ignore-source-files": [
+      "**/*.g.cs",
+      "**/*AssemblyInfo.cs",
+      "**/Program.cs"
+    ],
     "thresholds": { "high": 85, "low": 75, "break": 70 },
     "language-version": "latest",
-
     "project-info": {
       "name": "github.com/KnightBadaru/Knight.Response",
-      "version": "main"
+      "version": "main",
+      "module": "Knight.Response"
     }
   }
 }

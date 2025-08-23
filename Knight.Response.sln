@@ -31,7 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "stryker", "stryker", "{EE8C3265-892D-453D-8B2A-3412ABDA9FA2}"
 	ProjectSection(SolutionItems) = preProject
-		stryker-config.json = stryker-config.json
+		stryker-config.core.json = stryker-config.core.json
+		stryker-config.aspnetcore.json = stryker-config.aspnetcore.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.AspNetCore", "src\Knight.Response.AspNetCore\Knight.Response.AspNetCore.csproj", "{9D1B98D6-A3CA-419F-9637-D8F4F40E354C}"
