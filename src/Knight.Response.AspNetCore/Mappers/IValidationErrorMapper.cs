@@ -8,5 +8,5 @@ public interface IValidationErrorMapper
     /// <summary>
     /// Return a map of field => list of error messages. Return empty if nothing to map.
     /// </summary>
-    IDictionary<string, string[]> Map(IReadOnlyList<Knight.Response.Models.Message> messages);
+    IDictionary<string, string[]> Map(IReadOnlyList<Models.Message> messages);
 }

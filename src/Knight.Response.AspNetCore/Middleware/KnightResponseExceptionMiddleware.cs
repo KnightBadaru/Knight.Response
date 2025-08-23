@@ -75,9 +75,24 @@ public sealed class KnightResponseExceptionMiddleware
                 ));
             }
 
-            var failure = Factories.ProblemFactory.FromResult(context, _options, error);
+            // Choose HTTP status (defaults to 500 for Error)
+            var status = _options.StatusCodeResolver?.Invoke(error.Status)
+                         ?? StatusCodes.Status500InternalServerError;
 
-            // Make sure we start a fresh response and let the IResult write headers/body
+            IResult failure;
+
+            if (_options.UseProblemDetails)
+            {
+                // RFC7807 (or ValidationProblemDetails if mapper yields field errors)
+                failure = Factories.ProblemFactory.FromResult(context, _options, error, status);
+            }
+            else
+            {
+                // Simple JSON array of messages, no ProblemDetails wrapper
+                failure = Results.Json(_options.IncludeFullResultPayload ? error : error.Messages, statusCode: status);
+            }
+
+            // Start a fresh response and let the IResult write headers/body
             if (!context.Response.HasStarted)
             {
                 context.Response.Clear();

@@ -93,7 +93,8 @@ public static class ApiResults
     /// <param name="http">Optional <see cref="HttpContext"/> used to resolve options.</param>
     /// <returns><see cref="Results.NoContent"/> or a failure response.</returns>
     public static IResult NoContent(Result result, HttpContext? http = null) =>
-        result.IsSuccess ? Results.NoContent() : BuildFailure(http, StatusCodes.Status400BadRequest, result);
+        // result.IsSuccess ? Results.NoContent() : BuildFailure(http, result);
+        Build(http, StatusCodes.Status204NoContent, result);
 
     // 202 / Accepted -----------------------------------------------------------
 
@@ -134,21 +135,21 @@ public static class ApiResults
     /// Uses ProblemDetails if <see cref="KnightResponseOptions.UseProblemDetails"/> is enabled.
     /// </summary>
     public static IResult BadRequest(Result result, HttpContext? http = null) =>
-        BuildFailure(http, StatusCodes.Status400BadRequest, result);
+        BuildFailure(http, result, StatusCodes.Status400BadRequest);
 
     /// <summary>
     /// Produces a <c>404 Not Found</c> response populated from <paramref name="result"/>.
     /// Uses ProblemDetails if <see cref="KnightResponseOptions.UseProblemDetails"/> is enabled.
     /// </summary>
     public static IResult NotFound(Result result, HttpContext? http = null) =>
-        BuildFailure(http, StatusCodes.Status404NotFound, result);
+        BuildFailure(http, result, StatusCodes.Status404NotFound);
 
     /// <summary>
     /// Produces a <c>409 Conflict</c> response populated from <paramref name="result"/>.
     /// Uses ProblemDetails if <see cref="KnightResponseOptions.UseProblemDetails"/> is enabled.
     /// </summary>
     public static IResult Conflict(Result result, HttpContext? http = null) =>
-        BuildFailure(http, StatusCodes.Status409Conflict, result);
+        BuildFailure(http, result, StatusCodes.Status409Conflict);
 
     /// <summary>Produces a bare <c>401 Unauthorized</c> response.</summary>
     public static IResult Unauthorized() => Results.Unauthorized();
@@ -161,12 +162,12 @@ public static class ApiResults
     private static IResult Build(HttpContext? http, int successStatus, Result result, string? location = null) =>
         result.IsSuccess
             ? BuildSuccess(http, successStatus, result, location)
-            : BuildFailure(http, DefaultFailureFor(successStatus), result);
+            : BuildFailure(http, result, successStatus);
 
     private static IResult Build<T>(HttpContext? http, int successStatus, Result<T> result, string? location = null) =>
         result.IsSuccess
             ? BuildSuccess(http, successStatus, result, location)
-            : BuildFailure(http, DefaultFailureFor(successStatus), result);
+            : BuildFailure(http, result, successStatus);
 
     private static IResult BuildSuccess(HttpContext? http, int status, Result result, string? location)
     {
@@ -180,8 +181,15 @@ public static class ApiResults
         if (status == StatusCodes.Status201Created)
         {
             return opts.IncludeFullResultPayload
-                ? Results.Created(location ?? string.Empty, result)
-                : Results.Created(location ?? string.Empty, null);
+                ? Results.Created(location, result)
+                : Results.Created(location, null);
+        }
+
+        if (status == StatusCodes.Status202Accepted)
+        {
+            return opts.IncludeFullResultPayload
+                ? Results.Accepted(location, result)
+                : Results.Accepted(location);
         }
 
         return opts.IncludeFullResultPayload
@@ -193,11 +201,23 @@ public static class ApiResults
     {
         var opts = ResolveOptions(http);
 
+        if (status == StatusCodes.Status204NoContent)
+        {
+            return Results.NoContent();
+        }
+
         if (status == StatusCodes.Status201Created)
         {
             return opts.IncludeFullResultPayload
-                ? Results.Created(location ?? string.Empty, result)
-                : Results.Created(location ?? string.Empty, result.Value);
+                ? Results.Created(location, result)
+                : Results.Created(location, result.Value);
+        }
+
+        if (status == StatusCodes.Status202Accepted)
+        {
+            return opts.IncludeFullResultPayload
+                ? Results.Accepted(location, result)
+                : Results.Accepted(location, result.Value);
         }
 
         return opts.IncludeFullResultPayload
@@ -205,27 +225,25 @@ public static class ApiResults
             : Results.Json(result.Value, statusCode: status);
     }
 
-    private static IResult BuildFailure(HttpContext? http, int status, Result result)
+    private static IResult BuildFailure(HttpContext? http, Result result, int? statusCode = null)
     {
         var opts = ResolveOptions(http);
+        if (statusCode.HasValue && statusCode.Value < StatusCodes.Status400BadRequest)
+        {
+            statusCode = opts.StatusCodeResolver(result.Status);
+        }
+
+        statusCode ??= opts.StatusCodeResolver(result.Status);
 
         if (opts.UseProblemDetails && http is not null)
         {
             // Centralised ProblemDetails formatting
-            return ProblemFactory.FromResult(http, opts, result);
+            return ProblemFactory.FromResult(http, opts, result, statusCode);
         }
 
         // Simple fallback: return messages with the requested status.
-        return Results.Json(result.Messages, statusCode: status);
+        return Results.Json(opts.IncludeFullResultPayload ? result : result.Messages, statusCode: statusCode);
     }
-
-    private static int DefaultFailureFor(int successStatus) =>
-        successStatus switch
-        {
-            StatusCodes.Status201Created or StatusCodes.Status202Accepted or StatusCodes.Status204NoContent
-                => StatusCodes.Status400BadRequest,
-            _ => StatusCodes.Status400BadRequest
-        };
 
     private static KnightResponseOptions ResolveOptions(HttpContext? http)
     {

@@ -44,13 +44,14 @@ internal static class ProblemFactory
     /// <param name="http">The current HTTP context (used for request info and DI).</param>
     /// <param name="opts">Resolved Knight Response options.</param>
     /// <param name="result">The domain operation outcome to serialize.</param>
+    /// <param name="statusCode">Optional status code.</param>
     /// <returns>
     /// An <see cref="IResult"/> created via <see cref="Results.Problem(ProblemDetails)"/> or
     /// <see cref="Results.ValidationProblem(IDictionary{string, string[]}, string?, string?, int?, string?, string?, IDictionary{string, object}?)"/>.
     /// </returns>
-    public static IResult FromResult(HttpContext http, KnightResponseOptions opts, Result result)
+    public static IResult FromResult(HttpContext http, KnightResponseOptions opts, Result result, int? statusCode = null)
     {
-        var statusCode = opts.StatusCodeResolver(result.Status);
+        var pdStatusCode = statusCode ?? opts.StatusCodeResolver(result.Status);
 
         // Try validation ProblemDetails if enabled and we have mappable errors
         if (opts.UseValidationProblemDetails)
@@ -60,17 +61,13 @@ internal static class ProblemFactory
             {
                 var vpd = new ValidationProblemDetails(errors)
                 {
-                    Status = statusCode,
+                    Status = pdStatusCode,
                     Title  = "One or more validation errors occurred.",
-                    Type   = $"https://httpstatuses.io/{statusCode}"
+                    Type   = $"https://httpstatuses.io/{pdStatusCode}"
                 };
 
                 // Include useful context for clients
-                vpd.Extensions["svcStatus"] = result.Status.ToString();
-                vpd.Extensions["messages"] = result.Messages
-                    .Select(m => new { type = m.Type.ToString(), content = m.Content, m.Metadata })
-                    .ToArray();
-
+                vpd.AddResult(result);
                 // Allow app to tweak/extend
                 opts.ValidationBuilder?.Invoke(http, result, vpd);
 
@@ -97,17 +94,14 @@ internal static class ProblemFactory
 
         var pd = new ProblemDetails
         {
-            Status = statusCode,
+            Status = pdStatusCode,
             Title  = title,
             Detail = detail,
-            Type   = $"https://httpstatuses.io/{statusCode}"
+            Type   = $"https://httpstatuses.io/{pdStatusCode}"
         };
 
         // Include structured messages for clients that want richer context
-        pd.Extensions["messages"]  = result.Messages
-            .Select(m => new { type = m.Type.ToString(), content = m.Content })
-            .ToArray();
-        pd.Extensions["svcStatus"] = result.Status.ToString();
+        pd.AddResult(result);
 
         // Allow app-level customization
         opts.ProblemDetailsBuilder?.Invoke(http, result, pd);
@@ -119,5 +113,15 @@ internal static class ProblemFactory
             detail:     pd.Detail,
             extensions: pd.Extensions
         );
+    }
+
+    // Internals ================================================================
+
+    private static void AddResult(this ProblemDetails problemDetails, Result result)
+    {
+        problemDetails.Extensions["svcStatus"] = result.Status.ToString();
+        problemDetails.Extensions["messages"] = result.Messages
+            .Select(m => new { type = m.Type.ToString(), content = m.Content, metadata = m.Metadata })
+            .ToArray();
     }
 }

@@ -29,6 +29,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Knight.Response.AspNetCore.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Knight.Response" Version="1.0.1" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />

@@ -1,7 +1,6 @@
 using Knight.Response.AspNetCore.Mappers;
 using Knight.Response.AspNetCore.Options;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Knight.Response.AspNetCore.Extensions;
 
