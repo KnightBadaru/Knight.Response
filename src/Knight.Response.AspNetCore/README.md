@@ -2,6 +2,10 @@
 
 ASP.NET Core integration for [Knight.Response]. It converts `Result` / `Result<T>` to HTTP responses, supports RFC7807 ProblemDetails (including validation errors), and provides an exception middleware for consistent error payloads.
 
+[![NuGet Version](https://img.shields.io/nuget/v/Knight.Response.AspNetCore.svg)](https://www.nuget.org/packages/Knight.Response.AspNetCore)
+[![ci](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml/badge.svg)](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml)
+[![Mutation score](https://img.shields.io/endpoint?url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FKnightBadaru%2FKnight.Response%2Fmain%3Fmodule%3DKnight.Response.AspNetCore&label=mutation%20score)](https://dashboard.stryker-mutator.io/reports/github.com/KnightBadaru/Knight.Response/main?module=Knight.Response.AspNetCore)
+
 > NuGet packages you’ll typically use:
 >
 > * `Knight.Response` – core result types and extensions
@@ -311,8 +315,8 @@ app.UseKnightResponseExceptionMiddleware();
 
 ## License
 
-MIT
+This project is licensed under the [MIT License](../../LICENSE).
 
----
+## Contributing
 
-[Knight.Response]: https://www.nuget.org/packages/Knight.Response
+Contributions are welcome! Please read [CONTRIBUTING.md](../../CONTRIBUTING.md).
