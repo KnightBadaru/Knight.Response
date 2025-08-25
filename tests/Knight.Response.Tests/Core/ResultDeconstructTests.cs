@@ -1,5 +1,6 @@
 using Knight.Response.Factories;
 using Knight.Response.Models;
+using Shouldly;
 
 namespace Knight.Response.Tests.Core;
 
@@ -16,10 +17,9 @@ public class ResultDeconstructTests
         var (status, messages) = result;
 
         // Assert
-        Assert.Equal(Status.Failed, status);
-        Assert.Single(messages);
-        Assert.Equal(messageContent, messages[0].Content);
-        Assert.Equal(MessageType.Error, messages[0].Type);
+        status.ShouldBe(Status.Failed);
+        messages.ShouldHaveSingleItem();
+        messages.ShouldContain(m => m.Type == MessageType.Error && m.Content == messageContent);
     }
 
     [Fact]
@@ -34,10 +34,9 @@ public class ResultDeconstructTests
         var (status, messages, value) = result;
 
         // Assert
-        Assert.Equal(Status.Completed, status);
-        Assert.Equal(42, value);
-        Assert.Single(messages);
-        Assert.Equal(messageContent, messages[0].Content);
-        Assert.Equal(MessageType.Information, messages[0].Type);
+        status.ShouldBe(Status.Completed);
+        value.ShouldBe(42);
+        messages.ShouldHaveSingleItem();
+        messages.ShouldContain(m => m.Type == MessageType.Information && m.Content == messageContent);
     }
 }

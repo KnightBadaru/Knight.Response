@@ -1,6 +1,7 @@
 using Knight.Response.Extensions;
 using Knight.Response.Factories;
 using Knight.Response.Models;
+using Shouldly;
 
 namespace Knight.Response.Tests.Extensions;
 
@@ -16,8 +17,8 @@ public class ResultExtensionsTests
         var result = Results.Success().OnSuccess(() => called = true);
 
         // Assert
-        Assert.True(called);
-        Assert.Equal(Status.Completed, result.Status);
+        called.ShouldBeTrue();
+        result.Status.ShouldBe(Status.Completed);
     }
 
     [Fact]
@@ -31,8 +32,8 @@ public class ResultExtensionsTests
         var result = Results.Success(value).OnSuccess(v => received = v);
 
         // Assert
-        Assert.Equal(value, received);
-        Assert.True(result.IsSuccess);
+        received.ShouldBe(value);
+        result.IsSuccess.ShouldBeTrue();
     }
 
     [Fact]
@@ -42,11 +43,11 @@ public class ResultExtensionsTests
         var called = false;
 
         // Act
-        var r = Results.Failure("shrugs").OnFailure(_ => called = true);
+        var result = Results.Failure("shrugs").OnFailure(_ => called = true);
 
         // Assert
-        Assert.True(called);
-        Assert.Equal(Status.Failed, r.Status);
+        called.ShouldBeTrue();
+        result.Status.ShouldBe(Status.Failed);
     }
 
     [Fact]
@@ -59,8 +60,8 @@ public class ResultExtensionsTests
         var result = Results.Error("err").OnFailure(messages => count = messages.Count);
 
         // Assert
-        Assert.Equal(1, count);
-        Assert.Equal(Status.Error, result.Status);
+        count.ShouldBe(1);
+        result.Status.ShouldBe(Status.Error);
     }
 
     [Fact]
@@ -70,20 +71,25 @@ public class ResultExtensionsTests
         var mapped = Results.Success(2).Map(x => x * 5);
 
         // Assert
-        Assert.True(mapped.IsSuccess);
-        Assert.Equal(10, mapped.Value);
+        mapped.Value.ShouldBe(10);
+        mapped.IsSuccess.ShouldBeTrue();
     }
 
     [Fact]
     public void Map_On_Failure_Should_Propagate_Failure()
     {
+        // Arrange
+        const string value = "fail";
+
         // Act
-        var mapped = Results.Failure<int>("fail").Map(x => x + 1);
+        var mapped = Results.Failure<int>("fail")
+            .Map(x => x + 1);
 
         // Assert
-        Assert.False(mapped.IsSuccess);
-        Assert.Equal(Status.Failed, mapped.Status);
-        Assert.Single(mapped.Messages);
+        mapped.IsSuccess.ShouldBeFalse();
+        mapped.Status.ShouldBe(Status.Failed);
+        mapped.Messages.ShouldHaveSingleItem();
+        mapped.Messages.ShouldContain(m => m.Type == MessageType.Error && m.Content == value);
     }
 
     [Fact]
@@ -96,8 +102,8 @@ public class ResultExtensionsTests
         var mapped = Results.Success<string?>().Map(s => s ?? fallback);
 
         // Assert
-        Assert.True(mapped.IsSuccess);
-        Assert.Equal(fallback, mapped.Value);
+        mapped.IsSuccess.ShouldBeTrue();
+        mapped.Value.ShouldBe(fallback);
     }
 
     [Fact]
@@ -107,8 +113,8 @@ public class ResultExtensionsTests
         var bound = Results.Success("u").Bind(s => Results.Success(s + "v"));
 
         // Assert
-        Assert.True(bound.IsSuccess);
-        Assert.Equal("uv", bound.Value);
+        bound.IsSuccess.ShouldBeTrue();
+        bound.Value.ShouldBe("uv");
     }
 
     [Fact]
@@ -121,8 +127,9 @@ public class ResultExtensionsTests
         var bound = Results.Failure<string>(reason).Bind(_ => Results.Success("x"));
 
         // Assert
-        Assert.False(bound.IsSuccess);
-        Assert.Equal(reason, bound.Messages.Single().Content);
+        bound.IsSuccess.ShouldBeFalse();
+        bound.Messages.ShouldHaveSingleItem();
+        bound.Messages.ShouldContain(m => m.Type == MessageType.Error && m.Content == reason);
     }
 
     [Fact]
@@ -145,12 +152,11 @@ public class ResultExtensionsTests
         });
 
         // Assert
-        Assert.True(invoked);
-        Assert.Same(failure, returned);
-        Assert.NotNull(captured);
-        Assert.Single(captured!);
-        Assert.Equal(messageContent, captured![0].Content);
-        Assert.Equal(MessageType.Error, captured![0].Type);
+        invoked.ShouldBeTrue();
+        returned.ShouldBe(failure);
+        captured.ShouldNotBeNull();
+        captured.ShouldHaveSingleItem();
+        captured.ShouldContain(m => m.Type == MessageType.Error && m.Content == messageContent);
     }
 
     [Fact]
@@ -164,7 +170,8 @@ public class ResultExtensionsTests
         var returned = success.OnFailure(_ => invoked = true);
 
         // Assert
-        Assert.False(invoked);
-        Assert.Same(success, returned);
+        invoked.ShouldBeFalse();
+        returned.ShouldBe(success);
+
     }
 }
