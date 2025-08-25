@@ -7,7 +7,7 @@
 
         <!-- NuGet metadata -->
         <PackageId>Knight.Response</PackageId>
-        <Version>1.0.1</Version>
+        <Version>1.0.2</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response</Title>
         <Description>Lightweight, immutable Result/Result&lt;T&gt; library with factories, functional extensions, and pattern matching for C# service layers.</Description>
