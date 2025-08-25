@@ -8,6 +8,14 @@ on:
 jobs:
   stryker:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: core
+            config: stryker-config.core.json
+          - name: aspnetcore
+            config: stryker-config.aspnetcore.json
 
     steps:
       - name: Checkout (full history)
@@ -28,9 +36,9 @@ jobs:
       - name: Build
         run: dotnet build Knight.Response.sln -c Release --no-restore
 
-      - name: Run Stryker (PR)
+      - name: Run Stryker (${{ matrix.name }}) — PR
         if: github.event_name == 'pull_request'
-        run: dotnet stryker --config-file ${{ matrix.config }} --reporter html --reporter json
+        run: dotnet stryker --config-file ./${{ matrix.config }} --reporter html --reporter json
 
       - name: Check Dashboard secret (debug)
         if: github.ref == 'refs/heads/main'
@@ -41,16 +49,15 @@ jobs:
           echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
           echo "Expecting dashboard name: github.com/$GITHUB_REPOSITORY"
 
-      - name: Run Stryker (main - upload to dashboard)
+      - name: Run Stryker (${{ matrix.name }}) — main (upload)
         if: github.ref == 'refs/heads/main'
         env:
           STRYKER_DASHBOARD_API_KEY: ${{ secrets.STRYKER_DASHBOARD_API_KEY }}
-        run: dotnet stryker --config-file ${{ matrix.config }}
+        run: dotnet stryker --config-file ./${{ matrix.config }}
 
       - name: Upload Stryker report (artifact)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: stryker-report
-          path: |
-            StrykerOutput/**/reports/*
+          name: stryker-report-${{ matrix.name }}
+          path: StrykerOutput/**/reports/*
