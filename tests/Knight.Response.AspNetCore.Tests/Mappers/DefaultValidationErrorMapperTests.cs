@@ -159,7 +159,7 @@ public class DefaultValidationErrorMapperTests
         // Assert
         // Mapper uses the value as-is (no trim on metadata).
         dict.Keys.ShouldBe([field]);
-        dict[field].ShouldBe([content]);
+        dict[field].ShouldBe([content.Trim()]);
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class DefaultValidationErrorMapperTests
 
         // Assert
         dict.Keys.ShouldBe([field]);
-        dict[field].ShouldBe([content]); // message keeps trailing spaces after the colon, by design
+        dict[field].ShouldBe([content.Trim()]); // message keeps trailing spaces after the colon, by design
     }
 
     [Fact]
@@ -214,5 +214,68 @@ public class DefaultValidationErrorMapperTests
         dict.Keys.Count.ShouldBe(2);
         dict["first"].ShouldBeEquivalentTo(new[] { "required", "value is missing" });
         dict["second"].ShouldBe(["invalid"]);
+    }
+
+    [Theory]
+    [InlineData("  User.Email  :  required  ")]
+    [InlineData("\tUser.Email:\trequired")]
+    public void Map_ColonPattern_With_Whitespace_And_Casing_Still_Parses(string content)
+    {
+        var mapper = new DefaultValidationErrorMapper();
+        var dict = mapper.Map([Msg(content)]);
+
+        dict.Keys.ShouldBe(["User.Email"], Case.Insensitive);
+        dict["User.Email"].ShouldBe(["required"]);
+    }
+
+    // -------------------- Mutant War! --------------------
+
+    [Theory]
+    [InlineData("  User.Email  :  required  ", "User.Email", "required")]
+    [InlineData("\tUser.Name:\tinvalid  ", "User.Name", "invalid")]
+    public void ColonPattern_Parses_And_Trims_Field_And_Message(string content, string field, string msg)
+    {
+        // Arrange
+        var mapper = new DefaultValidationErrorMapper();
+
+        // Act
+        var dict = mapper.Map(new[] { Msg(content) });
+
+        // Assert
+        dict.Keys.ShouldBe(new[] { field }, Case.Insensitive);
+        dict[field][0].ShouldBe(msg);
+    }
+
+    [Theory]
+    [InlineData("No Colon Here")]
+    [InlineData(": just colon at start")]
+    [InlineData("field:")]                 // empty message
+    [InlineData("   :  missing field")]    // empty field
+    public void Invalid_Colon_Strings_Should_Not_Produce_Entries(string content)
+    {
+        // Arrange
+        var mapper = new DefaultValidationErrorMapper();
+
+        // Act
+        var dict = mapper.Map(new[] { Msg(content) });
+
+        // Assert
+        dict.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Metadata_Field_Takes_Priority_Over_Colon_Parse()
+    {
+        // Arrange
+        var mapper = new DefaultValidationErrorMapper();
+        var meta = new Dictionary<string, object?> { ["field"] = "profile.age" };
+        var msgs = new[] { new Knight.Response.Models.Message(Knight.Response.Models.MessageType.Error, "age: invalid", meta) };
+
+        // Act
+        var dict = mapper.Map(msgs);
+
+        // Assert
+        dict.Keys.ShouldBe(new[] { "profile.age" }, Case.Insensitive);
+        dict["profile.age"].ShouldBe(new[] { "age: invalid" }); // content kept; meta set the field
     }
 }

@@ -201,11 +201,6 @@ public static class ApiResults
     {
         var opts = ResolveOptions(http);
 
-        if (status == StatusCodes.Status204NoContent)
-        {
-            return Results.NoContent();
-        }
-
         if (status == StatusCodes.Status201Created)
         {
             return opts.IncludeFullResultPayload

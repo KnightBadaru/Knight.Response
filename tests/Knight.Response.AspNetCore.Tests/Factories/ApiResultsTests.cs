@@ -58,7 +58,7 @@ public class ApiResultsTests
     {
         if (includeFullPayload)
         {
-            var result = TestHost.Deserialize<Result<T>>(content);
+            var result = TestHelpers.Deserialize<Result<T>>(content);
 
             result.ShouldNotBeNull();
             result.Value.ShouldBe(value);
@@ -169,21 +169,29 @@ public class ApiResultsTests
         AssertFailureResponse(body, statusCode, includeFullPayload, useProblemDetails);
     }
 
-    // [Fact]
-    // public async Task Ok_Success_WithNullHttpContext_Uses_Defaults()
-    // {
-    //     // Arrange
-    //     HttpContext? http = null;
-    //
-    //     // Act
-    //     var ires = ApiResults.Ok(Knight.Response.Factories.Results.Success(new { id = 9 }), http);
-    //     var (status, body, _) = await TestHost.ExecuteAsync(ires, new DefaultHttpContext());
-    //
-    //     // Assert (defaults: IncludeFullResultPayload = true)
-    //     status.ShouldBe(StatusCodes.Status200OK);
-    //     body.ShouldContain("\"status\":\"Completed\"");
-    //     body.ShouldContain("\"id\":9");
-    // }
+    [Theory]
+    [MemberData(nameof(FailureData))]
+    public async Task Ok_Generic_Failure_Respects_ProblemDetails_Settings(
+        bool useProblemDetails, bool includeFullPayload, int statusCode)
+    {
+        // Arrange
+        var opts = new KnightResponseOptions {
+            IncludeFullResultPayload = includeFullPayload,
+            UseProblemDetails = useProblemDetails,
+            StatusCodeResolver = _ => statusCode
+        };
+        var (http, _) = TestHost.CreateHttpContext(opts);
+
+        // Act
+        var response = Knight.Response.Factories.Results.Failure<string>("bad");
+        var result = ApiResults.Ok(response, http);
+        var (actualStatus, body, _) = await TestHost.ExecuteAsync(result, http);
+
+        // Assert
+        actualStatus.ShouldBe(statusCode);
+        AssertFailureResponse(body, statusCode, includeFullPayload, useProblemDetails);
+    }
+
 
     [Theory]
     [MemberData(nameof(TrueFalseData))]
@@ -204,6 +212,43 @@ public class ApiResultsTests
         status.ShouldBe(StatusCodes.Status201Created);
         headers.Location.ToString().ShouldBe(location);
         AssertResponse(body, dto, includeFullPayload);
+    }
+
+    [Fact]
+    public async Task Created_Success_Empty_Location()
+    {
+        // Arrange
+        var opts = KnightResponseOptions.Defaults;
+        var (http, _) = TestHost.CreateHttpContext(opts);
+        var response = Knight.Response.Factories.Results.Success();
+
+        // Act
+        var result = ApiResults.Created(response, http);
+        var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
+
+        // Assert
+        status.ShouldBe(StatusCodes.Status201Created);
+        headers.Location.ShouldBeEmpty();
+        AssertResponse(body, opts.IncludeFullResultPayload);
+    }
+
+    [Fact]
+    public async Task Created_Generic_Success_Empty_Location()
+    {
+        // Arrange
+        var dto = new { id = 7, name = "user" };
+        var opts = KnightResponseOptions.Defaults;
+        var (http, _) = TestHost.CreateHttpContext(opts);
+        var response = Knight.Response.Factories.Results.Success(dto);
+
+        // Act
+        var result = ApiResults.Created(response, http);
+        var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
+
+        // Assert
+        status.ShouldBe(StatusCodes.Status201Created);
+        headers.Location.ShouldBeEmpty();
+        AssertResponse(body, dto, opts.IncludeFullResultPayload);
     }
 
     [Theory]
@@ -251,6 +296,29 @@ public class ApiResultsTests
         // Assert
         status.ShouldBe(statusCode);
         body.ShouldContain(reason);
+        AssertFailureResponse(body, statusCode, includeFullPayload, useProblemDetails);
+    }
+
+    [Theory]
+    [MemberData(nameof(FailureData))]
+    public async Task Created_Generic_Failure_Respects_ProblemDetails_Settings(
+        bool useProblemDetails, bool includeFullPayload, int statusCode)
+    {
+        // Arrange
+        var opts = new KnightResponseOptions {
+            IncludeFullResultPayload = includeFullPayload,
+            UseProblemDetails = useProblemDetails,
+            StatusCodeResolver = _ => statusCode
+        };
+        var (http, _) = TestHost.CreateHttpContext(opts);
+
+        // Act
+        var response = Knight.Response.Factories.Results.Failure<object>("nope");
+        var result = ApiResults.Created(response, http, "/any");
+        var (actualStatus, body, _) = await TestHost.ExecuteAsync(result, http);
+
+        // Assert
+        actualStatus.ShouldBe(statusCode);
         AssertFailureResponse(body, statusCode, includeFullPayload, useProblemDetails);
     }
 
@@ -310,6 +378,66 @@ public class ApiResultsTests
         AssertResponse(body, includeFullPayload);
     }
 
+    [Fact]
+    public async Task Accepted_Success_Empty_Location()
+    {
+        // Arrange
+        var opts = KnightResponseOptions.Defaults;
+        var (http, _) = TestHost.CreateHttpContext(opts);
+        var response = Knight.Response.Factories.Results.Success();
+
+        // Act
+        var result = ApiResults.Accepted(response, http);
+        var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
+
+        // Assert
+        status.ShouldBe(StatusCodes.Status202Accepted);
+        headers.Location.ShouldBeEmpty();
+        AssertResponse(body, opts.IncludeFullResultPayload);
+    }
+
+    [Fact]
+    public async Task Accepted_Generic_Success_Empty_Location()
+    {
+        // Arrange
+        var dto = new { id = 7, name = "user" };
+        var opts = KnightResponseOptions.Defaults;
+        var (http, _) = TestHost.CreateHttpContext(opts);
+        var response = Knight.Response.Factories.Results.Success(dto);
+
+        // Act
+        var result = ApiResults.Accepted(response, http);
+        var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
+
+        // Assert
+        status.ShouldBe(StatusCodes.Status202Accepted);
+        headers.Location.ShouldBeEmpty();
+        AssertResponse(body, dto, opts.IncludeFullResultPayload);
+    }
+
+    [Theory]
+    [MemberData(nameof(FailureData))]
+    public async Task Accepted_Generic_Failure_Respects_ProblemDetails_Settings(
+        bool useProblemDetails, bool includeFullPayload, int statusCode)
+    {
+        // Arrange
+        var opts = new KnightResponseOptions {
+            IncludeFullResultPayload = includeFullPayload,
+            UseProblemDetails = useProblemDetails,
+            StatusCodeResolver = _ => statusCode
+        };
+        var (http, _) = TestHost.CreateHttpContext(opts);
+
+        // Act
+        var response = Knight.Response.Factories.Results.Failure<string>("bad");
+        var result = ApiResults.Accepted(response, http, "/status/1");
+        var (actualStatus, body, _) = await TestHost.ExecuteAsync(result, http);
+
+        // Assert
+        actualStatus.ShouldBe(statusCode);
+        AssertFailureResponse(body, statusCode, includeFullPayload, useProblemDetails);
+    }
+
     [Theory]
     [MemberData(nameof(FailureData))]
     public async Task Accept_Failure_Respects_ProblemDetails_Settings(
@@ -347,6 +475,23 @@ public class ApiResultsTests
 
         // Act
         var result = ApiResults.NoContent(Knight.Response.Factories.Results.Success(), http);
+        var (status, body, _) = await TestHost.ExecuteAsync(result, http);
+
+        // Assert
+        status.ShouldBe(StatusCodes.Status204NoContent);
+        body.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [MemberData(nameof(TrueFalseData))]
+    public async Task NoContent_Generic_Success_Returns_204_And_Body_Respects_FullPayload(bool includeFullPayload)
+    {
+        // Arrange
+        var opts = new KnightResponseOptions { IncludeFullResultPayload = includeFullPayload };
+        var (http, _) = TestHost.CreateHttpContext(opts);
+
+        // Act
+        var result = ApiResults.NoContent(Knight.Response.Factories.Results.Success("ok"), http);
         var (status, body, _) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
@@ -474,5 +619,95 @@ public class ApiResultsTests
 
         // Assert
         forbiddenResult.status.ShouldBe(StatusCodes.Status403Forbidden);
+    }
+
+    [Fact]
+    public async Task BuildFailure_DoesNotOverride_Explicit_400()
+    {
+        // Arrange
+        var opts = new KnightResponseOptions { UseProblemDetails = false };
+        var (http, _) = TestHost.CreateHttpContext(opts);
+
+        // Act
+        var response = Knight.Response.Factories.Results.Failure("bad");
+        var result = ApiResults.BadRequest(response, http); // passes 400 explicitly
+        var (status, _, _) = await TestHost.ExecuteAsync(result, http);
+
+        // Assert
+        status.ShouldBe(StatusCodes.Status400BadRequest);
+    }
+
+    // -------------------- Mutant War! --------------------
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task Created_With_NullOrEmpty_Location_Does_Not_Set_Header(string? location)
+    {
+        // Arrange
+        var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
+        var (http, _) = TestHost.CreateHttpContext(opts);
+        var res = Knight.Response.Factories.Results.Success(new { id = 1 });
+
+        // Act
+        var ires = ApiResults.Created(res, http, location);
+        var (status, _, headers) = await TestHost.ExecuteAsync(ires, http);
+
+        // Assert
+        status.ShouldBe(StatusCodes.Status201Created);
+        headers.Location.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Created_With_NonEmpty_Location_Sets_Header()
+    {
+        // Arrange
+        var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
+        var (http, _) = TestHost.CreateHttpContext(opts);
+        var res = Knight.Response.Factories.Results.Success(new { id = 2 });
+
+        // Act
+        var ires = ApiResults.Created(res, http, "/api/items/2");
+        var (status, _, headers) = await TestHost.ExecuteAsync(ires, http);
+
+        // Assert
+        status.ShouldBe(StatusCodes.Status201Created);
+        headers.Location!.ToString().ShouldBe("/api/items/2");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task Accepted_With_NullOrEmpty_Location_Does_Not_Set_Header(string? location)
+    {
+        // Arrange
+        var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
+        var (http, _) = TestHost.CreateHttpContext(opts);
+        var res = Knight.Response.Factories.Results.Success();
+
+        // Act
+        var ires = ApiResults.Accepted(res, http, location);
+        var (status, _, headers) = await TestHost.ExecuteAsync(ires, http);
+
+        // Assert
+        status.ShouldBe(StatusCodes.Status202Accepted);
+        headers.Location.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task Accepted_With_NonEmpty_Location_Sets_Header()
+    {
+        // Arrange
+        var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
+        var (http, _) = TestHost.CreateHttpContext(opts);
+        var res = Knight.Response.Factories.Results.Success<string>();
+
+        // Act
+        var ires = ApiResults.Accepted(res, http, "/status/42");
+        var (status, _, headers) = await TestHost.ExecuteAsync(ires, http);
+
+        // Assert
+        status.ShouldBe(StatusCodes.Status202Accepted);
+        headers.Location!.ToString().ShouldBe("/status/42");
     }
 }

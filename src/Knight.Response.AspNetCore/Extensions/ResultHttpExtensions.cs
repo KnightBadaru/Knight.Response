@@ -127,6 +127,7 @@ public static class ResultHttpExtensions
         {
             StatusCodes.Status201Created => ApiResults.Created(result, httpContext, location),
             StatusCodes.Status202Accepted => ApiResults.Accepted(result, httpContext, location),
+            StatusCodes.Status204NoContent => ApiResults.NoContent(result, httpContext),
             _ => ApiResults.Ok(result, httpContext)
         };
 }

@@ -25,8 +25,8 @@ internal sealed class DefaultValidationErrorMapper : IValidationErrorMapper
             var match = ColonPattern.Match(message.Content);
             if (match.Success)
             {
-                var field = match.Groups["field"].Value;
-                var msg   = match.Groups["msg"].Value;
+                var field = match.Groups["field"].Value.Trim();
+                var msg   = match.Groups["msg"].Value.Trim();
                 if (!string.IsNullOrWhiteSpace(field))
                 {
                     Add(dictionary, field, msg);

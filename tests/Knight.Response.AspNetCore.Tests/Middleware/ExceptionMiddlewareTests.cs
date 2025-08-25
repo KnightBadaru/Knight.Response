@@ -12,7 +12,7 @@ namespace Knight.Response.AspNetCore.Tests.Middleware;
 
 public class ExceptionMiddlewareTests
 {
-    private static KnightResponseExceptionMiddleware Build(RequestDelegate next, KnightResponseOptions? opts = null)
+   private static (KnightResponseExceptionMiddleware, ILogger<KnightResponseExceptionMiddleware>) Build(RequestDelegate next, KnightResponseOptions? opts = null)
     {
         var logger = Substitute.For<ILogger<KnightResponseExceptionMiddleware>>();
         var options = Microsoft.Extensions.Options.Options.Create(opts ?? new KnightResponseOptions
@@ -22,14 +22,14 @@ public class ExceptionMiddlewareTests
             StatusCodeResolver = _ => StatusCodes.Status500InternalServerError
         });
 
-        return new KnightResponseExceptionMiddleware(next, logger, options);
+        return (new KnightResponseExceptionMiddleware(next, logger, options), logger);
     }
 
     [Fact]
     public async Task Middleware_When_Exception_And_ProblemDetails_Enabled_Returns_500_PD_Without_Exception_Detail()
     {
         // Arrange
-        var middleware = Build(_ => throw new InvalidOperationException("boom"));
+        var (middleware, _) = Build(_ => throw new InvalidOperationException("boom"));
         var (http, _) = TestHost.CreateHttpContext();
 
         // Act
@@ -56,7 +56,7 @@ public class ExceptionMiddlewareTests
             StatusCodeResolver = _ => StatusCodes.Status500InternalServerError
         };
 
-        var middleware = Build(_ => throw new ArgumentNullException("x", "bad"), opts);
+        var (middleware, _) = Build(_ => throw new ArgumentNullException("x", "bad"), opts);
         var (http, _) = TestHost.CreateHttpContext(opts);
 
         // Act
@@ -68,8 +68,19 @@ public class ExceptionMiddlewareTests
         http.Response.Body.Seek(0, SeekOrigin.Begin);
         var body = await new StreamReader(http.Response.Body).ReadToEndAsync();
 
+        // logger.Received().Log(LogLevel.Error,Arg.Any<Exception?>(), Arg.Any<string>(), Arg.Any<object?[]>());
+
         body.ShouldContain("Unhandled exception:");
         body.ShouldContain("bad");
+
+        body.ShouldContain("Unhandled exception");
+        body.ShouldContain("exceptionType");
+        body.ShouldContain("stackTrace");
+        body.ShouldContain("source");
+        body.ShouldContain("path");
+        body.ShouldContain("method");
+        body.ShouldContain("traceId");
+        body.ShouldContain("Exception details attached.");
     }
 
     [Theory]
@@ -103,18 +114,22 @@ public class ExceptionMiddlewareTests
         }
         else
         {
+            body.ShouldContain("An unexpected error occurred.");
             body.ShouldNotContain("kaput");
         }
     }
 
-    [Fact]
-    public async Task ExceptionMiddleware_WithProblemDetailsDisabled_Returns_SimpleMessages()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExceptionMiddleware_WithProblemDetailsDisabled_Returns_SimpleMessages(bool includeFullPayload)
     {
         // Arrange
         var opts = new KnightResponseOptions
         {
             UseProblemDetails = false,
-            IncludeExceptionDetails = false
+            IncludeExceptionDetails = false,
+            IncludeFullResultPayload = includeFullPayload,
         };
 
         var (http, services) = TestHost.CreateHttpContext(opts);
@@ -134,6 +149,15 @@ public class ExceptionMiddlewareTests
         body.ShouldContain("\"content\"");
         body.ShouldContain("\"metadata\"");
         body.ShouldNotContain("\"type\":\"https://httpstatuses.io/");
+
+        if (includeFullPayload)
+        {
+            body.ShouldContain("isSuccess");
+        }
+        else
+        {
+            body.ShouldNotContain("isSuccess");
+        }
     }
 
     [Fact]
@@ -180,5 +204,73 @@ public class ExceptionMiddlewareTests
 
         // Assert
         http.Response.StatusCode.ShouldBe(StatusCodes.Status204NoContent);
+    }
+
+    // -------------------- Mutant War! --------------------
+
+    [Fact]
+    public async Task Middleware_IncludeExceptionDetails_False_Emits_Generic_Message_No_Diagnostics()
+    {
+        // Arrange
+        var opts = new KnightResponseOptions
+        {
+            UseProblemDetails = true,
+            IncludeExceptionDetails = false, // important branch
+            StatusCodeResolver = _ => StatusCodes.Status500InternalServerError
+        };
+
+        var (http, services) = TestHost.CreateHttpContext(opts);
+
+        // Build a bare pipeline: [our middleware] -> [terminal throws]
+        RequestDelegate app = new ApplicationBuilder(services)
+            .UseKnightResponseExceptionMiddleware()
+            .Use(_ => _ => throw new InvalidOperationException("secret"))
+            .Build();
+
+        // Act
+        await app(http);
+        http.Response.Body.Position = 0;
+        var body = await new StreamReader(http.Response.Body).ReadToEndAsync();
+
+        // Assert
+        http.Response.StatusCode.ShouldBe(StatusCodes.Status500InternalServerError);
+        body.ShouldContain("\"type\":\"https://httpstatuses.io/500\"");
+        body.ShouldContain("An unexpected error occurred."); // generic
+        body.ShouldNotContain("stackTrace");
+        body.ShouldNotContain("exceptionType");
+        body.ShouldNotContain("secret"); // message not leaked
+    }
+
+    [Fact]
+    public async Task Middleware_IncludeExceptionDetails_True_Emits_Diagnostics()
+    {
+        // Arrange
+        var opts = new KnightResponseOptions
+        {
+            UseProblemDetails = true,
+            IncludeExceptionDetails = true, // enable diagnostics
+            StatusCodeResolver = _ => StatusCodes.Status500InternalServerError
+        };
+
+        var (http, services) = TestHost.CreateHttpContext(opts);
+
+        // Build a bare pipeline: [our middleware] -> [terminal throws]
+        RequestDelegate app = new ApplicationBuilder(services)
+            .UseKnightResponseExceptionMiddleware()
+            .Use(_ => _ => throw new InvalidOperationException("leaked"))
+            .Build();
+
+        // Act
+        await app(http);
+        http.Response.Body.Position = 0;
+        var body = await new StreamReader(http.Response.Body).ReadToEndAsync();
+
+        // Assert
+        http.Response.StatusCode.ShouldBe(StatusCodes.Status500InternalServerError);
+        body.ShouldContain("\"type\":\"https://httpstatuses.io/500\"");
+        body.ShouldContain("Unhandled exception: leaked"); // includes ex.Message
+        body.ShouldContain("stackTrace");
+        body.ShouldContain("exceptionType");
+        body.ShouldContain("traceId");
     }
 }

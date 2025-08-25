@@ -1,6 +1,7 @@
 using Knight.Response.AspNetCore.Mappers;
 using Knight.Response.AspNetCore.Options;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Knight.Response.AspNetCore.Extensions;
 
@@ -26,7 +27,8 @@ public static class ServiceCollectionExtensions
         Action<KnightResponseOptions>? configure = null)
     {
         // Register defaults
-        services.AddScoped<IValidationErrorMapper, DefaultValidationErrorMapper>();
+        // Only add the default if nothing else has registered IValidationErrorMapper
+        services.TryAddScoped<IValidationErrorMapper, DefaultValidationErrorMapper>();
 
         // Configure options
         var builder = services.AddOptions<KnightResponseOptions>();

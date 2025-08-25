@@ -1,7 +1,10 @@
 using Knight.Response.AspNetCore.Extensions;
 using Knight.Response.AspNetCore.Options;
 using Knight.Response.AspNetCore.Tests.Infrastructure;
+using Knight.Response.Core;
+using Knight.Response.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Shouldly;
 
 namespace Knight.Response.AspNetCore.Tests.Extensions;
@@ -12,34 +15,57 @@ public class ResultExtensionsTests
     public async Task ToIResult_Success_Respects_IncludeFullResultPayload()
     {
         // Arrange
+        var dto = new Dictionary<string, int>
+        {
+            ["id"] = 1
+        };
         var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
         var (http, _) = TestHost.CreateHttpContext(opts);
 
         // Act
-        var result = Knight.Response.Factories.Results.Success(new { id = 1 }).ToIResult(http);
+        var result = Knight.Response.Factories.Results
+            .Success(dto)
+            .ToIResult(http);
+
         var (status, body, _) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status200OK);
-        body.ShouldContain("\"status\":\"Completed\"");
-        body.ShouldContain("\"id\":1");
+
+        var response = TestHelpers.Deserialize<Result<Dictionary<string, int>>>(body);
+
+        response.ShouldNotBeNull();
+        response.Value!.ShouldBe(dto);
+        response.Status.ShouldBe(Status.Completed);
     }
 
     [Fact]
     public async Task ToIResult_Failure_Uses_ProblemDetails_When_Enabled()
     {
         // Arrange
+        const string error = "oops!";
         var opts = new KnightResponseOptions { UseProblemDetails = true };
         var (http, _) = TestHost.CreateHttpContext(opts);
 
         // Act
-        var result = Knight.Response.Factories.Results.Failure("oops").ToIResult(http);
+        var result = Knight.Response.Factories.Results
+            .Failure(error)
+            .ToIResult(http);
+
         var (status, body, _) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status400BadRequest);
-        body.ShouldContain("\"type\":\"https://httpstatuses.io/400\"");
-        body.ShouldContain("oops");
+
+        var pd = TestHelpers.Deserialize<ProblemDetails>(body);
+        pd.ShouldNotBeNull();
+        pd.Title.ShouldBe(error);
+        pd.Type.ShouldBe(TestHelpers.HttpStatusUrl());
+        pd.Status.ShouldBe(StatusCodes.Status400BadRequest);
+
+        TestHelpers.SvcStatusShouldBeFailed(pd);
+        var messages = TestHelpers.Ext<List<Message>>(pd, "messages");
+        messages.ShouldContain(m => m.Type == MessageType.Error && m.Content == error);
     }
 
     // -------------------- Created (201) --------------------
@@ -48,34 +74,46 @@ public class ResultExtensionsTests
     public async Task ToCreatedResult_Success_FullPayload_201_With_Location_And_Result()
     {
         // Arrange
+        const string location = "/api/items/1";
         var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
         var (http, _) = TestHost.CreateHttpContext(opts);
 
         // Act
-        var result = Knight.Response.Factories.Results.Success().ToCreatedResult(http, "/api/items/1");
+        var result = Knight.Response.Factories.Results
+            .Success()
+            .ToCreatedResult(http, location);
+
         var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
+        var response = TestHelpers.Deserialize<Result>(body);
+        response.ShouldNotBeNull();
+        response.Status.ShouldBe(Status.Completed);
         status.ShouldBe(StatusCodes.Status201Created);
-        headers.Location.ToString().ShouldBe("/api/items/1");
-        body.ShouldContain("\"status\":\"Completed\"");
+        headers.Location.ToString().ShouldBe(location);
     }
 
     [Fact]
     public async Task ToCreatedResult_Success_ValueOnly_For_Generic_When_FullPayloadFalse()
     {
         // Arrange
+        const string location = "/api/items/1";
         var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
         var (http, _) = TestHost.CreateHttpContext(opts);
 
         // Act
-        var result = Knight.Response.Factories.Results.Success(new { id = 7, name = "knight" })
-            .ToCreatedResult(http, "/api/users/7");
+        var result = Knight.Response.Factories.Results
+            .Success(new { id = 7, name = "knight" })
+            .ToCreatedResult(http, location);
+
         var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status201Created);
-        headers.Location.ToString().ShouldBe("/api/users/7");
+        var response = TestHelpers.Deserialize<Result>(body);
+        response.ShouldNotBeNull();
+        response.Status.ShouldBe(Status.Completed);
+        headers.Location.ToString().ShouldBe(location);
         body.ShouldContain("\"id\":7");
         body.ShouldNotContain("\"status\""); // value-only
     }
@@ -84,17 +122,20 @@ public class ResultExtensionsTests
     public async Task ToCreatedResult_Success_NonGeneric_FullPayloadFalse_201_With_EmptyBody()
     {
         // Arrange
+        const string location = "/api/ping/1";
         var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
         var (http, _) = TestHost.CreateHttpContext(opts);
 
         // Act
-        var result = Knight.Response.Factories.Results.Success()
-            .ToCreatedResult(http, "/api/ping/1");
+        var result = Knight.Response.Factories.Results
+            .Success() // No content
+            .ToCreatedResult(http, location);
+
         var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status201Created);
-        headers.Location.ToString().ShouldBe("/api/ping/1");
+        headers.Location.ToString().ShouldBe(location);
         body.ShouldBe(string.Empty); // Created(location, null)
     }
 
@@ -102,18 +143,29 @@ public class ResultExtensionsTests
     public async Task ToCreatedResult_Failure_Uses_ClientError_And_ProblemDetails_When_Enabled()
     {
         // Arrange
+        const string error = "This is bad!";
         var opts = new KnightResponseOptions { UseProblemDetails = true };
         var (http, _) = TestHost.CreateHttpContext(opts);
 
         // Act
-        var result = Knight.Response.Factories.Results.Failure("bad")
+        var result = Knight.Response.Factories.Results
+            .Failure(error)
             .ToCreatedResult(http, "/api/items");
+
         var (status, body, _) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status400BadRequest);
-        body.ShouldContain("\"type\":\"https://httpstatuses.io/400\"");
-        body.ShouldContain("bad");
+
+        var pd = TestHelpers.Deserialize<ProblemDetails>(body);
+        pd.ShouldNotBeNull();
+        pd.Title.ShouldBe(error);
+        pd.Type.ShouldBe(TestHelpers.HttpStatusUrl());
+        pd.Status.ShouldBe(StatusCodes.Status400BadRequest);
+
+        TestHelpers.SvcStatusShouldBeFailed(pd);
+        var messages = TestHelpers.Ext<List<Message>>(pd, "messages");
+        messages.ShouldContain(m => m.Type == MessageType.Error && m.Content == error);
     }
 
     [Fact]
@@ -124,35 +176,18 @@ public class ResultExtensionsTests
         var (http, _) = TestHost.CreateHttpContext(new KnightResponseOptions { IncludeFullResultPayload = true });
 
         // Act
-        var ires = Knight.Response.Factories.Results.Success().ToCreatedResult(http, location);
-        var (status, body, headers) = await TestHost.ExecuteAsync(ires, http);
-
-        // Assert
-        status.ShouldBe(StatusCodes.Status201Created);
-        headers.Location.ToString().ShouldBe(location);
-        body.ShouldContain("\"status\":\"Completed\"");
-    }
-
-    [Fact]
-    public async Task ToCreatedResult_Generic_ValueOnly_When_FullPayloadFalse()
-    {
-        // Arrange
-        const string location = "/api/things/11";
-        var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
-        var (http, _) = TestHost.CreateHttpContext(opts);
-
-        // Act
-        var ires = Knight.Response.Factories.Results
-            .Success(new { id = 11 })
+        var result = Knight.Response.Factories.Results
+            .Success()
             .ToCreatedResult(http, location);
 
-        var (status, body, headers) = await TestHost.ExecuteAsync(ires, http);
+        var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
+        var response = TestHelpers.Deserialize<Result>(body);
+        response.ShouldNotBeNull();
+        response.Status.ShouldBe(Status.Completed);
         status.ShouldBe(StatusCodes.Status201Created);
         headers.Location.ToString().ShouldBe(location);
-        body.ShouldContain("\"id\":11");
-        body.ShouldNotContain("\"status\"");
     }
 
     // -------------------- Accepted (202) --------------------
@@ -161,19 +196,22 @@ public class ResultExtensionsTests
     public async Task ToAcceptedResult_Success_202_With_Location_And_Result_When_FullPayloadTrue()
     {
         // Arrange
+        const string location = "/status/abc";
         var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
         var (http, _) = TestHost.CreateHttpContext(opts);
 
         // Act
         var result = Knight.Response.Factories.Results.Success(new { ticket = "abc" })
-            .ToAcceptedResult(http, "/status/abc");
+            .ToAcceptedResult(http, location);
         var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
+        var response = TestHelpers.Deserialize<Result>(body);
+        response.ShouldNotBeNull();
+        response.Status.ShouldBe(Status.Completed);
         status.ShouldBe(StatusCodes.Status202Accepted);
-        headers.Location.ToString().ShouldBe("/status/abc");
+        headers.Location.ToString().ShouldBe(location);
         body.ShouldContain("\"ticket\":\"abc\"");
-        body.ShouldContain("\"status\":\"Completed\"");
     }
 
     [Fact]
@@ -193,26 +231,30 @@ public class ResultExtensionsTests
 
         // Assert
         status.ShouldBe(StatusCodes.Status202Accepted);
+        var response = TestHelpers.Deserialize<Result>(body);
+        response.ShouldNotBeNull();
+        response.Status.ShouldBe(Status.Completed);
         headers.Location.ToString().ShouldBe(location);
         body.ShouldContain("\"id\":42");
-        body.ShouldNotContain("\"status\"");
+        body.ShouldNotContain("\"status\""); // value-only
     }
 
     [Fact]
     public async Task ToAcceptedResult_NonGeneric_FullPayloadFalse_202_With_EmptyBody()
     {
         // Arrange
+        const string location = "/status/1";
         var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
         var (http, _) = TestHost.CreateHttpContext(opts);
 
         // Act
         var result = Knight.Response.Factories.Results.Success()
-            .ToAcceptedResult(http, "/status/1");
+            .ToAcceptedResult(http, location);
         var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status202Accepted);
-        headers.Location.ToString().ShouldBe("/status/1");
+        headers.Location.ToString().ShouldBe(location);
         body.ShouldBe(string.Empty);
     }
 
@@ -244,9 +286,10 @@ public class ResultExtensionsTests
     public async Task ToHttpResult_Result_Success_Maps_Status_And_Behavior(int statusCode)
     {
         // Arrange
+        const string location = "/r/1";
         var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
         var (http, _) = TestHost.CreateHttpContext(opts);
-        var loc = statusCode is StatusCodes.Status201Created or StatusCodes.Status202Accepted ? "/r/1" : null;
+        var loc = statusCode is StatusCodes.Status201Created or StatusCodes.Status202Accepted ? location : null;
 
         // Act
         var result = Knight.Response.Factories.Results.Success().ToHttpResult(statusCode, http, loc);
@@ -261,7 +304,7 @@ public class ResultExtensionsTests
         }
         else if (statusCode is StatusCodes.Status201Created or StatusCodes.Status202Accepted)
         {
-            headers.Location.ToString().ShouldBe("/r/1");
+            headers.Location.ToString().ShouldBe(location);
             body.ShouldContain("\"status\":\"Completed\"");
         }
         else
@@ -277,23 +320,28 @@ public class ResultExtensionsTests
     public async Task ToHttpResult_Generic_Success_Maps_Status_And_Body_By_Options(int code)
     {
         // Arrange
+        const string location = "/g/9";
         var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
         var (http, _) = TestHost.CreateHttpContext(opts);
         var model = new { id = 9 };
-        var loc = code is StatusCodes.Status201Created or StatusCodes.Status202Accepted ? "/g/9" : null;
+        var loc = code is StatusCodes.Status201Created or StatusCodes.Status202Accepted ? location : null;
 
         // Act
         var result = Knight.Response.Factories.Results.Success(model).ToHttpResult(code, http, loc);
         var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
+        var response = TestHelpers.Deserialize<Result>(body);
+        response.ShouldNotBeNull();
+        response.Status.ShouldBe(Status.Completed);
+
         status.ShouldBe(code);
         body.ShouldContain("\"id\":9");
         body.ShouldNotContain("\"status\"");
 
         if (code is StatusCodes.Status201Created or StatusCodes.Status202Accepted)
         {
-            headers.Location.ToString().ShouldBe("/g/9");
+            headers.Location.ToString().ShouldBe(location);
         }
     }
 
@@ -305,15 +353,19 @@ public class ResultExtensionsTests
         var (http, _) = TestHost.CreateHttpContext(new KnightResponseOptions { IncludeFullResultPayload = false });
 
         // Act
-        var ires = Knight.Response.Factories.Results
+        var result = Knight.Response.Factories.Results
             .Success(new { id = 5 })
             .ToHttpResult(StatusCodes.Status201Created, http, location);
 
-        var (status, body, headers) = await TestHost.ExecuteAsync(ires, http);
+        var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
+        var response = TestHelpers.Deserialize<Result>(body);
+        response.ShouldNotBeNull();
+        response.Status.ShouldBe(Status.Completed);
+
         status.ShouldBe(StatusCodes.Status201Created);
-        headers.Location!.ToString().ShouldBe(location);
+        headers.Location.ToString().ShouldBe(location);
         body.ShouldContain("\"id\":5");
         body.ShouldNotContain("\"status\"");
     }
@@ -322,20 +374,25 @@ public class ResultExtensionsTests
     public async Task ToHttpResult_202_Routes_To_Accepted_And_Sets_Location()
     {
         // Arrange
+        const string value = "ok";
         const string location = "/status/9";
         var (http, _) = TestHost.CreateHttpContext(new KnightResponseOptions { IncludeFullResultPayload = true });
 
         // Act
-        var ires = Knight.Response.Factories.Results
-            .Success("ok")
+        var result = Knight.Response.Factories.Results
+            .Success(value)
             .ToHttpResult(StatusCodes.Status202Accepted, http, location);
 
-        var (status, body, headers) = await TestHost.ExecuteAsync(ires, http);
+        var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
+        var response = TestHelpers.Deserialize<Result<string>>(body);
+        response.ShouldNotBeNull();
+        response.Status.ShouldBe(Status.Completed);
+        response.Value.ShouldBe(value);
+
         status.ShouldBe(StatusCodes.Status202Accepted);
-        headers.Location!.ToString().ShouldBe(location);
-        body.ShouldContain("\"status\":\"Completed\"");
+        headers.Location.ToString().ShouldBe(location);
     }
 
     [Fact]
@@ -345,11 +402,28 @@ public class ResultExtensionsTests
         var (http, _) = TestHost.CreateHttpContext(new KnightResponseOptions());
 
         // Act
-        var ires = Knight.Response.Factories.Results
+        var result = Knight.Response.Factories.Results
             .Success()
             .ToHttpResult(StatusCodes.Status204NoContent, http);
 
-        var (status, body, _) = await TestHost.ExecuteAsync(ires, http);
+        var (status, body, _) = await TestHost.ExecuteAsync(result, http);
+
+        // Assert
+        status.ShouldBe(StatusCodes.Status204NoContent);
+        body.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ToHttpResult_Generic_204_NoContent_Returns_EmptyBody()
+    {
+        // Arrange
+        var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
+        var (http, _) = TestHost.CreateHttpContext(opts);
+
+        // Act
+        var response = Knight.Response.Factories.Results.Success(new { id = 1 });
+        var result = response.ToHttpResult(StatusCodes.Status204NoContent, http);
+        var (status, body, _) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status204NoContent);
