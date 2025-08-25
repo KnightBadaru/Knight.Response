@@ -9,6 +9,15 @@
         <PackageId>Knight.Response.AspNetCore</PackageId>
         <Version>1.0.0</Version>
         <Authors>Knight</Authors>
+        <Title>Knight.Response.AspNetCore</Title>
+        <PackageReleaseNotes>
+            - Initial release of Knight.Response.AspNetCore
+            - Conversion helpers via ApiResults (Ok, Created, Accepted, NoContent, BadRequest, NotFound, Conflict, Unauthorized, Forbidden)
+            - Extension methods for Minimal APIs and controllers (Result.ToIResult, Result&lt;T&gt;.ToIResult)
+            - RFC7807 ProblemDetails and ValidationProblemDetails support
+            - Exception middleware (UseKnightResponseExceptionMiddleware)
+            - DI integration via AddKnightResponse with configurable options
+        </PackageReleaseNotes>
         <Description>ASP.NET Core helpers for Knight.Response: map Result/Result&lt;T&gt; to IResult/ActionResult with consistent HTTP semantics.</Description>
         <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
         <RepositoryType>git</RepositoryType>

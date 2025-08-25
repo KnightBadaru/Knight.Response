@@ -10,6 +10,7 @@ jobs:
   publish-response:
     if: startsWith(github.ref, 'refs/tags/response-v')
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -28,15 +29,56 @@ jobs:
       - name: Test
         run: dotnet test Knight.Response.sln -c Release --no-build --verbosity normal
 
-      - name: Pack (Knight.Response)
-        run: dotnet pack src/Knight.Response/Knight.Response.csproj -c Release -o artifacts --no-build
+      - name: Derive version from tag (Knight.Response)
+        run: echo "PKG_VERSION=${GITHUB_REF_NAME#response-v}" >> "$GITHUB_ENV"
+
+      # Optional: sanity check csproj version matches the tag (non-fatal)
+      - name: Check csproj version (optional)
+        run: |
+          csproj="src/Knight.Response/Knight.Response.csproj"
+          declared=$(xmllint --xpath "string(//Project/PropertyGroup/Version)" "$csproj" 2>/dev/null || echo "")
+          echo "Declared Version=$declared; Tag Version=$PKG_VERSION"
+          if [ -n "$declared" ] && [ "$declared" != "$PKG_VERSION" ]; then
+            echo "::warning ::csproj version ($declared) does not match tag ($PKG_VERSION)"
+          fi
+
+      - name: Extract release notes from CHANGELOG
+        run: |
+          FILE="src/Knight.Response/CHANGELOG.md"
+          ver="${PKG_VERSION}"
+          if [ -f "$FILE" ] && grep -qE "^## \\[?\\s*${ver}\\s*\\]?" "$FILE"; then
+            {
+              echo "RELEASE_NOTES<<'EOF'"
+              awk -v ver="$ver" '
+                $0 ~ "^## \\[? *" ver " *\\]?" {p=1; next}
+                p && $0 ~ "^## \\[" {p=0}
+                p {print}
+              ' "$FILE"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_NOTES=See CHANGELOG.md for details." >> "$GITHUB_ENV"
+          fi
+
+      - name: Pack (Knight.Response with release notes)
+        run: >
+          dotnet pack src/Knight.Response/Knight.Response.csproj
+          -c Release -o artifacts --no-build
+          /p:PackageReleaseNotes="${{ env.RELEASE_NOTES }}"
 
       - name: Publish to NuGet
-        run: dotnet nuget push artifacts/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: >
+          dotnet nuget push artifacts/*.nupkg
+          -k "$NUGET_API_KEY"
+          -s https://api.nuget.org/v3/index.json
+          --skip-duplicate
 
   publish-aspnetcore:
     if: startsWith(github.ref, 'refs/tags/aspnetcore-v')
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -55,8 +97,48 @@ jobs:
       - name: Test
         run: dotnet test Knight.Response.sln -c Release --no-build --verbosity normal
 
-      - name: Pack (Knight.Response.AspNetCore)
-        run: dotnet pack src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj -c Release -o artifacts --no-build
+      - name: Derive version from tag (AspNetCore)
+        run: echo "PKG_VERSION=${GITHUB_REF_NAME#aspnetcore-v}" >> "$GITHUB_ENV"
+
+      # Optional: sanity check csproj version matches the tag (non-fatal)
+      - name: Check csproj version (optional)
+        run: |
+          csproj="src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj"
+          declared=$(xmllint --xpath "string(//Project/PropertyGroup/Version)" "$csproj" 2>/dev/null || echo "")
+          echo "Declared Version=$declared; Tag Version=$PKG_VERSION"
+          if [ -n "$declared" ] && [ "$declared" != "$PKG_VERSION" ]; then
+            echo "::warning ::csproj version ($declared) does not match tag ($PKG_VERSION)"
+          fi
+
+      - name: Extract release notes from CHANGELOG
+        run: |
+          FILE="src/Knight.Response.AspNetCore/CHANGELOG.md"
+          ver="${PKG_VERSION}"
+          if [ -f "$FILE" ] && grep -qE "^## \\[?\\s*${ver}\\s*\\]?" "$FILE"; then
+            {
+              echo "RELEASE_NOTES<<'EOF'"
+              awk -v ver="$ver" '
+                $0 ~ "^## \\[? *" ver " *\\]?" {p=1; next}
+                p && $0 ~ "^## \\[" {p=0}
+                p {print}
+              ' "$FILE"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_NOTES=See CHANGELOG.md for details." >> "$GITHUB_ENV"
+          fi
+
+      - name: Pack (Knight.Response.AspNetCore with release notes)
+        run: >
+          dotnet pack src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj
+          -c Release -o artifacts --no-build
+          /p:PackageReleaseNotes="${{ env.RELEASE_NOTES }}"
 
       - name: Publish to NuGet
-        run: dotnet nuget push artifacts/*.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: >
+          dotnet nuget push artifacts/*.nupkg
+          -k "$NUGET_API_KEY"
+          -s https://api.nuget.org/v3/index.json
+          --skip-duplicate
