@@ -10,13 +10,6 @@
         <Version>1.0.1</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response</Title>
-        <PackageReleaseNotes>
-            - Stryker mutation testing integration and CI improvements.
-            - 100% mutation coverage achieved.
-            - Mutation dashboard publishing configured in GitHub Actions.
-            - Updated README badges for NuGet, build, and mutation coverage.
-            - No breaking changes — fully backward compatible.
-        </PackageReleaseNotes>
         <Description>Lightweight, immutable Result/Result&lt;T&gt; library with factories, functional extensions, and pattern matching for C# service layers.</Description>
         <PackageTags>result;response;functional;service-layer;error-handling;patterns;csharp</PackageTags>
         <RepositoryType>git</RepositoryType>

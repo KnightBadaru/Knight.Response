@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Nothing yet.
+
+### Changed
+- Nothing yet.
+
+### Fixed
+- Nothing yet.
+
+---
+## [1.0.2] - 2025-08-28
+
+### Changed
+- Refactored unit tests to consistently use **Shouldly** assertions (instead of `Assert.*`).
+- Improved **README** documentation to clarify the default value behavior of `Result<T>.Value`:
+    - Value types (`int`, `bool`, etc.) return their CLR default (`0`, `false`, etc.) unless explicitly set.
+    - Reference types and nullable value types return `null` when not set.
+- General documentation refinements for consistency.
+
 ---
 
 ## [1.0.1] - 2025-08-15
