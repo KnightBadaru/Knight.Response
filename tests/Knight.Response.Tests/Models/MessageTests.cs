@@ -1,4 +1,5 @@
 using Knight.Response.Models;
+using Shouldly;
 
 namespace Knight.Response.Tests.Models;
 
@@ -29,9 +30,9 @@ public class MessageTests
         var message = new Message(MessageType.Warning, "note", metadata);
 
         // Assert
-        Assert.Equal(2, message.Metadata.Count);
-        Assert.Equal(value, message.Metadata[key]);
-        Assert.Equal(value2, (int?)message.Metadata[key2]);
+        message.Metadata.Count.ShouldBe(2);
+        message.Metadata[key].ShouldBe(value);
+        message.Metadata[key2].ShouldBe(value2);
     }
 
     [Fact]
@@ -45,8 +46,8 @@ public class MessageTests
         metadata["b"] = 2; // try to mutate after construction
 
         // Assert
-        Assert.Single(message.Metadata); // still only "a"
-        Assert.True(message.Metadata.ContainsKey("a"));
-        Assert.False(message.Metadata.ContainsKey("b"));
+        message.Metadata.ShouldHaveSingleItem(); // still only "a"
+        message.Metadata.ShouldContain(m => m.Key == "a");
+        message.Metadata.ShouldNotContain(m => m.Key == "b");
     }
 }

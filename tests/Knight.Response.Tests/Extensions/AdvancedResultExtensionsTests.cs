@@ -1,6 +1,7 @@
 using Knight.Response.Extensions;
 using Knight.Response.Factories;
 using Knight.Response.Models;
+using Shouldly;
 using static Knight.Response.Tests.Helpers.MessageBuilder;
 
 namespace Knight.Response.Tests.Extensions;
@@ -19,9 +20,9 @@ public class AdvancedResultExtensionsTests
         var ensured = original.Ensure(v => v == 10, "must be 10");
 
         // Assert
-        Assert.True(ensured.IsSuccess);
-        Assert.Equal(original.Value, ensured.Value);
-        Assert.Empty(ensured.Messages);
+        ensured.IsSuccess.ShouldBeTrue();
+        ensured.Value.ShouldBe(original.Value);
+        ensured.Messages.ShouldBeEmpty();
     }
 
     [Fact]
@@ -34,9 +35,9 @@ public class AdvancedResultExtensionsTests
         var ensured = Results.Success(3).Ensure(v => v == 4, errorMessage);
 
         // Assert
-        Assert.False(ensured.IsSuccess);
-        Assert.Equal(Status.Failed, ensured.Status);
-        Assert.Equal(errorMessage, ensured.Messages.Single().Content);
+        ensured.IsSuccess.ShouldBeFalse();
+        ensured.Status.ShouldBe(Status.Failed);
+        ensured.Messages.Single().Content.ShouldBe(errorMessage);
     }
 
     [Fact]
@@ -50,9 +51,9 @@ public class AdvancedResultExtensionsTests
         var ensured = original.Ensure(_ => false, "ignored");
 
         // Assert
-        Assert.False(ensured.IsSuccess);
-        Assert.Equal(Status.Failed, ensured.Status);
-        Assert.Equal(reason, ensured.Messages.Single().Content);
+        ensured.IsSuccess.ShouldBeFalse();
+        ensured.Status.ShouldBe(Status.Failed);
+        ensured.Messages.Single().Content.ShouldBe(reason);
     }
 
     // -------- Tap --------
@@ -68,10 +69,10 @@ public class AdvancedResultExtensionsTests
         var tappedResult = original.Tap(_ => tapped++);
 
         // Assert
-        Assert.Equal(1, tapped);
-        Assert.Equal(original.Value, tappedResult.Value);
-        Assert.True(tappedResult.IsSuccess);
-        Assert.Empty(tappedResult.Messages);
+        tapped.ShouldBe(1);
+        tappedResult.Value.ShouldBe(original.Value);
+        tappedResult.IsSuccess.ShouldBeTrue();
+        tappedResult.Messages.ShouldBeEmpty();
     }
 
     [Fact]
@@ -84,8 +85,8 @@ public class AdvancedResultExtensionsTests
         var result = Results.Failure<int>("fail").Tap(_ => tapped++);
 
         // Assert
-        Assert.Equal(0, tapped);
-        Assert.False(result.IsSuccess);
+        tapped.ShouldBe(0);
+        result.IsSuccess.ShouldBeFalse();
     }
 
     // -------- Recover --------
@@ -100,10 +101,9 @@ public class AdvancedResultExtensionsTests
         var recovered = Results.Failure<string>("missing").Recover(_ => recoveredValue);
 
         // Assert
-        Assert.True(recovered.IsSuccess);
-        Assert.Equal(recoveredValue, recovered.Value);
-        // recovery returns success with no messages by design
-        Assert.Empty(recovered.Messages);
+        recovered.IsSuccess.ShouldBeTrue();
+        recovered.Value.ShouldBe(recoveredValue);
+        recovered.Messages.ShouldBeEmpty(); // recovery returns success with no messages by design
     }
 
     [Fact]
@@ -117,8 +117,8 @@ public class AdvancedResultExtensionsTests
         var recovered = original.Recover(_ => "fallback");
 
         // Assert
-        Assert.True(recovered.IsSuccess);
-        Assert.Equal(value, recovered.Value);
+        recovered.IsSuccess.ShouldBeTrue();
+        recovered.Value.ShouldBe(value);
     }
 
     // -------- WithMessages / WithMessage --------
@@ -130,7 +130,7 @@ public class AdvancedResultExtensionsTests
         var result = Results.Failure("a").WithMessage(Info("b"));
 
         // Assert
-        Assert.Equal(new[] { "a", "b" }, result.Messages.Select(m => m.Content).ToArray());
+        result.Messages.Select(m => m.Content).ShouldBe(new[] { "a", "b" });
     }
 
     [Fact]
@@ -143,10 +143,10 @@ public class AdvancedResultExtensionsTests
         var result = Results.Success(1).WithMessage(Warn(messageContent));
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(1, result.Value);
-        Assert.Single(result.Messages);
-        Assert.Equal(messageContent, result.Messages[0].Content);
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe(1);
+        result.Messages.Count.ShouldBe(1);
+        result.Messages[0].Content.ShouldBe(messageContent);
     }
 
     [Fact]
@@ -156,7 +156,8 @@ public class AdvancedResultExtensionsTests
         var result = Results.Failure("content").WithMessages(Info("information"), Warn("warning"), Error("err"));
 
         // Assert
-        Assert.Equal(new[] { "content", "information", "warning", "err" }, result.Messages.Select(m => m.Content));
+        result.Messages.Select(m => m.Content)
+              .ShouldBe(new[] { "content", "information", "warning", "err" });
     }
 
     [Fact]
@@ -169,8 +170,8 @@ public class AdvancedResultExtensionsTests
         var result = Results.Success(value).WithMessages(new[] { Warn("a"), Warn("b") });
 
         // Assert
-        Assert.Equal(new[] { "a", "b" }, result.Messages.Select(m => m.Content));
-        Assert.Equal(value, result.Value);
-        Assert.True(result.IsSuccess);
+        result.Messages.Select(m => m.Content).ShouldBe(new[] { "a", "b" });
+        result.Value.ShouldBe(value);
+        result.IsSuccess.ShouldBeTrue();
     }
 }

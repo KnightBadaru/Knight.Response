@@ -1,5 +1,6 @@
 using Knight.Response.Factories;
 using Knight.Response.Models;
+using Shouldly;
 using static Knight.Response.Tests.Helpers.MessageBuilder;
 
 namespace Knight.Response.Tests.Factories;
@@ -15,9 +16,9 @@ public class ResultsTests
         var result = Results.Success();
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(Status.Completed, result.Status);
-        Assert.Empty(result.Messages);
+        result.IsSuccess.ShouldBeTrue();
+        result.Status.ShouldBe(Status.Completed);
+        result.Messages.ShouldBeEmpty();
     }
 
     [Fact]
@@ -27,10 +28,10 @@ public class ResultsTests
         var result = Results.Success<string>();
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(Status.Completed, result.Status);
-        Assert.Null(result.Value);
-        Assert.Empty(result.Messages);
+        result.IsSuccess.ShouldBeTrue();
+        result.Status.ShouldBe(Status.Completed);
+        result.Value.ShouldBeNull();
+        result.Messages.ShouldBeEmpty();
     }
 
     [Fact]
@@ -41,8 +42,10 @@ public class ResultsTests
         var result = Results.Success(value);
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(value, result.Value);
+        result.IsSuccess.ShouldBeTrue();
+        result.Status.ShouldBe(Status.Completed);
+        result.Value.ShouldBe(value);
+        result.Messages.ShouldBeEmpty();
     }
 
     [Fact]
@@ -56,24 +59,27 @@ public class ResultsTests
         var result = Results.Success(messages: messages);
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Single(result.Messages);
-        Assert.Equal(text, result.Messages[0].Content);
+        result.IsSuccess.ShouldBeTrue();
+        result.Status.ShouldBe(Status.Completed);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == text && m.Type == MessageType.Information);
     }
 
     [Fact]
     public void Success_Generic_WithMessages_Should_Include_Messages()
     {
         // Arrange
-        var messages = new List<Message> { Info("ok") };
+        const string text = "word";
+        var messages = new List<Message> { Info(text) };
 
         // Act
         var result = Results.Success<string>(messages);
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Single(result.Messages);
-        Assert.Null(result.Value);
+        result.IsSuccess.ShouldBeTrue();
+        result.Status.ShouldBe(Status.Completed);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == text && m.Type == MessageType.Information);
     }
 
     [Fact]
@@ -81,15 +87,18 @@ public class ResultsTests
     {
         // Arrange
         const string value = "value";
-        var messages = new List<Message> { Info("note") };
+        const string message = "word";
+        var messages = new List<Message> { Info(message) };
 
         // Act
         var result = Results.Success(value, messages);
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(value, result.Value);
-        Assert.Single(result.Messages);
+        result.IsSuccess.ShouldBeTrue();
+        result.Status.ShouldBe(Status.Completed);
+        result.Messages.ShouldHaveSingleItem();
+        result.Value.ShouldBe(value);
+        result.Messages.ShouldContain(m => m.Content == message && m.Type == MessageType.Information);
     }
 
     // ---------- Failure ----------
@@ -107,6 +116,18 @@ public class ResultsTests
         Assert.False(result.IsSuccess);
         Assert.Equal(Status.Failed, result.Status);
         Assert.Equal(2, result.Messages.Count);
+
+
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Failed);
+        result.Messages.ShouldNotBeEmpty();
+        result.Messages.Count.ShouldBe(messages.Count);
+        foreach (var message in messages)
+        {
+            // result.Messages.ShouldContain(message);
+            result.Messages.ShouldContain(m =>
+                m.Type == message.Type && m.Content == message.Content && m.Metadata == message.Metadata);
+        }
     }
 
     [Fact]
@@ -117,11 +138,10 @@ public class ResultsTests
         var result = Results.Failure(reason);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal(Status.Failed, result.Status);
-        Assert.Single(result.Messages);
-        Assert.Equal(reason, result.Messages[0].Content);
-        Assert.Equal(MessageType.Error, result.Messages[0].Type);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Failed);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == reason && m.Type == MessageType.Error);
     }
 
     [Fact]
@@ -131,25 +151,29 @@ public class ResultsTests
         var messages = new List<Message> { Error() };
 
         // Act
-        var result = Results.Failure<int>(messages);
+        var result = Results.Failure<int?>(messages);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal(Status.Failed, result.Status);
-        Assert.Equal(default, result.Value);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Failed);
+        result.Messages.ShouldHaveSingleItem();
+        result.Value.ShouldBeNull();
+        result.Messages.ShouldContain(m => m.Content == messages.First().Content && m.Type == messages.First().Type);
     }
 
     [Fact]
     public void Failure_Generic_WithReason_Should_Create_Typed_Failed_Result()
     {
         // Act
-        var result = Results.Failure<string>("reason");
+        const string reason = "reason";
+        var result = Results.Failure<string>(reason);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal(Status.Failed, result.Status);
-        Assert.Null(result.Value);
-        Assert.Single(result.Messages);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Failed);
+        result.Messages.ShouldHaveSingleItem();
+        result.Value.ShouldBeNull();
+        result.Messages.ShouldContain(m => m.Content == reason && m.Type == MessageType.Error);
     }
 
     // ---------- Error ----------
@@ -158,15 +182,17 @@ public class ResultsTests
     public void Error_WithMessages_Should_Create_Error_Result()
     {
         // Arrange
-        var messages = new List<Message> { Error("oops") };
+        const string content = "oops!";
+        var messages = new List<Message> { Error(content) };
 
         // Act
         var result = Results.Error(messages);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal(Status.Error, result.Status);
-        Assert.Single(result.Messages);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Error);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == content && m.Type == MessageType.Error);
     }
 
     [Fact]
@@ -174,12 +200,13 @@ public class ResultsTests
     {
         // Act
         const string reason = "reason";
-        var r = Results.Error(reason);
+        var result = Results.Error(reason);
 
         // Assert
-        Assert.Equal(Status.Error, r.Status);
-        Assert.Equal(MessageType.Error, r.Messages[0].Type);
-        Assert.Equal(reason, r.Messages[0].Content);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Error);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == reason && m.Type == MessageType.Error);
     }
 
     [Fact]
@@ -192,21 +219,26 @@ public class ResultsTests
         var result = Results.Error<string>(messages);
 
         // Assert
-        Assert.Equal(Status.Error, result.Status);
-        Assert.Null(result.Value);
-        Assert.Single(result.Messages);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Error);
+        result.Value.ShouldBeNull();
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == messages.First().Content && m.Type == messages.First().Type);
     }
 
     [Fact]
     public void Error_Generic_WithReason_Should_Create_Typed_Error()
     {
         // Act
-        var result = Results.Error<int>("fail!");
+        const string reason = "fail!";
+        var result = Results.Error<int>(reason);
 
         // Assert
-        Assert.Equal(Status.Error, result.Status);
-        Assert.Equal(default, result.Value);
-        Assert.Single(result.Messages);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Error);
+        result.Value.ShouldBe(0);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == reason && m.Type == MessageType.Error);
     }
 
     [Fact]
@@ -220,8 +252,10 @@ public class ResultsTests
         var result = Results.Error(exception);
 
         // Assert
-        Assert.Equal(Status.Error, result.Status);
-        Assert.Contains(result.Messages, m => m.Content == message);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Error);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == message && m.Type == MessageType.Error);
     }
 
     [Fact]
@@ -235,8 +269,10 @@ public class ResultsTests
         var result = Results.Error<string>(exception);
 
         // Assert
-        Assert.Equal(Status.Error, result.Status);
-        Assert.Contains(result.Messages, m => m.Content == message);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Error);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == message && m.Type == MessageType.Error);
     }
 
     // ---------- Cancel ----------
@@ -245,40 +281,49 @@ public class ResultsTests
     public void Cancel_WithMessages_Should_Set_Cancelled_Status()
     {
         // Arrange
-        var messages = new List<Message> { Warn("user cancelled") };
+        const string message = "user cancelled";
+        var messages = new List<Message> { Warn(message) };
 
         // Act
         var result = Results.Cancel(messages);
 
         // Assert
-        Assert.Equal(Status.Cancelled, result.Status);
-        Assert.False(result.IsSuccess);
-        Assert.Single(result.Messages);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Cancelled);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == message && m.Type == MessageType.Warning);
     }
 
     [Fact]
     public void Cancel_WithReason_Should_Default_To_Warning()
     {
-        // Act
+        // Arrange
         const string reason = "stop";
+
+        // Act
         var result = Results.Cancel(reason);
 
         // Assert
-        Assert.Equal(Status.Cancelled, result.Status);
-        Assert.Equal(MessageType.Warning, result.Messages[0].Type);
-        Assert.Equal(reason, result.Messages[0].Content);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Cancelled);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == reason && m.Type == MessageType.Warning);
     }
 
     [Fact]
     public void Cancel_Generic_Should_Create_Typed_Cancel_Result()
     {
+        // Arrange
+        const string reason = "halt";
+
         // Act
-        var result = Results.Cancel<string>("halt");
+        var result = Results.Cancel<string>(reason);
 
         // Assert
-        Assert.Equal(Status.Cancelled, result.Status);
-        Assert.Null(result.Value);
-        Assert.Single(result.Messages);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Cancelled);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == reason && m.Type == MessageType.Warning);
     }
 
     [Fact]
@@ -292,25 +337,27 @@ public class ResultsTests
         var result = Results.Cancel<string>(messages);
 
         // Assert
-        Assert.Equal(Status.Cancelled, result.Status);
-        Assert.False(result.IsSuccess);
-        Assert.Null(result.Value);
-        Assert.Single(result.Messages);
-        Assert.Equal(messageContent, result.Messages[0].Content);
-        Assert.Equal(MessageType.Warning, result.Messages[0].Type);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Cancelled);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == messageContent && m.Type == MessageType.Warning);
     }
 
     [Fact]
     public void Cancel_Generic_WithMessages_ValueType_Should_Have_Default()
     {
+        // Arrange
+        const string messageContent = "stop";
+
         // Act
-        var result = Results.Cancel<int>(new List<Message> { new(MessageType.Warning, "stop") });
+        var result = Results.Cancel<int>(new List<Message> { new(MessageType.Warning, messageContent) });
 
         // Assert
-        Assert.Equal(Status.Cancelled, result.Status);
-        Assert.False(result.IsSuccess);
-        Assert.Equal(default, result.Value);
-        Assert.Single(result.Messages);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Cancelled);
+        result.Value.ShouldBe(default);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == messageContent && m.Type == MessageType.Warning);
     }
 
     // ---------- NotFound ----------
@@ -322,9 +369,10 @@ public class ResultsTests
         var result = Results.NotFound();
 
         // Assert
-        Assert.Equal(Status.Completed, result.Status);
-        Assert.Single(result.Messages);
-        Assert.Equal(MessageType.Warning, result.Messages[0].Type);
+        result.IsSuccess.ShouldBeTrue();
+        result.Status.ShouldBe(Status.Completed);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == "Resource not found." && m.Type == MessageType.Warning);
     }
 
     [Fact]
@@ -335,11 +383,11 @@ public class ResultsTests
         var result = Results.NotFound<string>(messageContent, Status.Failed);
 
         // Assert
-        Assert.Equal(Status.Failed, result.Status);
-        Assert.Single(result.Messages);
-        Assert.Equal(messageContent, result.Messages[0].Content);
-        Assert.Equal(MessageType.Warning, result.Messages[0].Type);
-        Assert.Null(result.Value);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Failed);
+        result.Value.ShouldBeNull();
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == messageContent && m.Type == MessageType.Warning);
     }
 
     // ---------- FromCondition / Aggregate ----------
@@ -351,8 +399,9 @@ public class ResultsTests
         var result = Results.FromCondition(true, "should not see");
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Empty(result.Messages);
+        result.IsSuccess.ShouldBeTrue();
+        result.Status.ShouldBe(Status.Completed);
+        result.Messages.ShouldBeEmpty();
     }
 
     [Fact]
@@ -363,21 +412,25 @@ public class ResultsTests
         var result = Results.FromCondition(false, messageContent);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal(Status.Failed, result.Status);
-        Assert.Single(result.Messages);
-        Assert.Equal(messageContent, result.Messages[0].Content);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Failed);
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == messageContent && m.Type == MessageType.Error);
     }
 
     [Fact]
     public void FromCondition_Generic_Should_Return_Value_On_True()
     {
         // Act
-        var result = Results.FromCondition(true, 7, "err");
+        const int value = 7;
+        var result = Results.FromCondition(true, value, "err");
 
         // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(7, result.Value);
+        result.IsSuccess.ShouldBeTrue();
+        result.Status.ShouldBe(Status.Completed);
+        result.Value.ShouldBe(value);
+        result.Messages.ShouldBeEmpty();
+        // result.Messages.ShouldContain(m => m.Content == content && m.Type == MessageType.Error);
     }
 
     [Fact]
@@ -388,11 +441,11 @@ public class ResultsTests
         var result = Results.FromCondition<string>(false, "value-should-not-appear", messageContent);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal(Status.Failed, result.Status);
-        Assert.Single(result.Messages);
-        Assert.Equal(messageContent, result.Messages[0].Content);
-        Assert.Null(result.Value);
+        result.IsSuccess.ShouldBeFalse();
+        result.Status.ShouldBe(Status.Failed);
+        result.Value.ShouldBeNull();
+        result.Messages.ShouldHaveSingleItem();
+        result.Messages.ShouldContain(m => m.Content == messageContent && m.Type == MessageType.Error);
     }
 
     [Fact]
@@ -405,8 +458,8 @@ public class ResultsTests
         var aggregate = Results.Aggregate(results);
 
         // Assert
-        Assert.True(aggregate.IsSuccess);
-        Assert.Empty(aggregate.Messages);
+        aggregate.IsSuccess.ShouldBeTrue();
+        aggregate.Messages.ShouldBeEmpty();
     }
 
     [Fact]
@@ -426,8 +479,8 @@ public class ResultsTests
         var aggregate = Results.Aggregate(results);
 
         // Assert
-        Assert.False(aggregate.IsSuccess);
-        Assert.Equal(Status.Failed, aggregate.Status);
-        Assert.Equal(new[] { fail, err }, aggregate.Messages.Select(m => m.Content));
+        aggregate.IsSuccess.ShouldBeFalse();
+        aggregate.Status.ShouldBe(Status.Failed);
+        aggregate.Messages.Select(m => m.Content).ShouldBe([fail, err]);
     }
 }
