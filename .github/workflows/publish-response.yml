@@ -36,22 +36,23 @@ jobs:
       - name: Check csproj version (optional)
         run: |
           csproj="src/Knight.Response/Knight.Response.csproj"
-          declared=$(xmllint --xpath "string(//Project/PropertyGroup/Version)" "$csproj" 2>/dev/null || echo "")
+          declared=$(awk -F'[<>]' '/<Version>/{print $3; exit}' "$csproj" 2>/dev/null || true)
           echo "Declared Version=$declared; Tag Version=$PKG_VERSION"
           if [ -n "$declared" ] && [ "$declared" != "$PKG_VERSION" ]; then
             echo "::warning ::csproj version ($declared) does not match tag ($PKG_VERSION)"
           fi
 
       - name: Extract release notes from CHANGELOG
+        shell: bash
         run: |
           FILE="src/Knight.Response/CHANGELOG.md"
           ver="${PKG_VERSION}"
-          if [ -f "$FILE" ] && grep -qE "^## \\[?\\s*${ver}\\s*\\]?" "$FILE"; then
+          if [ -f "$FILE" ] && grep -qE "^## \\[* *${ver} *\\]*" "$FILE"; then
             {
               echo "RELEASE_NOTES<<'EOF'"
               awk -v ver="$ver" '
-                $0 ~ "^## \\[? *" ver " *\\]?" {p=1; next}
-                p && $0 ~ "^## \\[" {p=0}
+                $0 ~ "^## \\[* *" ver " *\\]*" {p=1; next}
+                p && $0 ~ "^## \\\[" {p=0}
                 p {print}
               ' "$FILE"
               echo "EOF"
@@ -104,22 +105,23 @@ jobs:
       - name: Check csproj version (optional)
         run: |
           csproj="src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj"
-          declared=$(xmllint --xpath "string(//Project/PropertyGroup/Version)" "$csproj" 2>/dev/null || echo "")
+          declared=$(awk -F'[<>]' '/<Version>/{print $3; exit}' "$csproj" 2>/dev/null || true)
           echo "Declared Version=$declared; Tag Version=$PKG_VERSION"
           if [ -n "$declared" ] && [ "$declared" != "$PKG_VERSION" ]; then
             echo "::warning ::csproj version ($declared) does not match tag ($PKG_VERSION)"
           fi
 
       - name: Extract release notes from CHANGELOG
+        shell: bash
         run: |
           FILE="src/Knight.Response.AspNetCore/CHANGELOG.md"
           ver="${PKG_VERSION}"
-          if [ -f "$FILE" ] && grep -qE "^## \\[?\\s*${ver}\\s*\\]?" "$FILE"; then
+          if [ -f "$FILE" ] && grep -qE "^## \\[* *${ver} *\\]*" "$FILE"; then
             {
               echo "RELEASE_NOTES<<'EOF'"
               awk -v ver="$ver" '
-                $0 ~ "^## \\[? *" ver " *\\]?" {p=1; next}
-                p && $0 ~ "^## \\[" {p=0}
+                $0 ~ "^## \\[* *" ver " *\\]*" {p=1; next}
+                p && $0 ~ "^## \\\[" {p=0}
                 p {print}
               ' "$FILE"
               echo "EOF"
