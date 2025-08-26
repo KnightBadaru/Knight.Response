@@ -44,16 +44,20 @@ jobs:
 
       - name: Extract release notes from CHANGELOG
         shell: bash
+        env:
+          FILE: src/Knight.Response/CHANGELOG.md
+          VER: ${{ env.PKG_VERSION }}
         run: |
-          FILE="src/Knight.Response/CHANGELOG.md"
-          ver="${PKG_VERSION}"
-          if [ -f "$FILE" ] && grep -qE "^## \\[* *${ver} *\\]*" "$FILE"; then
+          set -euo pipefail
+
+          if [[ -f "$FILE" ]] && grep -qE "^## \[\s*$VER\s*\]" "$FILE"; then
             {
-              echo "RELEASE_NOTES<<'EOF'"
-              awk -v ver="$ver" '
-                $0 ~ "^## \\[* *" ver " *\\]*" {p=1; next}
-                p && $0 ~ "^## \\\[" {p=0}
-                p {print}
+              echo "RELEASE_NOTES<<EOF"
+              # Print lines after '## [<ver>]' until the next '## [' (another version)
+              awk -v ver="$VER" '
+                $0 ~ "^## \\[\\s*" ver "\\s*\\]" { p=1; next }
+                p && $0 ~ "^## \\["           { p=0 }
+                p
               ' "$FILE"
               echo "EOF"
             } >> "$GITHUB_ENV"
@@ -113,16 +117,20 @@ jobs:
 
       - name: Extract release notes from CHANGELOG
         shell: bash
+        env:
+          FILE: src/Knight.Response.AspNetCore/CHANGELOG.md
+          VER:  ${{ env.PKG_VERSION }}
         run: |
-          FILE="src/Knight.Response.AspNetCore/CHANGELOG.md"
-          ver="${PKG_VERSION}"
-          if [ -f "$FILE" ] && grep -qE "^## \\[* *${ver} *\\]*" "$FILE"; then
+          set -euo pipefail
+          
+          if [[ -f "$FILE" ]] && grep -qE "^## \[\s*$VER\s*\]" "$FILE"; then
             {
-              echo "RELEASE_NOTES<<'EOF'"
-              awk -v ver="$ver" '
-                $0 ~ "^## \\[* *" ver " *\\]*" {p=1; next}
-                p && $0 ~ "^## \\\[" {p=0}
-                p {print}
+              echo "RELEASE_NOTES<<EOF"
+              # Print lines after '## [<ver>]' until the next '## [' (another version)
+              awk -v ver="$VER" '
+                $0 ~ "^## \\[\\s*" ver "\\s*\\]" { p=1; next }
+                p && $0 ~ "^## \\["           { p=0 }
+                p
               ' "$FILE"
               echo "EOF"
             } >> "$GITHUB_ENV"
