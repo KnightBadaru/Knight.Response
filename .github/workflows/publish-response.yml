@@ -6,11 +6,14 @@ on:
       - 'response-v*'
       - 'aspnetcore-v*'
 
+permissions:
+  contents: read
+
 jobs:
   publish-response:
     if: startsWith(github.ref, 'refs/tags/response-v')
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -31,9 +34,9 @@ jobs:
 
       - name: Derive version from tag (Knight.Response)
         run: echo "PKG_VERSION=${GITHUB_REF_NAME#response-v}" >> "$GITHUB_ENV"
-
-      # Optional: sanity check csproj version matches the tag (non-fatal)
-      - name: Check csproj version (optional)
+      
+      # Sanity check - csproj version matches the tag
+      - name: Check csproj version
         run: |
           csproj="src/Knight.Response/Knight.Response.csproj"
           declared=$(awk -F'[<>]' '/<Version>/{print $3; exit}' "$csproj" 2>/dev/null || true)
@@ -49,8 +52,8 @@ jobs:
           VER: ${{ env.PKG_VERSION }}
         run: |
           set -euo pipefail
-
-          if [[ -f "$FILE" ]] && grep -qE "^## \[\s*$VER\s*\]" "$FILE"; then
+          
+          if [[ -f "$FILE" ]] && grep -qE "^## \\[\\s*${VER}\\s*\\]" "$FILE"; then
             {
               echo "RELEASE_NOTES<<EOF"
               # Print lines after '## [<ver>]' until the next '## [' (another version)
@@ -66,10 +69,22 @@ jobs:
           fi
 
       - name: Pack (Knight.Response with release notes)
-        run: >
-          dotnet pack src/Knight.Response/Knight.Response.csproj
-          -c Release -o artifacts --no-build
-          /p:PackageReleaseNotes="${{ env.RELEASE_NOTES }}"
+        run: |
+          set -euo pipefail
+          # Turn multi-line RELEASE_NOTES into a single MSBuild-safe string (NuGet renders &#10; as newline)
+          NOTES_ESCAPED="$(printf '%s' "${RELEASE_NOTES:-}" | tr -d '\r' | sed ':a;N;$!ba;s/\n/&#10;/g')"
+          
+          dotnet pack src/Knight.Response/Knight.Response.csproj \
+            -c Release -o artifacts --no-build \
+            /p:ContinuousIntegrationBuild=true \
+            /p:PackageReleaseNotes="$NOTES_ESCAPED"
+
+      - name: Upload package artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: response-packages
+          path: artifacts/*.nupkg
 
       - name: Publish to NuGet
         env:
@@ -79,11 +94,11 @@ jobs:
           -k "$NUGET_API_KEY"
           -s https://api.nuget.org/v3/index.json
           --skip-duplicate
-
+  
   publish-aspnetcore:
     if: startsWith(github.ref, 'refs/tags/aspnetcore-v')
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -104,9 +119,9 @@ jobs:
 
       - name: Derive version from tag (AspNetCore)
         run: echo "PKG_VERSION=${GITHUB_REF_NAME#aspnetcore-v}" >> "$GITHUB_ENV"
-
-      # Optional: sanity check csproj version matches the tag (non-fatal)
-      - name: Check csproj version (optional)
+        
+        # Sanity check - csproj version matches the tag
+      - name: Check csproj version
         run: |
           csproj="src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj"
           declared=$(awk -F'[<>]' '/<Version>/{print $3; exit}' "$csproj" 2>/dev/null || true)
@@ -123,7 +138,7 @@ jobs:
         run: |
           set -euo pipefail
           
-          if [[ -f "$FILE" ]] && grep -qE "^## \[\s*$VER\s*\]" "$FILE"; then
+          if [[ -f "$FILE" ]] && grep -qE "^## \\[\\s*${VER}\\s*\\]" "$FILE"; then
             {
               echo "RELEASE_NOTES<<EOF"
               # Print lines after '## [<ver>]' until the next '## [' (another version)
@@ -139,10 +154,22 @@ jobs:
           fi
 
       - name: Pack (Knight.Response.AspNetCore with release notes)
-        run: >
-          dotnet pack src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj
-          -c Release -o artifacts --no-build
-          /p:PackageReleaseNotes="${{ env.RELEASE_NOTES }}"
+        run: |
+          set -euo pipefail
+          # Turn multi-line RELEASE_NOTES into a single MSBuild-safe string (NuGet renders &#10; as newline)
+          NOTES_ESCAPED="$(printf '%s' "${RELEASE_NOTES:-}" | tr -d '\r' | sed ':a;N;$!ba;s/\n/&#10;/g')"
+          
+          dotnet pack src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj \
+            -c Release -o artifacts --no-build \
+            /p:ContinuousIntegrationBuild=true \
+            /p:PackageReleaseNotes="$NOTES_ESCAPED"
+
+      - name: Upload package artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aspnetcore-packages
+          path: artifacts/*.nupkg
 
       - name: Publish to NuGet
         env:
