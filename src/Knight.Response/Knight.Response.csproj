@@ -11,6 +11,14 @@
         <Authors>Knight</Authors>
         <Title>Knight.Response</Title>
         <Description>Lightweight, immutable Result/Result&lt;T&gt; library with factories, functional extensions, and pattern matching for C# service layers.</Description>
+        <PackageReleaseNotes>
+            Changed:
+            - Refactored unit tests to consistently use **Shouldly** assertions (instead of `Assert.*`).
+            - Improved **README** documentation to clarify the default value behavior of `Result&lt;T&gt;.Value`:
+            • Value types (`int`, `bool`, etc.) return their CLR default (`0`, `false`, etc.) unless explicitly set.
+            • Reference types and nullable value types return `null` when not set.
+            - General documentation refinements for consistency.
+        </PackageReleaseNotes>
         <PackageTags>result;response;functional;service-layer;error-handling;patterns;csharp</PackageTags>
         <RepositoryType>git</RepositoryType>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -25,7 +33,7 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <PackageReference Include="System.Text.Json" Version="9.0.4" />
+        <PackageReference Include="System.Text.Json" Version="9.0.8" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
     </ItemGroup>
