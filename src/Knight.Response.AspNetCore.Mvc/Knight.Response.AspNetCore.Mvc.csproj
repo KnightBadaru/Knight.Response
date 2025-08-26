@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>latest</LangVersion>
+        
+        <PackageId>Knight.Response.AspNetCore.Mvc</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>Knight</Authors>
+        <Title>Knight.Response.AspNetCore.Mvc</Title>
+        <Description>ASP.NET Core MVC adapters for Knight.Response — convert Result/Result&lt;T&gt; to IActionResult with optional RFC7807 ProblemDetails.</Description>
+        <PackageTags>result;response;aspnetcore;mvc;http;problem-details;netstandard2.0</PackageTags>
+        <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+        <!-- Build quality -->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <Deterministic>true</Deterministic>
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- MVC 2.1+ exposes ProblemDetails; 2.3 is a safe ceiling for netstandard2.0 -->
+        <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="[2.3.0, 2.4.0)" />
+        <PackageReference Include="Knight.Response" Version="[1.0.2, 1.1.0)" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+        <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="/" />
+        <None Include="CHANGELOG.md" Pack="true" PackagePath="/" />
+        <None Include="../../LICENSE" Pack="true" PackagePath="/" />
+        <None Include="../../CONTRIBUTING.md" Pack="true" PackagePath="/" />
+        <None Include="../../CODE_OF_CONDUCT.md" Pack="true" PackagePath="/" />
+    </ItemGroup>
+
+</Project>
