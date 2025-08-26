@@ -10,9 +10,6 @@ permissions:
   contents: read
 
 jobs:
-  # ============================
-  # Knight.Response (response-v*)
-  # ============================
   publish-response:
     if: startsWith(github.ref, 'refs/tags/response-v')
     runs-on: ubuntu-latest
@@ -38,7 +35,7 @@ jobs:
       - name: Derive version from tag (Knight.Response)
         run: echo "PKG_VERSION=${GITHUB_REF_NAME#response-v}" >> "$GITHUB_ENV"
 
-      # Optional: sanity check
+      # Optional: warn if csproj version and tag diverge
       - name: Check csproj version (optional)
         run: |
           csproj="src/Knight.Response/Knight.Response.csproj"
@@ -48,58 +45,11 @@ jobs:
             echo "::warning ::csproj version ($declared) does not match tag ($PKG_VERSION)"
           fi
 
-      - name: Extract release notes from CHANGELOG (Knight.Response)
-        shell: bash
-        env:
-          FILE: src/Knight.Response/CHANGELOG.md
-          VER:  ${{ env.PKG_VERSION }}
+      - name: Pack (Knight.Response)
         run: |
-          set -euo pipefail
-          if [[ -f "$FILE" ]] && grep -qE "^## \\[\\s*${VER}\\s*\\]" "$FILE"; then
-            {
-              echo "RELEASE_NOTES<<EOF"
-              awk -v ver="$VER" '
-                $0 ~ "^## \\[\\s*" ver "\\s*\\]" { p=1; next }
-                p && $0 ~ "^## \\["           { p=0 }
-                p
-              ' "$FILE"
-              echo "EOF"
-            } >> "$GITHUB_ENV"
-          else
-            echo "RELEASE_NOTES=See CHANGELOG.md for details." >> "$GITHUB_ENV"
-          fi
-
-      - name: Prepare release notes file (Knight.Response)
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p artifacts
-
-          # 1) Raw notes -> file
-          printf '%s\n' "${RELEASE_NOTES:-}" | tr -d '\r' > artifacts/release-notes.raw
-
-          # 2) Collapse to single line with HTML newlines so NuGet renders line breaks
-          if [ -s artifacts/release-notes.raw ]; then
-            awk '{printf "%s&#10;", $0}' artifacts/release-notes.raw > artifacts/release-notes.escaped
-            sed -i 's/&#10;$//' artifacts/release-notes.escaped
-          else
-            : > artifacts/release-notes.escaped
-          fi
-
-          # 3) Build MSBuild response file
-          {
-            echo "/p:ContinuousIntegrationBuild=true"
-            printf "/p:PackageReleaseNotes="
-            cat artifacts/release-notes.escaped
-            echo
-          } > artifacts/pack.rsp
-
-      - name: Pack (Knight.Response using response file)
-        run: |
-          set -euo pipefail
           dotnet pack src/Knight.Response/Knight.Response.csproj \
             -c Release -o artifacts --no-build \
-            @artifacts/pack.rsp
+            /p:ContinuousIntegrationBuild=true
 
       - name: Upload package artifact
         if: always()
@@ -117,9 +67,6 @@ jobs:
           -s https://api.nuget.org/v3/index.json
           --skip-duplicate
 
-  # ======================================
-  # Knight.Response.AspNetCore (aspnetcore-v*)
-  # ======================================
   publish-aspnetcore:
     if: startsWith(github.ref, 'refs/tags/aspnetcore-v')
     runs-on: ubuntu-latest
@@ -145,7 +92,7 @@ jobs:
       - name: Derive version from tag (AspNetCore)
         run: echo "PKG_VERSION=${GITHUB_REF_NAME#aspnetcore-v}" >> "$GITHUB_ENV"
 
-      # Optional: sanity check
+      # Optional: warn if csproj version and tag diverge
       - name: Check csproj version (optional)
         run: |
           csproj="src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj"
@@ -155,58 +102,11 @@ jobs:
             echo "::warning ::csproj version ($declared) does not match tag ($PKG_VERSION)"
           fi
 
-      - name: Extract release notes from CHANGELOG (AspNetCore)
-        shell: bash
-        env:
-          FILE: src/Knight.Response.AspNetCore/CHANGELOG.md
-          VER:  ${{ env.PKG_VERSION }}
+      - name: Pack (Knight.Response.AspNetCore)
         run: |
-          set -euo pipefail
-          if [[ -f "$FILE" ]] && grep -qE "^## \\[\\s*${VER}\\s*\\]" "$FILE"; then
-            {
-              echo "RELEASE_NOTES<<EOF"
-              awk -v ver="$VER" '
-                $0 ~ "^## \\[\\s*" ver "\\s*\\]" { p=1; next }
-                p && $0 ~ "^## \\["           { p=0 }
-                p
-              ' "$FILE"
-              echo "EOF"
-            } >> "$GITHUB_ENV"
-          else
-            echo "RELEASE_NOTES=See CHANGELOG.md for details." >> "$GITHUB_ENV"
-          fi
-
-      - name: Prepare release notes file (AspNetCore)
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p artifacts
-
-          # 1) Raw notes -> file
-          printf '%s\n' "${RELEASE_NOTES:-}" | tr -d '\r' > artifacts/release-notes-asp.raw
-
-          # 2) Collapse to single line with HTML newlines
-          if [ -s artifacts/release-notes-asp.raw ]; then
-            awk '{printf "%s&#10;", $0}' artifacts/release-notes-asp.raw > artifacts/release-notes-asp.escaped
-            sed -i 's/&#10;$//' artifacts/release-notes-asp.escaped
-          else
-            : > artifacts/release-notes-asp.escaped
-          fi
-
-          # 3) Build MSBuild response file
-          {
-            echo "/p:ContinuousIntegrationBuild=true"
-            printf "/p:PackageReleaseNotes="
-            cat artifacts/release-notes-asp.escaped
-            echo
-          } > artifacts/pack-asp.rsp
-
-      - name: Pack (Knight.Response.AspNetCore using response file)
-        run: |
-          set -euo pipefail
           dotnet pack src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj \
             -c Release -o artifacts --no-build \
-            @artifacts/pack-asp.rsp
+            /p:ContinuousIntegrationBuild=true
 
       - name: Upload package artifact
         if: always()
