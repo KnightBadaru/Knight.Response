@@ -1,6 +1,6 @@
 using Knight.Response.Models;
 
-namespace Knight.Response.Abstractions.Http;
+namespace Knight.Response.Abstractions.Http.Mappers;
 
 /// <summary>
 /// Maps <see cref="Message"/>s from a <c>Result</c> into a field-error dictionary

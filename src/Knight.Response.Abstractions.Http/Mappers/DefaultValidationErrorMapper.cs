@@ -1,7 +1,7 @@
 using System.Text.RegularExpressions;
 using Knight.Response.Models;
 
-namespace Knight.Response.Abstractions.Http;
+namespace Knight.Response.Abstractions.Http.Mappers;
 
 /// <summary>
 /// Default, conservative mapper:

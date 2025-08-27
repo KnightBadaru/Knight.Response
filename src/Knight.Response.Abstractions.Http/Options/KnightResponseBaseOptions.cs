@@ -1,7 +1,8 @@
+using Knight.Response.Abstractions.Http.Mappers;
 using Knight.Response.Core;
 using Knight.Response.Models;
 
-namespace Knight.Response.Abstractions.Http
+namespace Knight.Response.Abstractions.Http.Options
 {
     /// <summary>
     /// Framework-agnostic HTTP shaping options for Knight.Response.

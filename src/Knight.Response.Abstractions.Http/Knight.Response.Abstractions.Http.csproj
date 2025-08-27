@@ -11,7 +11,15 @@
         <Authors>Knight</Authors>
         <Title>Knight.Response.Abstractions.Http</Title>
         <Description>Framework-agnostic HTTP abstractions for Knight.Response (shared options and validation mapping).</Description>
-        <Authors>Knight</Authors>
+        <PackageReleaseNotes>
+            - Initial release of Knight.Response.Abstractions.Http
+            - Provides shared abstractions for Knight.Response HTTP integrations
+            - Includes:
+            • KnightResponseBaseOptions (common options for HTTP response behavior)
+            • IValidationErrorMapper and DefaultValidationErrorMapper
+            - Designed for reuse by Knight.Response.AspNetCore and Knight.Response.AspNetCore.Mvc
+            - Targets .NET Standard 2.0 for maximum compatibility
+        </PackageReleaseNotes>
         <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>knight;response;abstractions;http;problem-details</PackageTags>
@@ -20,6 +28,14 @@
 
     <ItemGroup>
         <PackageReference Include="Knight.Response" Version="1.0.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="/" />
+        <None Include="CHANGELOG.md" Pack="true" PackagePath="/" />
+        <None Include="../../LICENSE" Pack="true" PackagePath="/" />
+        <None Include="../../CONTRIBUTING.md" Pack="true" PackagePath="/" />
+        <None Include="../../CODE_OF_CONDUCT.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 
 </Project>
