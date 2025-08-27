@@ -1,0 +1,81 @@
+using Knight.Response.AspNetCore.Mvc.Infrastructure;
+using Knight.Response.Core;
+using Knight.Response.Models;
+using Knight.Response.AspNetCore.Mvc.Options;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Knight.Response.AspNetCore.Mvc.Factories;
+
+/// <summary>
+/// Central place that turns a <see cref="Result"/> into an <see cref="IActionResult"/>
+/// using RFC7807 payloads where possible (ProblemDetails / ValidationProblemDetails).
+/// Compatible with ASP.NET Core MVC 2.x (no native Extensions bag).
+/// </summary>
+internal static class ProblemFactory
+{
+    /// <summary>
+    /// Build an <see cref="IActionResult"/> from a <see cref="Result"/> using the supplied options.
+    /// </summary>
+    /// <param name="http">Current HTTP context (may be null in tests).</param>
+    /// <param name="opts">Resolved <see cref="KnightResponseOptions"/>.</param>
+    /// <param name="result">The domain result.</param>
+    /// <param name="statusCode">
+    /// Optional explicit HTTP status code; if null, <see cref="KnightResponseOptions.StatusCodeResolver"/> is used.
+    /// </param>
+    public static IActionResult FromResult(HttpContext http, KnightResponseOptions opts, Result result, int? statusCode = null)
+    {
+        var code = statusCode ?? opts.StatusCodeResolver(result.Status);
+
+        // Try ValidationProblemDetails if enabled and we have mappable errors
+        if (opts.UseValidationProblemDetails)
+        {
+            var errors = opts.ValidationMapper.Map(result.Messages);
+            if (errors.Count > 0)
+            {
+                var vpd = new CompatValidationProblemDetails(errors)
+                {
+                    Status = code,
+                    Title  = "One or more validation errors occurred.",
+                    Type   = $"https://httpstatuses.io/{code}",
+                    Instance = http?.Request?.Path
+                };
+
+                // include result messages & status for clients that care
+                vpd.Extensions["svcStatus"] = result.Status.ToString();
+                vpd.Extensions["messages"]  = result.Messages.Select(ToShallow).ToArray();
+
+                // last-mile customization hook
+                opts.ValidationBuilder?.Invoke(http, result, vpd);
+
+                // return 400/whatever with the VPD payload
+                return new ObjectResult(vpd) { StatusCode = vpd.Status };
+            }
+        }
+
+        // Fallback to standard ProblemDetails with our compat extension bag
+        var title  = result.Messages.FirstOrDefault()?.Content ?? result.Status.ToString();
+        var detail = result.Messages.Count > 1
+            ? string.Join("; ", result.Messages.Select(m => m.Content))
+            : null;
+
+        var pd = new CompatProblemDetails
+        {
+            Status = code,
+            Title  = title,
+            Detail = detail,
+            Type   = $"https://httpstatuses.io/{code}",
+            Instance = http?.Request?.Path
+        };
+
+        pd.Extensions["svcStatus"] = result.Status.ToString();
+        pd.Extensions["messages"]  = result.Messages.Select(ToShallow).ToArray();
+
+        opts.ProblemDetailsBuilder?.Invoke(http, result, pd);
+
+        return new ObjectResult(pd) { StatusCode = pd.Status };
+    }
+
+    private static object ToShallow(Message m) =>
+        new { type = m.Type.ToString(), content = m.Content, metadata = m.Metadata };
+}

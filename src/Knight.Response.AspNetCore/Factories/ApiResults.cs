@@ -159,33 +159,33 @@ public static class ApiResults
 
     // Internals ================================================================
 
-    private static IResult Build(HttpContext? http, int successStatus, Result result, string? location = null) =>
+    private static IResult Build(HttpContext? http, int statusCode, Result result, string? location = null) =>
         result.IsSuccess
-            ? BuildSuccess(http, successStatus, result, location)
-            : BuildFailure(http, result, successStatus);
+            ? BuildSuccess(http, statusCode, result, location)
+            : BuildFailure(http, result, statusCode);
 
-    private static IResult Build<T>(HttpContext? http, int successStatus, Result<T> result, string? location = null) =>
+    private static IResult Build<T>(HttpContext? http, int statusCode, Result<T> result, string? location = null) =>
         result.IsSuccess
-            ? BuildSuccess(http, successStatus, result, location)
-            : BuildFailure(http, result, successStatus);
+            ? BuildSuccess(http, statusCode, result, location)
+            : BuildFailure(http, result, statusCode);
 
-    private static IResult BuildSuccess(HttpContext? http, int status, Result result, string? location)
+    private static IResult BuildSuccess(HttpContext? http, int statusCode, Result result, string? location)
     {
         var opts = ResolveOptions(http);
 
-        if (status == StatusCodes.Status204NoContent)
+        if (statusCode == StatusCodes.Status204NoContent)
         {
             return Results.NoContent();
         }
 
-        if (status == StatusCodes.Status201Created)
+        if (statusCode == StatusCodes.Status201Created)
         {
             return opts.IncludeFullResultPayload
                 ? Results.Created(location, result)
                 : Results.Created(location, null);
         }
 
-        if (status == StatusCodes.Status202Accepted)
+        if (statusCode == StatusCodes.Status202Accepted)
         {
             return opts.IncludeFullResultPayload
                 ? Results.Accepted(location, result)
@@ -193,22 +193,22 @@ public static class ApiResults
         }
 
         return opts.IncludeFullResultPayload
-            ? Results.Json(result, statusCode: status)
-            : Results.StatusCode(status);
+            ? Results.Json(result, statusCode: statusCode)
+            : Results.StatusCode(statusCode);
     }
 
-    private static IResult BuildSuccess<T>(HttpContext? http, int status, Result<T> result, string? location)
+    private static IResult BuildSuccess<T>(HttpContext? http, int statusCode, Result<T> result, string? location)
     {
         var opts = ResolveOptions(http);
 
-        if (status == StatusCodes.Status201Created)
+        if (statusCode == StatusCodes.Status201Created)
         {
             return opts.IncludeFullResultPayload
                 ? Results.Created(location, result)
                 : Results.Created(location, result.Value);
         }
 
-        if (status == StatusCodes.Status202Accepted)
+        if (statusCode == StatusCodes.Status202Accepted)
         {
             return opts.IncludeFullResultPayload
                 ? Results.Accepted(location, result)
@@ -216,8 +216,8 @@ public static class ApiResults
         }
 
         return opts.IncludeFullResultPayload
-            ? Results.Json(result, statusCode: status)
-            : Results.Json(result.Value, statusCode: status);
+            ? Results.Json(result, statusCode: statusCode)
+            : Results.Json(result.Value, statusCode: statusCode);
     }
 
     private static IResult BuildFailure(HttpContext? http, Result result, int? statusCode = null)
