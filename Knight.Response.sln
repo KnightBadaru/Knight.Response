@@ -36,6 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "stryker", "stryker", "{EE8C
 	ProjectSection(SolutionItems) = preProject
 		stryker-config.core.json = stryker-config.core.json
 		stryker-config.aspnetcore.json = stryker-config.aspnetcore.json
+		stryker-config.abstractions-http.json = stryker-config.abstractions-http.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.AspNetCore", "src\Knight.Response.AspNetCore\Knight.Response.AspNetCore.csproj", "{9D1B98D6-A3CA-419F-9637-D8F4F40E354C}"
@@ -45,6 +46,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.AspNetCore.Mvc", "src\Knight.Response.AspNetCore.Mvc\Knight.Response.AspNetCore.Mvc.csproj", "{C797CD0A-F950-40C5-BDE8-7F317EF182AA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.Abstractions.Http", "src\Knight.Response.Abstractions.Http\Knight.Response.Abstractions.Http.csproj", "{57B21E91-06F8-44FF-BD07-8B4135EC2A8C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.Abstractions.Http.Tests", "tests\Knight.Response.Abstractions.Http.Tests\Knight.Response.Abstractions.Http.Tests.csproj", "{C49B807A-5CC1-4FC6-922F-FC55EB432779}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +66,7 @@ Global
 		{941A1E55-5156-46E3-AE02-630C7D98813F} = {3DD0FB79-BEB3-4C37-BE8C-9E73CD989D4B}
 		{C797CD0A-F950-40C5-BDE8-7F317EF182AA} = {B0840E78-51EB-4184-959C-D9CA9EC85B01}
 		{57B21E91-06F8-44FF-BD07-8B4135EC2A8C} = {B0840E78-51EB-4184-959C-D9CA9EC85B01}
+		{C49B807A-5CC1-4FC6-922F-FC55EB432779} = {3DD0FB79-BEB3-4C37-BE8C-9E73CD989D4B}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3A18BD4B-02DF-423F-A191-A6A0A64E4489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -89,5 +93,9 @@ Global
 		{57B21E91-06F8-44FF-BD07-8B4135EC2A8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57B21E91-06F8-44FF-BD07-8B4135EC2A8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57B21E91-06F8-44FF-BD07-8B4135EC2A8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C49B807A-5CC1-4FC6-922F-FC55EB432779}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C49B807A-5CC1-4FC6-922F-FC55EB432779}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C49B807A-5CC1-4FC6-922F-FC55EB432779}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C49B807A-5CC1-4FC6-922F-FC55EB432779}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
