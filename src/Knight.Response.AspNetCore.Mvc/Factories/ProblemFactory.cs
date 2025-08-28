@@ -17,7 +17,7 @@ internal static class ProblemFactory
     /// <summary>
     /// Build an <see cref="IActionResult"/> from a <see cref="Result"/> using the supplied options.
     /// </summary>
-    /// <param name="http">Current HTTP context (may be null in tests).</param>
+    /// <param name="http">Current HTTP context.</param>
     /// <param name="opts">Resolved <see cref="KnightResponseOptions"/>.</param>
     /// <param name="result">The domain result.</param>
     /// <param name="statusCode">
@@ -38,7 +38,7 @@ internal static class ProblemFactory
                     Status = code,
                     Title  = "One or more validation errors occurred.",
                     Type   = $"https://httpstatuses.io/{code}",
-                    Instance = http?.Request?.Path
+                    Instance = http.Request?.Path
                 };
 
                 // include result messages & status for clients that care
@@ -65,7 +65,7 @@ internal static class ProblemFactory
             Title  = title,
             Detail = detail,
             Type   = $"https://httpstatuses.io/{code}",
-            Instance = http?.Request?.Path
+            Instance = http.Request?.Path
         };
 
         pd.Extensions["svcStatus"] = result.Status.ToString();

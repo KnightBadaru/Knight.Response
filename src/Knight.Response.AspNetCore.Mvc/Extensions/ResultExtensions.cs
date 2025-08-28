@@ -12,7 +12,7 @@ namespace Knight.Response.AspNetCore.Mvc.Extensions;
 /// <para>
 /// These honor <see cref="KnightResponseOptions"/> when a <see cref="HttpContext"/> is supplied
 /// (e.g., <see cref="KnightResponseOptions.IncludeFullResultPayload"/>).
-/// If <paramref name="http"/> is <c>null</c>, defaults from <see cref="KnightResponseOptions.Defaults"/> are used.
+/// If <see cref="HttpContext"/> is <c>null</c>, defaults from <see cref="KnightResponseOptions.Defaults"/> are used.
 /// </para>
 /// </summary>
 public static class ResultExtensions

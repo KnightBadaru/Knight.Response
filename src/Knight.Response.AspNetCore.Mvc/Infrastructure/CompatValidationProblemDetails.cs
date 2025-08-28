@@ -16,8 +16,7 @@ internal sealed class CompatValidationProblemDetails : ValidationProblemDetails
         {
             foreach (var kvp in errors)
             {
-                // ValidationProblemDetails.Errors is pre-initialized; just add to it
-                Errors[kvp.Key] = kvp.Value ?? Array.Empty<string>();
+                Errors[kvp.Key] = kvp.Value ?? [];
             }
         }
     }
