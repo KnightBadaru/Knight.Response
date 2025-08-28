@@ -5,13 +5,21 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   build-test-pack:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
+    env:
+      DOTNET_NOLOGO: true
 
-      - uses: actions/setup-dotnet@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
@@ -24,10 +32,24 @@ jobs:
       - name: Test
         run: dotnet test Knight.Response.sln -c Release --no-build --verbosity normal
 
-      - name: Pack (dry run)
-        run: dotnet pack src/Knight.Response/Knight.Response.csproj -c Release -o ./artifacts --no-build
+      - name: Pack (dry run for all packages)
+        run: |
+          mkdir -p artifacts
+          dotnet pack src/Knight.Response/Knight.Response.csproj -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
+          dotnet pack src/Knight.Response.Abstractions.Http/Knight.Response.Abstractions.Http.csproj -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
+          dotnet pack src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
 
       - name: Show package contents
         run: |
-          ls -lah ./artifacts
-          unzip -l ./artifacts/*.nupkg
+          ls -lah artifacts
+          for pkg in artifacts/*.nupkg; do
+            echo "---- $pkg ----"
+            unzip -l "$pkg" | sed -n '1,12p'
+          done
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: artifacts/*
+          if-no-files-found: error

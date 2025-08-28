@@ -10,15 +10,16 @@ namespace Knight.Response.Abstractions.Http.Options
     /// closes <typeparamref name="TP"/> and <typeparamref name="TV"/> to their
     /// framework-native ProblemDetails/ValidationProblemDetails types.
     /// </summary>
+    /// <typeparam name="TH">HttpContext for the host framework.</typeparam>
     /// <typeparam name="TP">ProblemDetails type for the host framework.</typeparam>
     /// <typeparam name="TV">ValidationProblemDetails type for the host framework.</typeparam>
-    public class KnightResponseBaseOptions<TP, TV>
+    public class KnightResponseBaseOptions<TH, TP, TV>
     {
         /// <summary>
         /// Provides a reusable set of defaults (copy-on-read) that host
         /// frameworks may use when options are not registered.
         /// </summary>
-        public static KnightResponseBaseOptions<TP, TV> Defaults => new();
+        public static KnightResponseBaseOptions<TH, TP, TV> Defaults => new();
 
         /// <summary>
         /// Gets or sets a value indicating whether to include the full <see cref="Result{T}"/> or <see cref="Result{T}"/>
@@ -35,7 +36,7 @@ namespace Knight.Response.Abstractions.Http.Options
         /// by <c>KnightResponseExceptionMiddleware</c>.
         /// Default is <c>false</c>.
         /// </summary>
-        public bool IncludeExceptionDetails { get; set; } = false;
+        public bool IncludeExceptionDetails { get; set; }
 
         // /// <summary>
         // /// When <c>true</c>, failures are represented as RFC7807 ProblemDetails.
@@ -45,7 +46,7 @@ namespace Knight.Response.Abstractions.Http.Options
         /// Gets or sets a value indicating whether to use RFC7807 <c>application/problem+json</c> for failures.
         /// Default is <c>false</c>.
         /// </summary>
-        public bool UseProblemDetails { get; set; } = false;
+        public bool UseProblemDetails { get; set; }
 
         // /// <summary>
         // /// When <c>true</c> and a mapper yields field errors, failures are
@@ -61,7 +62,7 @@ namespace Knight.Response.Abstractions.Http.Options
         /// </para>
         /// Default is <c>false</c>.
         /// </summary>
-        public bool UseValidationProblemDetails { get; set; } = false;
+        public bool UseValidationProblemDetails { get; set; }
 
         // /// <summary>
         // /// Maps a domain <see cref="Status"/> to an HTTP status code.
@@ -76,12 +77,12 @@ namespace Knight.Response.Abstractions.Http.Options
         /// <summary>
         /// Optional last‑mile customization hook for standard ProblemDetails.
         /// </summary>
-        public Action<object /*HttpContext*/, object /*Result*/, TP>? ProblemDetailsBuilder { get; set; }
+        public Action<TH, Result, TP>? ProblemDetailsBuilder { get; set; }
 
         /// <summary>
         /// Optional last‑mile customization hook for ValidationProblemDetails.
         /// </summary>
-        public Action<object /*HttpContext*/, object /*Result*/, TV>? ValidationBuilder { get; set; }
+        public Action<TH, Result, TV>? ValidationBuilder { get; set; }
 
         /// <summary>
         /// Gets or sets the validation error mapper used to convert Knight.Response messages into model state dictionaries.

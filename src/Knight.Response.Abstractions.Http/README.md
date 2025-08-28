@@ -11,6 +11,7 @@ use to keep behavior consistent.
 
 [![NuGet Version](https://img.shields.io/nuget/v/Knight.Response.Abstraction.Http.svg)](https://www.nuget.org/packages/Knight.Response.Abstractions.Http)
 [![ci](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml/badge.svg)](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml)
+[![Mutation score](https://img.shields.io/endpoint?url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2FKnightBadaru%2FKnight.Response%2Fmain%3Fmodule%3DKnight.Response.Abstractions.Http&label=mutation%20score)](https://dashboard.stryker-mutator.io/reports/github.com/KnightBadaru/Knight.Response/main?module=Knight.Response.Abstractions.Http)
 
 > **Target frameworks:** .NET Standard 2.0 (works with .NET Framework 4.7.1+ and .NET Core/.NET 6+).
 
