@@ -1,5 +1,6 @@
 using System.Text.Json;
-using Knight.Response.AspNetCore.Mappers;
+using Knight.Response.Abstractions.Http.Mappers;
+using Knight.Response.AspNetCore.Extensions;
 using Knight.Response.AspNetCore.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,11 +9,9 @@ namespace Knight.Response.AspNetCore.Tests.Infrastructure;
 
 internal static class TestHost
 {
-    // Minimal public mapper used as the default for tests when one isn't supplied.
     private sealed class PassthroughTestMapper : IValidationErrorMapper
     {
-        public IDictionary<string, string[]> Map(
-            IReadOnlyList<Models.Message> messages)
+        public IDictionary<string, string[]> Map(IReadOnlyList<Models.Message> messages)
             => new Dictionary<string, string[]>();
     }
 
@@ -23,12 +22,21 @@ internal static class TestHost
         var services = new ServiceCollection();
         services.AddLogging();
 
-        // Register options
-        var opts = options ?? new KnightResponseOptions();
-        opts.ValidationMapper = validationMapper ?? new PassthroughTestMapper();
-        services.AddSingleton(Microsoft.Extensions.Options.Options.Create(opts));
+        // Register using the real extension so DI matches production
+        services.AddKnightResponse(o =>
+        {
+            if (options != null)
+            {
+                o.UseProblemDetails             = options.UseProblemDetails;
+                o.UseValidationProblemDetails   = options.UseValidationProblemDetails;
+                o.IncludeFullResultPayload      = options.IncludeFullResultPayload;
+                o.IncludeExceptionDetails       = options.IncludeExceptionDetails;
+                o.StatusCodeResolver            = options.StatusCodeResolver;
+                o.ProblemDetailsBuilder         = options.ProblemDetailsBuilder;
+                o.ValidationBuilder             = options.ValidationBuilder;
+            }
+        });
 
-        // Mapper - not using internal DefaultValidationErrorMapper from tests
         services.AddScoped<IValidationErrorMapper>(_ => validationMapper ?? new PassthroughTestMapper());
 
         var provider = services.BuildServiceProvider();
@@ -42,8 +50,8 @@ internal static class TestHost
         return (http, provider);
     }
 
-    public static async Task<(int status, string body, IHeaderDictionary headers)> ExecuteAsync(
-        this IResult result, HttpContext http)
+
+    public static async Task<(int status, string body, IHeaderDictionary headers)> ExecuteAsync(IResult result, HttpContext http)
     {
         http.Response.Body = new MemoryStream();
         await result.ExecuteAsync(http);

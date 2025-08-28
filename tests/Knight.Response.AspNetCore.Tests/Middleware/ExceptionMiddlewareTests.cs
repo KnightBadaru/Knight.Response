@@ -12,7 +12,7 @@ namespace Knight.Response.AspNetCore.Tests.Middleware;
 
 public class ExceptionMiddlewareTests
 {
-   private static (KnightResponseExceptionMiddleware, ILogger<KnightResponseExceptionMiddleware>) Build(RequestDelegate next, KnightResponseOptions? opts = null)
+   private static KnightResponseExceptionMiddleware Build(RequestDelegate next, KnightResponseOptions? opts = null)
     {
         var logger = Substitute.For<ILogger<KnightResponseExceptionMiddleware>>();
         var options = Microsoft.Extensions.Options.Options.Create(opts ?? new KnightResponseOptions
@@ -22,14 +22,14 @@ public class ExceptionMiddlewareTests
             StatusCodeResolver = _ => StatusCodes.Status500InternalServerError
         });
 
-        return (new KnightResponseExceptionMiddleware(next, logger, options), logger);
+        return new KnightResponseExceptionMiddleware(next, logger, options);
     }
 
     [Fact]
     public async Task Middleware_When_Exception_And_ProblemDetails_Enabled_Returns_500_PD_Without_Exception_Detail()
     {
         // Arrange
-        var (middleware, _) = Build(_ => throw new InvalidOperationException("boom"));
+        var middleware = Build(_ => throw new InvalidOperationException("boom"));
         var (http, _) = TestHost.CreateHttpContext();
 
         // Act
@@ -56,7 +56,7 @@ public class ExceptionMiddlewareTests
             StatusCodeResolver = _ => StatusCodes.Status500InternalServerError
         };
 
-        var (middleware, _) = Build(_ => throw new ArgumentNullException("x", "bad"), opts);
+        var middleware = Build(_ => throw new ArgumentNullException("x", "bad"), opts);
         var (http, _) = TestHost.CreateHttpContext(opts);
 
         // Act

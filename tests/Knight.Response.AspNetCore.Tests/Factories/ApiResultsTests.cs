@@ -218,7 +218,7 @@ public class ApiResultsTests
     public async Task Created_Success_Empty_Location()
     {
         // Arrange
-        var opts = KnightResponseOptions.Defaults;
+        var opts = new KnightResponseOptions();
         var (http, _) = TestHost.CreateHttpContext(opts);
         var response = Knight.Response.Factories.Results.Success();
 
@@ -237,7 +237,7 @@ public class ApiResultsTests
     {
         // Arrange
         var dto = new { id = 7, name = "user" };
-        var opts = KnightResponseOptions.Defaults;
+        var opts = new KnightResponseOptions();
         var (http, _) = TestHost.CreateHttpContext(opts);
         var response = Knight.Response.Factories.Results.Success(dto);
 
@@ -382,7 +382,7 @@ public class ApiResultsTests
     public async Task Accepted_Success_Empty_Location()
     {
         // Arrange
-        var opts = KnightResponseOptions.Defaults;
+        var opts = new KnightResponseOptions();
         var (http, _) = TestHost.CreateHttpContext(opts);
         var response = Knight.Response.Factories.Results.Success();
 
@@ -401,7 +401,7 @@ public class ApiResultsTests
     {
         // Arrange
         var dto = new { id = 7, name = "user" };
-        var opts = KnightResponseOptions.Defaults;
+        var opts = new KnightResponseOptions();
         var (http, _) = TestHost.CreateHttpContext(opts);
         var response = Knight.Response.Factories.Results.Success(dto);
 
@@ -664,15 +664,15 @@ public class ApiResultsTests
         // Arrange
         var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
         var (http, _) = TestHost.CreateHttpContext(opts);
-        var res = Knight.Response.Factories.Results.Success(new { id = 2 });
+        var response = Knight.Response.Factories.Results.Success(new { id = 2 });
 
         // Act
-        var ires = ApiResults.Created(res, http, "/api/items/2");
-        var (status, _, headers) = await TestHost.ExecuteAsync(ires, http);
+        var result = ApiResults.Created(response, http, "/api/items/2");
+        var (status, _, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status201Created);
-        headers.Location!.ToString().ShouldBe("/api/items/2");
+        headers.Location.ToString().ShouldBe("/api/items/2");
     }
 
     [Theory]
@@ -683,11 +683,11 @@ public class ApiResultsTests
         // Arrange
         var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
         var (http, _) = TestHost.CreateHttpContext(opts);
-        var res = Knight.Response.Factories.Results.Success();
+        var response = Knight.Response.Factories.Results.Success();
 
         // Act
-        var ires = ApiResults.Accepted(res, http, location);
-        var (status, _, headers) = await TestHost.ExecuteAsync(ires, http);
+        var result = ApiResults.Accepted(response, http, location);
+        var (status, _, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status202Accepted);
@@ -700,14 +700,14 @@ public class ApiResultsTests
         // Arrange
         var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
         var (http, _) = TestHost.CreateHttpContext(opts);
-        var res = Knight.Response.Factories.Results.Success<string>();
+        var response = Knight.Response.Factories.Results.Success<string>();
 
         // Act
-        var ires = ApiResults.Accepted(res, http, "/status/42");
-        var (status, _, headers) = await TestHost.ExecuteAsync(ires, http);
+        var result = ApiResults.Accepted(response, http, "/status/42");
+        var (status, _, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status202Accepted);
-        headers.Location!.ToString().ShouldBe("/status/42");
+        headers.Location.ToString().ShouldBe("/status/42");
     }
 }

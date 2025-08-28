@@ -1,5 +1,5 @@
+using Knight.Response.Abstractions.Http.Mappers;
 using Knight.Response.AspNetCore.Factories;
-using Knight.Response.AspNetCore.Mappers;
 using Knight.Response.AspNetCore.Options;
 using Knight.Response.AspNetCore.Tests.Infrastructure;
 using Knight.Response.Models;
@@ -263,17 +263,17 @@ public class ProblemFactoryTests
             UseProblemDetails = true,
             UseValidationProblemDetails = false,
             StatusCodeResolver = _ => StatusCodes.Status400BadRequest,
-            ProblemDetailsBuilder = (ctx, res, pd) =>
+            ProblemDetailsBuilder = (_, _, pd) =>
             {
                 pd.Extensions["trace"] = "abc-123";
             }
         };
         var (http, _) = TestHost.CreateHttpContext(opts);
-        var res = Knight.Response.Factories.Results.Failure("oops");
+        var response = Knight.Response.Factories.Results.Failure("oops");
 
         // Act
-        var ires = ApiResults.BadRequest(res, http);
-        var (status, body, _) = await TestHost.ExecuteAsync(ires, http);
+        var result = ApiResults.BadRequest(response, http);
+        var (status, body, _) = await TestHost.ExecuteAsync(result, http);
         var pd = TestHelpers.Deserialize<ProblemDetails>(body)!;
 
         // Assert
@@ -292,17 +292,17 @@ public class ProblemFactoryTests
             UseProblemDetails = true,
             UseValidationProblemDetails = true,
             StatusCodeResolver = _ => StatusCodes.Status400BadRequest,
-            ValidationBuilder = (ctx, res, vpd) =>
+            ValidationBuilder = (_, _, vpd) =>
             {
                 vpd.Extensions["hint"] = "check-forms";
             }
         };
         var (http, _) = TestHost.CreateHttpContext(opts, mapper);
-        var res = Knight.Response.Factories.Results.Failure("email: required");
+        var response = Knight.Response.Factories.Results.Failure("email: required");
 
         // Act
-        var ires = ApiResults.BadRequest(res, http);
-        var (status, body, _) = await TestHost.ExecuteAsync(ires, http);
+        var result = ApiResults.BadRequest(response, http);
+        var (status, body, _) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status400BadRequest);

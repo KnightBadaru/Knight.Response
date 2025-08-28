@@ -223,11 +223,11 @@ public class ResultExtensionsTests
         var (http, _) = TestHost.CreateHttpContext(opts);
 
         // Act
-        var ires = Knight.Response.Factories.Results
+        var result = Knight.Response.Factories.Results
             .Success(new { id = 42 })
             .ToAcceptedResult(http, location);
 
-        var (status, body, headers) = await TestHost.ExecuteAsync(ires, http);
+        var (status, body, headers) = await TestHost.ExecuteAsync(result, http);
 
         // Assert
         status.ShouldBe(StatusCodes.Status202Accepted);

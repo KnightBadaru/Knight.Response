@@ -244,10 +244,10 @@ public static class ApiResults
     {
         if (http is null)
         {
-            return KnightResponseOptions.Defaults;
+            return new KnightResponseOptions();
         }
 
         var opt = http.RequestServices.GetService<IOptions<KnightResponseOptions>>()?.Value;
-        return opt ?? KnightResponseOptions.Defaults;
+        return opt ?? new KnightResponseOptions();
     }
 }

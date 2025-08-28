@@ -1,4 +1,4 @@
-using Knight.Response.AspNetCore.Mappers;
+using Knight.Response.Abstractions.Http.Mappers;
 using Knight.Response.AspNetCore.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
