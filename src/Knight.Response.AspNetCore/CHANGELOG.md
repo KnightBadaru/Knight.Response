@@ -20,6 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2025-08-28
+
+### Changed
+- Refactored internal implementation to use **Knight.Response.Abstractions.Http** for shared options and validation mapping.
+    - Removed local `KnightResponseOptions`, `IValidationErrorMapper`, and `DefaultValidationErrorMapper` duplicates.
+    - Now depends on the abstractions library for consistency across ASP.NET Core and MVC integrations.
+- No functional changes to public API surface.
+
+---
+
 ## [1.0.0] - 2025-08-25
 
 ### Added
@@ -45,3 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `AddKnightResponse<TMapper>` for custom validation error mappers
 - Default validation error mapper:
     - `DefaultValidationErrorMapper`
+
+---
+
+[1.0.1]: https://github.com/KnightBadaru/Knight.Response/releases/tag/aspnetcore-v1.0.1
+[1.0.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/aspnetcore-v1.0.0

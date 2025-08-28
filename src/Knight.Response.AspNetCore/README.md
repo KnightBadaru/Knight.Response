@@ -16,7 +16,6 @@ ASP.NET Core integration for [Knight.Response]. It converts `Result` / `Result<T
 ## Install
 
 ```bash
-dotnet add package Knight.Response
 dotnet add package Knight.Response.AspNetCore
 ```
 
@@ -40,8 +39,8 @@ builder.Services.AddKnightResponse(options =>
 {
     // Defaults shown; override as needed
     options.IncludeFullResultPayload    = true;
-    options.UseProblemDetails           = true;
-    options.UseValidationProblemDetails = true;
+    options.UseProblemDetails           = false;
+    options.UseValidationProblemDetails = false;
     options.IncludeExceptionDetails     = false; // keep false in production
 
     // Inline override (not common; prefer the typed overload below)
@@ -218,34 +217,20 @@ All methods consult DI for `KnightResponseOptions` if `HttpContext` is provided;
 
 ## Options
 
-`KnightResponseOptions` is resolved from DI and controls formatting/mapping:
+Options type comes from
 
 ```csharp
 public sealed class KnightResponseOptions
+    : KnightResponseBaseOptions<ProblemDetails, ValidationProblemDetails>
 {
-    // Success formatting
-    public bool IncludeFullResultPayload { get; set; } = true;
-
-    // Failure formatting
-    public bool UseProblemDetails { get; set; } = true;
-
-    // Validation mapping → ValidationProblemDetails when present
-    public bool UseValidationProblemDetails { get; set; } = true;
-
-    // Exception middleware: include exception information in the payload (development only)
-    public bool IncludeExceptionDetails { get; set; } = false;
-
-    // Maps a Knight.Response status → HTTP status code (override to customize)
-    public Func<Knight.Response.Core.Status, int> StatusCodeResolver { get; set; } = DefaultStatusCodeResolver;
-
-    // Map domain messages → validation errors (used when UseValidationProblemDetails = true)
-    public IValidationErrorMapper ValidationMapper { get; set; } = new DefaultValidationErrorMapper();
-
-    // Optional hooks to customize generated ProblemDetails/ValidationProblemDetails
-    public Action<HttpContext, Result, ProblemDetails>? ProblemDetailsBuilder { get; set; }
-    public Action<HttpContext, Result, ValidationProblemDetails>? ValidationBuilder { get; set; }
-
-    public static KnightResponseOptions Defaults { get; } = new();
+    // Same core properties:
+    // - IncludeFullResultPayload
+    // - UseProblemDetails
+    // - UseValidationProblemDetails
+    // - IncludeExceptionDetails
+    // - StatusCodeResolver
+    // - ValidationMapper (default: DefaultValidationErrorMapper from Abstractions)
+    // - ProblemDetailsBuilder, ValidationBuilder
 }
 ```
 
