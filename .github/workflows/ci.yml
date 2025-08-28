@@ -32,18 +32,12 @@ jobs:
       - name: Test
         run: dotnet test Knight.Response.sln -c Release --no-build --verbosity normal
 
-      # Pack all NuGet-able projects under /src
       - name: Pack (dry run for all packages)
         run: |
           mkdir -p artifacts
-          for proj in \
-            src/Knight.Response.Abstractions.Http/Knight.Response.Abstractions.Http.csproj \
-            src/Knight.Response/Knight.Response.csproj \
-            src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj \
-#            src/Knight.Response.AspNetCore.Mvc/Knight.Response.AspNetCore.Mvc.csproj
-          do
-            dotnet pack "$proj" -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
-          done
+          dotnet pack src/Knight.Response/Knight.Response.csproj -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
+          dotnet pack src/Knight.Response.Abstractions.Http/Knight.Response.Abstractions.Http.csproj -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
+          dotnet pack src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
 
       - name: Show package contents
         run: |
