@@ -1,69 +1,81 @@
 # Knight Response Monorepo
 
-This repository contains the **Knight.Response** family of .NET libraries, focused on providing lightweight, immutable result handling for service layers in C#. These libraries are designed to improve code clarity, maintainability, and robustness by standardising how operations return and handle outcomes.
+This repository contains the **Knight.Response** family of .NET libraries for clear, consistent, and testable result handling in service layers and web APIs.
 
 ---
 
 ## Projects
 
-### 1. Knight.Response
+### 1) Knight.Response
 
-A lightweight, immutable `Result`/`Result<T>` library with factories, functional extensions, and pattern matching for C# service layers.
+A lightweight, immutable `Result` / `Result<T>` library with factories and functional-style helpers.
 
-* Immutable results for safer, predictable state handling
-* Functional extensions (`Map`, `Bind`, `OnSuccess`, `OnFailure`, etc.)
-* Built-in message handling (`Info`, `Warning`, `Error`)
-* Fully unit tested with **100% mutation score**
-* .NET Standard 2.0 compatible
+* Immutable results with message collection (Info/Warning/Error)
+* Functional extensions: `Map`, `Bind`, `OnSuccess`, `OnFailure`, `Ensure`, `Tap`, `Recover`, `WithMessage(s)`
+* Deconstruction support and rich factory methods (e.g., `Success`, `Failure`, `Error`, `Cancel`, `Aggregate`)
+* Targets **.NET Standard 2.0**
 
-**Docs:** [Knight.Response README](src/Knight.Response/README.md)
-
----
-
-### 2. Knight.Response.Abstractions.Http
-
-Shared abstractions for HTTP-related response handling. Provides cross-framework building blocks consumed by both ASP.NET Core and ASP.NET Core MVC integrations.
-
-* `KnightResponseBaseOptions<TProblem, TValidationProblem>` – strongly typed configuration options
-* `IValidationErrorMapper` – abstraction for mapping domain messages to validation errors
-* `DefaultValidationErrorMapper` – default implementation for simple field/message parsing
-* Designed to be consumed by other libraries (e.g., `.AspNetCore`, `.AspNetCore.Mvc`)
-* .NET Standard 2.0 compatible for wide framework support
-
-**Docs:** [Knight.Response.Abstractions.Http README](src/Knight.Response.Abstractions.Http/README.md)
+**Docs:** [src/Knight.Response/README.md](src/Knight.Response/README.md)
 
 ---
 
-### 3. Knight.Response.AspNetCore
+### 2) Knight.Response.Abstractions.Http
 
-ASP.NET Core integration for `Result`/`Result<T>`. Provides consistent translation to HTTP responses (`IResult`), RFC7807 `ProblemDetails`, validation error mapping, and exception middleware.
+Shared HTTP-facing primitives used by both `AspNetCore` and `AspNetCore.Mvc` integrations.
 
-* Extension methods for Minimal APIs and Controllers
-* `ApiResults` helpers (`Ok`, `Created`, `Accepted`, etc.)
-* RFC7807 `ProblemDetails` and `ValidationProblemDetails` support
-* Exception middleware for consistent error payloads
-* Configurable via `KnightResponseOptions`
+* **`KnightResponseBaseOptions<THttp, TProblem, TValidationProblem>`** – base options type with:
 
-**Docs:** [Knight.Response.AspNetCore README](src/Knight.Response.AspNetCore/README.md)
+    * `IncludeFullResultPayload`
+    * `UseProblemDetails`
+    * `UseValidationProblemDetails`
+    * `IncludeExceptionDetails`
+    * Pluggable `StatusCodeResolver`
+    * Optional builders for shaping problem payloads
+* **`IValidationErrorMapper`** – abstraction to project domain messages into `Dictionary<string,string[]>`
+* **`DefaultValidationErrorMapper`** – pragmatic mapper supporting explicit `field` metadata and `"field: message"` parsing
+* Targets **.NET Standard 2.0** for broad compatibility
+
+**Docs:** [src/Knight.Response.Abstractions.Http/README.md](src/Knight.Response.Abstractions.Http/README.md)
 
 ---
 
-## Usage Examples
+### 3) Knight.Response.AspNetCore
 
-### Minimal API
+ASP.NET Core integration that translates `Result` / `Result<T>` to `IResult`, with ProblemDetails, optional ValidationProblemDetails, and exception middleware.
+
+* `ApiResults` helpers (`Ok`, `Created`, `Accepted`, `NoContent`, `BadRequest`, `NotFound`, `Conflict`, `Unauthorized`, `Forbidden`)
+* `Result.ToIResult(...)` extensions for Minimal APIs and controllers
+* Centralised **ProblemDetails** / **ValidationProblemDetails** emission
+* Exception middleware: `UseKnightResponseExceptionMiddleware()`
+* Configured via `KnightResponseOptions` (built on the abstractions above)
+* Targets **.NET 8**
+
+**Docs:** [src/Knight.Response.AspNetCore/README.md](src/Knight.Response.AspNetCore/README.md)
+
+---
+
+### 4) (Planned) Knight.Response.AspNetCore.Mvc
+
+Classic MVC / `IActionResult` integration for legacy apps (e.g., .NET Framework / ASP.NET Core 2.x), built on the shared abstractions.
+
+---
+
+## Quick glimpse
+
+### Minimal API example
 
 ```csharp
 using Knight.Response.Factories;
 using Knight.Response.AspNetCore.Extensions;
 
-app.MapGet("/users/{id:int}", async (int id, HttpContext http, IUserService userService) =>
+app.MapGet("/users/{id:int}", async (int id, HttpContext http, IUserService svc) =>
 {
-    var result = await userService.GetUserAsync(id);
-    return result.ToIResult(http); // Converts Result<T> → IResult automatically
+    var result = await svc.GetUserAsync(id);          // Result<User>
+    return result.ToIResult(http);                    // IResult (200/4xx/5xx mapped)
 });
 ```
 
-### MVC Controller
+### MVC controller example (AspNetCore)
 
 ```csharp
 using Knight.Response.Factories;
@@ -74,21 +86,14 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/users")]
 public class UsersController : ControllerBase
 {
-    private readonly IUserService _userService;
-    public UsersController(IUserService userService) => _userService = userService;
+    private readonly IUserService _svc;
+    public UsersController(IUserService svc) => _svc = svc;
 
     [HttpPost]
-    public async Task<IResult> Create([FromBody] CreateUserRequest request)
+    public async Task<IResult> Create([FromBody] CreateUser req)
     {
-        var result = await _userService.CreateUserAsync(request);
-        return ApiResults.Created(result, HttpContext, location: $"/api/users/{result.Value.Id}");
-    }
-
-    [HttpGet("{id:int}")]
-    public async Task<IResult> Get(int id)
-    {
-        var result = await _userService.GetUserAsync(id);
-        return ApiResults.Ok(result, HttpContext);
+        var result = await _svc.CreateAsync(req);     // Result<User>
+        return ApiResults.Created(result, HttpContext, $"/api/users/{result.Value.Id}");
     }
 }
 ```
@@ -97,7 +102,7 @@ public class UsersController : ControllerBase
 
 ## Contributing
 
-We welcome contributions! Please read the following before getting started:
+Please read our guidelines before submitting changes:
 
 * [CODE\_OF\_CONDUCT.md](CODE_OF_CONDUCT.md)
 * [CONTRIBUTING.md](CONTRIBUTING.md)
@@ -106,4 +111,4 @@ We welcome contributions! Please read the following before getting started:
 
 ## License
 
-All projects in this repository are licensed under the [MIT License](LICENSE).
+MIT – see [LICENSE](LICENSE).
