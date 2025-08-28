@@ -19,15 +19,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
-## [1.0.0] - 2025-02-27
+## [1.0.1] - 2025-02-28
+
+### Fixed
+- Corrected documentation to show the proper generic signature of  
+  **`KnightResponseBaseOptions<TH, TProblem, TValidation>`**  
+  (previously shown incorrectly as `<TProblem, TValidation>`).
+
+---
+
+## [1.0.0] - 2025-02-28
 
 ### Added
-
-* **KnightResponseBaseOptions\<TProblem, TValidationProblem>**: Base options type to configure HTTP-specific behavior (ProblemDetails, ValidationProblemDetails, payload shaping).
+* **KnightResponseBaseOptions<TH, TProblem, TValidation>**: Base options type to configure HTTP-specific behavior (HttpContext, ProblemDetails, ValidationProblemDetails, payload shaping).
 * **IValidationErrorMapper**: Abstraction for mapping `Message` collections to validation errors.
 * **DefaultValidationErrorMapper**: Default implementation of `IValidationErrorMapper`.
 * Support for sharing configuration and mappers between **Knight.Response.AspNetCore** and **Knight.Response.AspNetCore.Mvc** packages.
 
 ---
 
+[1.0.1]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v1.0.1
 [1.0.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v1.0.0

@@ -7,18 +7,15 @@
         <ImplicitUsings>enable</ImplicitUsings>
 
         <PackageId>Knight.Response.Abstractions.Http</PackageId>
-        <Version>1.0.0</Version>
+        <Version>1.0.1</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response.Abstractions.Http</Title>
         <Description>Framework-agnostic HTTP abstractions for Knight.Response (shared options and validation mapping).</Description>
         <PackageReleaseNotes>
-            - Initial release of Knight.Response.Abstractions.Http
-            - Provides shared abstractions for Knight.Response HTTP integrations
-            - Includes:
-            • KnightResponseBaseOptions (common options for HTTP response behavior)
-            • IValidationErrorMapper and DefaultValidationErrorMapper
-            - Designed for reuse by Knight.Response.AspNetCore and Knight.Response.AspNetCore.Mvc
-            - Targets .NET Standard 2.0 for maximum compatibility
+            - Fixed documentation: corrected the generic signature of
+            KnightResponseBaseOptions&lt;TH, TProblem, TValidation&gt;.
+            (Previously shown incorrectly as &lt;TProblem, TValidation&gt;).
+            - No API or runtime behavior changes.
         </PackageReleaseNotes>
         <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
         <RepositoryType>git</RepositoryType>

@@ -19,7 +19,7 @@ use to keep behavior consistent.
 
 ## What’s inside
 
-* **`KnightResponseBaseOptions<TProblem, TValidation>`**
+* **`KnightResponseBaseOptions<TH, TProblem, TValidation>`**
   Base options class that centralizes:
 
     * `UseProblemDetails`
@@ -30,7 +30,8 @@ use to keep behavior consistent.
     * Optional builders/hooks for shaping problem responses
 
   The generic parameters let each integration plug in the framework’s
-  own `ProblemDetails` / `ValidationProblemDetails` types without duplication.
+  own **HttpContext type (`TH`)**, `ProblemDetails` type (`TProblem`),
+  and `ValidationProblemDetails` type (`TValidation`) without duplication.
 
 * **Validation error mapping**
 
