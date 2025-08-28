@@ -32,7 +32,7 @@ public sealed class KnightResponseExceptionMiddleware
     {
         _next = next;
         _logger = logger;
-        _options = options.Value ?? KnightResponseOptions.Defaults;
+        _options = options.Value;
     }
 
     /// <summary>
@@ -76,8 +76,7 @@ public sealed class KnightResponseExceptionMiddleware
             }
 
             // Choose HTTP status (defaults to 500 for Error)
-            var status = _options.StatusCodeResolver?.Invoke(error.Status)
-                         ?? StatusCodes.Status500InternalServerError;
+            var status = _options.StatusCodeResolver.Invoke(error.Status);
 
             IResult failure;
 

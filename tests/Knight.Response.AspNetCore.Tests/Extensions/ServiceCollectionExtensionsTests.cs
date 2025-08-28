@@ -1,5 +1,5 @@
+using Knight.Response.Abstractions.Http.Mappers;
 using Knight.Response.AspNetCore.Extensions;
-using Knight.Response.AspNetCore.Mappers;
 using Knight.Response.AspNetCore.Options;
 using Knight.Response.Models;
 using Microsoft.Extensions.DependencyInjection;
