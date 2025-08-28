@@ -40,7 +40,7 @@ jobs:
             src/Knight.Response.Abstractions.Http/Knight.Response.Abstractions.Http.csproj \
             src/Knight.Response/Knight.Response.csproj \
             src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj \
-            src/Knight.Response.AspNetCore.Mvc/Knight.Response.AspNetCore.Mvc.csproj
+#            src/Knight.Response.AspNetCore.Mvc/Knight.Response.AspNetCore.Mvc.csproj
           do
             dotnet pack "$proj" -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
           done

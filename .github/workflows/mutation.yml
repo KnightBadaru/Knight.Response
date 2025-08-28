@@ -12,6 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: abstractions-http
+            config: stryker-config.abstractions-http.json
           - name: core
             config: stryker-config.core.json
           - name: aspnetcore
