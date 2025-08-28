@@ -21,6 +21,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution-items", "solution-
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{6227B87C-09D6-4AB9-A6A2-90A1639DC794}"
+	ProjectSection(SolutionItems) = preProject
+		.github\CODEOWNERS = .github\CODEOWNERS
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{68F3AC89-06C9-4E8D-AF54-02AFB37E1D81}"
 	ProjectSection(SolutionItems) = preProject
@@ -39,6 +42,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.AspNetCore"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.AspNetCore.Tests", "tests\Knight.Response.AspNetCore.Tests\Knight.Response.AspNetCore.Tests.csproj", "{941A1E55-5156-46E3-AE02-630C7D98813F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.AspNetCore.Mvc", "src\Knight.Response.AspNetCore.Mvc\Knight.Response.AspNetCore.Mvc.csproj", "{C797CD0A-F950-40C5-BDE8-7F317EF182AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.Abstractions.Http", "src\Knight.Response.Abstractions.Http\Knight.Response.Abstractions.Http.csproj", "{57B21E91-06F8-44FF-BD07-8B4135EC2A8C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,6 +61,8 @@ Global
 		{EE8C3265-892D-453D-8B2A-3412ABDA9FA2} = {DD57DC7C-679B-48D7-B1E6-F5FEFFDCC266}
 		{9D1B98D6-A3CA-419F-9637-D8F4F40E354C} = {B0840E78-51EB-4184-959C-D9CA9EC85B01}
 		{941A1E55-5156-46E3-AE02-630C7D98813F} = {3DD0FB79-BEB3-4C37-BE8C-9E73CD989D4B}
+		{C797CD0A-F950-40C5-BDE8-7F317EF182AA} = {B0840E78-51EB-4184-959C-D9CA9EC85B01}
+		{57B21E91-06F8-44FF-BD07-8B4135EC2A8C} = {B0840E78-51EB-4184-959C-D9CA9EC85B01}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3A18BD4B-02DF-423F-A191-A6A0A64E4489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -72,5 +81,13 @@ Global
 		{941A1E55-5156-46E3-AE02-630C7D98813F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{941A1E55-5156-46E3-AE02-630C7D98813F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{941A1E55-5156-46E3-AE02-630C7D98813F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C797CD0A-F950-40C5-BDE8-7F317EF182AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C797CD0A-F950-40C5-BDE8-7F317EF182AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C797CD0A-F950-40C5-BDE8-7F317EF182AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C797CD0A-F950-40C5-BDE8-7F317EF182AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57B21E91-06F8-44FF-BD07-8B4135EC2A8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57B21E91-06F8-44FF-BD07-8B4135EC2A8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57B21E91-06F8-44FF-BD07-8B4135EC2A8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57B21E91-06F8-44FF-BD07-8B4135EC2A8C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

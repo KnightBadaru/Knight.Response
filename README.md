@@ -20,7 +20,21 @@ A lightweight, immutable `Result`/`Result<T>` library with factories, functional
 
 ---
 
-### 2. Knight.Response.AspNetCore
+### 2. Knight.Response.Abstractions.Http
+
+Shared abstractions for HTTP-related response handling. Provides cross-framework building blocks consumed by both ASP.NET Core and ASP.NET Core MVC integrations.
+
+* `KnightResponseBaseOptions<TProblem, TValidationProblem>` – strongly typed configuration options
+* `IValidationErrorMapper` – abstraction for mapping domain messages to validation errors
+* `DefaultValidationErrorMapper` – default implementation for simple field/message parsing
+* Designed to be consumed by other libraries (e.g., `.AspNetCore`, `.AspNetCore.Mvc`)
+* .NET Standard 2.0 compatible for wide framework support
+
+**Docs:** [Knight.Response.Abstractions.Http README](src/Knight.Response.Abstractions.Http/README.md)
+
+---
+
+### 3. Knight.Response.AspNetCore
 
 ASP.NET Core integration for `Result`/`Result<T>`. Provides consistent translation to HTTP responses (`IResult`), RFC7807 `ProblemDetails`, validation error mapping, and exception middleware.
 

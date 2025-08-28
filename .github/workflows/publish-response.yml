@@ -5,15 +5,16 @@ on:
     tags:
       - 'response-v*'
       - 'aspnetcore-v*'
+      - 'abstractions-http-v*'
 
 permissions:
   contents: read
 
 jobs:
+  # ================= Knight.Response =================
   publish-response:
     if: startsWith(github.ref, 'refs/tags/response-v')
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -35,7 +36,6 @@ jobs:
       - name: Derive version from tag (Knight.Response)
         run: echo "PKG_VERSION=${GITHUB_REF_NAME#response-v}" >> "$GITHUB_ENV"
 
-      # Optional: warn if csproj version and tag diverge
       - name: Check csproj version (optional)
         run: |
           csproj="src/Knight.Response/Knight.Response.csproj"
@@ -66,11 +66,11 @@ jobs:
           -k "$NUGET_API_KEY"
           -s https://api.nuget.org/v3/index.json
           --skip-duplicate
-
+  
+  # ================= Knight.Response.AspNetCore =================
   publish-aspnetcore:
     if: startsWith(github.ref, 'refs/tags/aspnetcore-v')
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -92,7 +92,6 @@ jobs:
       - name: Derive version from tag (AspNetCore)
         run: echo "PKG_VERSION=${GITHUB_REF_NAME#aspnetcore-v}" >> "$GITHUB_ENV"
 
-      # Optional: warn if csproj version and tag diverge
       - name: Check csproj version (optional)
         run: |
           csproj="src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj"
@@ -123,3 +122,60 @@ jobs:
           -k "$NUGET_API_KEY"
           -s https://api.nuget.org/v3/index.json
           --skip-duplicate
+  
+  # ================= Knight.Response.Abstractions.Http =================
+  publish-abstractions-http:
+    if: startsWith(github.ref, 'refs/tags/abstractions-http-v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Knight.Response.sln
+
+      - name: Build
+        run: dotnet build Knight.Response.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test Knight.Response.sln -c Release --no-build --verbosity normal
+
+      - name: Derive version from tag (Abstractions.Http)
+        run: echo "PKG_VERSION=${GITHUB_REF_NAME#abstractions-http-v}" >> "$GITHUB_ENV"
+
+      - name: Check csproj version (optional)
+        run: |
+          csproj="src/Knight.Response.Abstractions.Http/Knight.Response.Abstractions.Http.csproj"
+          declared=$(awk -F'[<>]' '/<Version>/{print $3; exit}' "$csproj" 2>/dev/null || true)
+          echo "Declared Version=$declared; Tag Version=$PKG_VERSION"
+          if [ -n "$declared" ] && [ "$declared" != "$PKG_VERSION" ]; then
+            echo "::warning ::csproj version ($declared) does not match tag ($PKG_VERSION)"
+          fi
+
+      - name: Pack (Knight.Response.Abstractions.Http)
+        run: |
+          dotnet pack src/Knight.Response.Abstractions.Http/Knight.Response.Abstractions.Http.csproj \
+            -c Release -o artifacts --no-build \
+            /p:ContinuousIntegrationBuild=true
+
+      - name: Upload package artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: abstractions-http-packages
+          path: artifacts/*.nupkg
+
+      - name: Publish to NuGet
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: >
+          dotnet nuget push artifacts/*.nupkg
+          -k "$NUGET_API_KEY"
+          -s https://api.nuget.org/v3/index.json
+          --skip-duplicate
+  
