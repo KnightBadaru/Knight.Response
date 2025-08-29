@@ -21,7 +21,7 @@ A lightweight, immutable `Result` / `Result<T>` library with factories and funct
 
 ### 2) Knight.Response.Abstractions.Http
 
-Shared HTTP-facing primitives used by both `AspNetCore` and `AspNetCore.Mvc` integrations.
+Shared HTTP-facing primitives used by both `AspNetCore` and `Mvc` integrations.
 
 * **`KnightResponseBaseOptions<THttp, TProblem, TValidationProblem>`** – base options type with:
 
@@ -32,7 +32,7 @@ Shared HTTP-facing primitives used by both `AspNetCore` and `AspNetCore.Mvc` int
     * Pluggable `StatusCodeResolver`
     * Optional builders for shaping problem payloads
 * **`IValidationErrorMapper`** – abstraction to project domain messages into `Dictionary<string,string[]>`
-* **`DefaultValidationErrorMapper`** – pragmatic mapper supporting explicit `field` metadata and `"field: message"` parsing
+* **`DefaultValidationErrorMapper`** – pragmatic mapper supporting explicit `field` metadata and "field: message" parsing
 * Targets **.NET Standard 2.0** for broad compatibility
 
 **Docs:** [src/Knight.Response.Abstractions.Http/README.md](src/Knight.Response.Abstractions.Http/README.md)
@@ -54,9 +54,26 @@ ASP.NET Core integration that translates `Result` / `Result<T>` to `IResult`, wi
 
 ---
 
-### 4) (Planned) Knight.Response.AspNetCore.Mvc
+### 4) Knight.Response.Mvc
 
-Classic MVC / `IActionResult` integration for legacy apps (e.g., .NET Framework / ASP.NET Core 2.x), built on the shared abstractions.
+Classic MVC / Web API 2 (`IActionResult` / `IHttpActionResult`) integration for legacy .NET Framework apps.
+Provides the same clear and consistent `Result` → response translation as the ASP.NET Core package, but for the **System.Web** stack.
+
+* `ApiResults` helpers (`Ok`, `Created`, `NoContent`, `BadRequest`, `NotFound`, `Conflict`, `Unauthorized`, `Forbidden`)
+* `Result.ToApiResponse(...)` extensions for MVC / Web API 2 controllers
+* Centralised **ProblemDetails** / **ValidationProblemDetails** emission
+* Configured via `KnightResponseOptions` (built on the shared abstractions)
+* Targets **.NET Framework 4.7.1+**
+
+**Docs:** [src/Knight.Response.Mvc/README.md](src/Knight.Response.Mvc/README.md)
+
+### Which package do I use?
+
+* Use **Knight.Response.Mvc** → For **System.Web MVC / Web API 2** apps targeting .NET Framework.
+* Use **Knight.Response.AspNetCore** → For **ASP.NET Core** apps targeting .NET 6/7/8+.
+
+> Note: `Knight.Response.Mvc` may reference `Microsoft.AspNetCore.Mvc` types (like `ProblemDetails`) purely for **compatibility**. This does **not** make your app an ASP.NET Core app; it remains a System.Web application.
+
 
 ---
 

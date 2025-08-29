@@ -12,12 +12,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: abstractions-http
-            config: stryker-config.abstractions-http.json
           - name: core
             config: stryker-config.core.json
+          - name: abstractions-http
+            config: stryker-config.abstractions-http.json
           - name: aspnetcore
             config: stryker-config.aspnetcore.json
+          - name: mvc
+            config: stryker-config.mvc.json
 
     steps:
       - name: Checkout (full history)

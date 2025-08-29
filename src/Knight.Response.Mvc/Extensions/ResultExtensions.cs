@@ -1,10 +1,10 @@
-using Knight.Response.AspNetCore.Mvc.Factories;
-using Knight.Response.AspNetCore.Mvc.Options;
 using Knight.Response.Core;
+using Knight.Response.Mvc.Factories;
+using Knight.Response.Mvc.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Knight.Response.AspNetCore.Mvc.Extensions;
+namespace Knight.Response.Mvc.Extensions;
 
 /// <summary>
 /// Controller-friendly extension methods that convert <see cref="Result"/> / <see cref="Result{T}"/>

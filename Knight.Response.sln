@@ -37,13 +37,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "stryker", "stryker", "{EE8C
 		stryker-config.core.json = stryker-config.core.json
 		stryker-config.aspnetcore.json = stryker-config.aspnetcore.json
 		stryker-config.abstractions-http.json = stryker-config.abstractions-http.json
+		stryker-config.mvc.json = stryker-config.mvc.json
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.AspNetCore", "src\Knight.Response.AspNetCore\Knight.Response.AspNetCore.csproj", "{9D1B98D6-A3CA-419F-9637-D8F4F40E354C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.AspNetCore.Tests", "tests\Knight.Response.AspNetCore.Tests\Knight.Response.AspNetCore.Tests.csproj", "{941A1E55-5156-46E3-AE02-630C7D98813F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.AspNetCore.Mvc", "src\Knight.Response.AspNetCore.Mvc\Knight.Response.AspNetCore.Mvc.csproj", "{C797CD0A-F950-40C5-BDE8-7F317EF182AA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.Mvc", "src\Knight.Response.Mvc\Knight.Response.Mvc.csproj", "{C797CD0A-F950-40C5-BDE8-7F317EF182AA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.Abstractions.Http", "src\Knight.Response.Abstractions.Http\Knight.Response.Abstractions.Http.csproj", "{57B21E91-06F8-44FF-BD07-8B4135EC2A8C}"
 EndProject

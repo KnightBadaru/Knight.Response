@@ -1,11 +1,11 @@
-using Knight.Response.AspNetCore.Mvc.Infrastructure;
 using Knight.Response.Core;
 using Knight.Response.Models;
-using Knight.Response.AspNetCore.Mvc.Options;
+using Knight.Response.Mvc.Infrastructure;
+using Knight.Response.Mvc.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Knight.Response.AspNetCore.Mvc.Factories;
+namespace Knight.Response.Mvc.Factories;
 
 /// <summary>
 /// Central place that turns a <see cref="Result"/> into an <see cref="IActionResult"/>
@@ -65,7 +65,7 @@ internal static class ProblemFactory
             Title  = title,
             Detail = detail,
             Type   = $"https://httpstatuses.io/{code}",
-            Instance = http.Request?.Path
+            Instance = http.Request?.Path.Value
         };
 
         pd.Extensions["svcStatus"] = result.Status.ToString();

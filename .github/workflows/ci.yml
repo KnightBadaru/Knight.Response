@@ -38,6 +38,7 @@ jobs:
           dotnet pack src/Knight.Response/Knight.Response.csproj -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
           dotnet pack src/Knight.Response.Abstractions.Http/Knight.Response.Abstractions.Http.csproj -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
           dotnet pack src/Knight.Response.AspNetCore/Knight.Response.AspNetCore.csproj -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
+          dotnet pack src/Knight.Response.Mvc/Knight.Response.Mvc.csproj -c Release -o artifacts --no-build /p:ContinuousIntegrationBuild=true
 
       - name: Show package contents
         run: |

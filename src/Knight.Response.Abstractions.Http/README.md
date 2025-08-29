@@ -83,4 +83,8 @@ Register this type in the DI container of your chosen integration package
 
 ## License
 
-Licensed under the MIT License. See `LICENSE` in the repository root.
+This project is licensed under the [MIT License](../../LICENSE).
+
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](../../CONTRIBUTING.md).

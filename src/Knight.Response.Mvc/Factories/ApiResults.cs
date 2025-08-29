@@ -1,9 +1,9 @@
 using Knight.Response.Core;
-using Knight.Response.AspNetCore.Mvc.Options;
+using Knight.Response.Mvc.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Knight.Response.AspNetCore.Mvc.Factories;
+namespace Knight.Response.Mvc.Factories;
 
 /// <summary>
 /// Provides static helpers to convert <see cref="Result"/> and <see cref="Result{T}"/>
@@ -15,14 +15,6 @@ namespace Knight.Response.AspNetCore.Mvc.Factories;
 /// </remarks>
 public static class ApiResults
 {
-    /// <summary>
-    /// Resolves the configured <see cref="KnightResponseOptions"/> from DI,
-    /// falling back to <see cref="KnightResponseOptions.Defaults"/>.
-    /// </summary>
-    private static KnightResponseOptions Resolve(HttpContext? http) =>
-        http?.RequestServices?.GetService(typeof(KnightResponseOptions)) as KnightResponseOptions
-        ?? KnightResponseOptions.Defaults;
-
     // ----------------------- 200 / OK -----------------------
 
     /// <summary>
@@ -216,4 +208,12 @@ public static class ApiResults
             StatusCode = statusCode
         };
     }
+
+    /// <summary>
+    /// Resolves the configured <see cref="KnightResponseOptions"/> from DI,
+    /// falling back to <see cref="KnightResponseOptions.Defaults"/>.
+    /// </summary>
+    private static KnightResponseOptions Resolve(HttpContext? http) =>
+        http?.RequestServices?.GetService(typeof(KnightResponseOptions)) as KnightResponseOptions
+        ?? new KnightResponseOptions();
 }

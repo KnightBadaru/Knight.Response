@@ -270,7 +270,7 @@ builder.Services.AddKnightResponse();
 builder.Services.AddScoped<IValidationErrorMapper, MyCustomMapper>();
 ```
 
-If the mapper returns one or more field errors and `UseValidationProblemDetails` is enabled, responses use `ValidationProblemDetails`. Otherwise they fall back to standard `ProblemDetails`.
+If the mapper returns one or more field errors and `UseValidationProblemDetails` is enabled, responses use `ValidationProblemDetails`. Otherwise, they fall back to standard `ProblemDetails`.
 
 ---
 
