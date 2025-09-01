@@ -1,9 +1,11 @@
 using Knight.Response.Core;
-using Knight.Response.AspNetCore.Mvc.Options;
+using Knight.Response.Mvc.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
-namespace Knight.Response.AspNetCore.Mvc.Factories;
+namespace Knight.Response.Mvc.Factories;
 
 /// <summary>
 /// Provides static helpers to convert <see cref="Result"/> and <see cref="Result{T}"/>
@@ -15,14 +17,6 @@ namespace Knight.Response.AspNetCore.Mvc.Factories;
 /// </remarks>
 public static class ApiResults
 {
-    /// <summary>
-    /// Resolves the configured <see cref="KnightResponseOptions"/> from DI,
-    /// falling back to <see cref="KnightResponseOptions.Defaults"/>.
-    /// </summary>
-    private static KnightResponseOptions Resolve(HttpContext? http) =>
-        http?.RequestServices?.GetService(typeof(KnightResponseOptions)) as KnightResponseOptions
-        ?? KnightResponseOptions.Defaults;
-
     // ----------------------- 200 / OK -----------------------
 
     /// <summary>
@@ -127,12 +121,10 @@ public static class ApiResults
         BuildSuccessOrFailure(http, StatusCodes.Status409Conflict, result);
 
     /// <summary>Returns 401 Unauthorized.</summary>
-    public static IActionResult Unauthorized(HttpContext? http = null) =>
-        new UnauthorizedResult();
+    public static IActionResult Unauthorized() => new UnauthorizedResult();
 
     /// <summary>Returns 403 Forbidden.</summary>
-    public static IActionResult Forbidden(HttpContext? http = null) =>
-        new ForbidResult();
+    public static IActionResult Forbidden() => new ForbidResult();
 
     // ======================= Core builders ====================
 
@@ -145,6 +137,11 @@ public static class ApiResults
         var opts = Resolve(http);
         if (!result.IsSuccess)
         {
+            if (statusCode < StatusCodes.Status400BadRequest)
+            {
+                statusCode = opts.StatusCodeResolver(result.Status);
+            }
+
             if (opts.UseProblemDetails && http is not null)
             {
                 // Centralised ProblemDetails formatting
@@ -155,23 +152,18 @@ public static class ApiResults
             return new ObjectResult(opts.IncludeFullResultPayload ? result : result.Messages) { StatusCode = statusCode };
         }
 
-        // Success: choose body shape
+        // NoContent
         if (statusCode == StatusCodes.Status204NoContent)
         {
-            return new StatusCodeResult(StatusCodes.Status204NoContent);
+            return new ObjectResult(null) { StatusCode = StatusCodes.Status204NoContent };
         }
 
-        if (statusCode == StatusCodes.Status201Created)
+        if (http is not null)
         {
-            return opts.IncludeFullResultPayload
-                ? new CreatedResult(location ?? string.Empty, result)
-                : new CreatedResult(location ?? string.Empty, null);
+            http.Response.Headers["Location"] = location ?? string.Empty;
         }
 
-        // 200 / 202 (or anything else routed here)
-        return opts.IncludeFullResultPayload
-            ? new ObjectResult(result) { StatusCode = statusCode }
-            : new StatusCodeResult(statusCode);
+        return new ObjectResult(opts.IncludeFullResultPayload ? result : null) { StatusCode = statusCode };
     }
 
     /// <summary>
@@ -183,6 +175,11 @@ public static class ApiResults
         var opts = Resolve(http);
         if (!result.IsSuccess)
         {
+            if (statusCode < StatusCodes.Status400BadRequest)
+            {
+                statusCode = opts.StatusCodeResolver(result.Status);
+            }
+
             if (opts.UseProblemDetails && http is not null)
             {
                 // Centralised ProblemDetails formatting
@@ -193,27 +190,35 @@ public static class ApiResults
             return new ObjectResult(opts.IncludeFullResultPayload ? result : result.Messages) { StatusCode = statusCode };
         }
 
-        if (statusCode == StatusCodes.Status201Created)
-        {
-            return new CreatedResult(location ?? string.Empty,
-                opts.IncludeFullResultPayload ? result : result.Value);
-        }
-
-        if (statusCode == StatusCodes.Status202Accepted)
-        {
-            return new AcceptedResult(location ?? string.Empty,
-                opts.IncludeFullResultPayload ? result : result.Value);
-        }
-
+        // NoContent
         if (statusCode == StatusCodes.Status204NoContent)
         {
-            return new StatusCodeResult(StatusCodes.Status204NoContent);
+            return new ObjectResult(null) { StatusCode = StatusCodes.Status204NoContent };
         }
 
-        // Default: 200 OK
+        if (http is not null)
+        {
+            http.Response.Headers["Location"] = location ?? string.Empty;
+        }
+
         return new ObjectResult(opts.IncludeFullResultPayload ? result : result.Value)
         {
             StatusCode = statusCode
         };
+    }
+
+    /// <summary>
+    /// Resolves the configured <see cref="KnightResponseOptions"/> from DI,
+    /// falling back to <see cref="KnightResponseOptions.Defaults"/>.
+    /// </summary>
+    private static KnightResponseOptions Resolve(HttpContext? http)
+    {
+        if (http is null)
+        {
+            return new KnightResponseOptions();
+        }
+
+        var opt = http.RequestServices.GetService<IOptions<KnightResponseOptions>>()?.Value;
+        return opt ?? new KnightResponseOptions();
     }
 }

@@ -1,0 +1,26 @@
+{
+  "stryker-config": {
+    "project": "src/Knight.Response.Mvc/Knight.Response.Mvc.csproj",
+    "solution": "Knight.Response.sln",
+    "test-projects": [
+      "tests/Knight.Response.Mvc.Tests/Knight.Response.Mvc.Tests.csproj"
+    ],
+    "reporters": ["html", "progress", "cleartext", "json", "dashboard"],
+    "coverage-analysis": "off",
+    "verbosity": "info",
+    "concurrency": 1,
+    "mutate": [
+      "**/*.cs",
+      "!**/*.g.cs",
+      "!**/*AssemblyInfo.cs",
+      "!**/Program.cs"
+    ],
+    "thresholds": { "high": 85, "low": 75, "break": 70 },
+    "language-version": "latest",
+    "project-info": {
+      "name": "github.com/KnightBadaru/Knight.Response",
+      "version": "main",
+      "module": "Knight.Response.AspNetCore"
+    }
+  }
+}
