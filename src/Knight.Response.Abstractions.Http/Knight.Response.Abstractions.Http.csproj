@@ -7,15 +7,15 @@
         <ImplicitUsings>enable</ImplicitUsings>
 
         <PackageId>Knight.Response.Abstractions.Http</PackageId>
-        <Version>1.0.1</Version>
+        <Version>1.0.2</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response.Abstractions.Http</Title>
         <Description>Framework-agnostic HTTP abstractions for Knight.Response (shared options and validation mapping).</Description>
         <PackageReleaseNotes>
-            - Fixed documentation: corrected the generic signature of
-            KnightResponseBaseOptions&lt;TH, TProblem, TValidation&gt;.
-            (Previously shown incorrectly as &lt;TProblem, TValidation&gt;).
-            - No API or runtime behavior changes.
+            Changed:
+            - Updated dependency on **Knight.Response** to v1.1.0.
+            - Guarantees compatibility with new validation support (`Results.Validation(...)`).
+            - No functional changes introduced in this release.
         </PackageReleaseNotes>
         <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
