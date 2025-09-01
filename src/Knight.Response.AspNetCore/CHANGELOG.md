@@ -20,6 +20,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.2] - 2025-09-01
+
+### Changed
+- Updated dependency: now requires **Knight.Response.Abstractions.Http 1.0.2**.
+  - Ensures compatibility with Knight.Response 1.1.0 and its new validation APIs.
+- No functional changes in `Knight.Response.AspNetCore` itself.
+
+---
+
 ## [1.0.1] - 2025-08-28
 
 ### Changed
@@ -58,5 +67,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[1.0.1]: https://github.com/KnightBadaru/Knight.Response/releases/tag/aspnetcore-v1.0.1
 [1.0.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/aspnetcore-v1.0.0
+[1.0.1]: https://github.com/KnightBadaru/Knight.Response/releases/tag/aspnetcore-v1.0.1
+[1.0.2]: https://github.com/KnightBadaru/Knight.Response/releases/tag/aspnetcore-v1.0.2

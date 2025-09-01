@@ -7,13 +7,15 @@
 
         <!-- NuGet metadata -->
         <PackageId>Knight.Response.AspNetCore</PackageId>
-        <Version>1.0.1</Version>
+        <Version>1.0.2</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response.AspNetCore</Title>
         <Description>ASP.NET Core helpers for Knight.Response: map Result/Result&lt;T&gt; to IResult/ActionResult with consistent HTTP semantics.</Description>
         <PackageReleaseNotes>
-            - Internal refactor to depend on Knight.Response.Abstractions.Http for shared options and validation mappers.
-            - No functional changes; public API surface remains the same.
+            Changed:
+            - Updated dependency on Knight.Response.Abstractions.Http to v1.0.2.
+            - Ensures alignment with Knight.Response 1.1.0 (validation support).
+            - No functional changes introduced in this release.
         </PackageReleaseNotes>
         <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
@@ -38,7 +40,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Knight.Response.Abstractions.Http" Version="1.0.1" />
+        <PackageReference Include="Knight.Response.Abstractions.Http" Version="1.0.2" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
     </ItemGroup>
