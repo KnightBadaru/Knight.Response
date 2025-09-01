@@ -19,6 +19,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [1.0.2] - 2025-09-01
+
+### Changed
+- Updated dependency: now requires **Knight.Response 1.1.0**.
+  - Ensures compatibility with the new `Results.Validation(...)` APIs.
+- No functional changes in `Knight.Response.Abstractions.Http` itself.
+
+---
+
 ## [1.0.1] - 2025-02-28
 
 ### Fixed
@@ -38,5 +47,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
-[1.0.1]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v1.0.1
 [1.0.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v1.0.0
+[1.0.1]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v1.0.1
+[1.0.2]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v1.0.2
