@@ -82,13 +82,13 @@ public static class AdvancedResultExtensions
     /// Convenience overload to append a single message.
     /// </summary>
     public static Result WithMessage(this Result result, Message message)
-        => result.WithMessages(new[] { message });
+        => result.WithMessages(message);
 
     /// <summary>
     /// Convenience overload to append a single message.
     /// </summary>
     public static Result<T> WithMessage<T>(this Result<T> result, Message message)
-        => result.WithMessages(new[] { message });
+        => result.WithMessages(message);
 
     /// <summary>
     /// Convenience overload to append multiple messages via <c>params</c>.

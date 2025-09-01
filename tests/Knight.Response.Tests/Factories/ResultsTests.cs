@@ -1,7 +1,8 @@
+using Knight.Response.Core;
 using Knight.Response.Factories;
 using Knight.Response.Models;
 using Shouldly;
-using static Knight.Response.Tests.Helpers.MessageBuilder;
+using static Knight.Response.Tests.Infrastructure.MessageBuilder;
 
 namespace Knight.Response.Tests.Factories;
 
@@ -482,5 +483,36 @@ public class ResultsTests
         aggregate.IsSuccess.ShouldBeFalse();
         aggregate.Status.ShouldBe(Status.Failed);
         aggregate.Messages.Select(m => m.Content).ShouldBe([fail, err]);
+    }
+
+    // ---------- Constructor ----------
+
+    [Fact]
+    public void Constructor_NullMessages_NormalizesToEmpty()
+    {
+        // Arrange
+        IReadOnlyList<Message>? messages = null;
+
+        // Act
+        var result = new Result(Status.Completed, messages);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        result.Messages.ShouldNotBeNull();
+        result.Messages.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Constructor_UsesProvidedMessages()
+    {
+        // Arrange
+        var messages = new List<Message> { new(MessageType.Information, "hi") };
+
+        // Act
+        var result = new Result(Status.Completed, messages);
+
+        // Assert
+        result.Messages.Count.ShouldBe(1);
+        result.Messages[0].Content.ShouldBe("hi");
     }
 }

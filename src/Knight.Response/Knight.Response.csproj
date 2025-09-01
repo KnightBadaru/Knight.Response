@@ -7,17 +7,28 @@
 
         <!-- NuGet metadata -->
         <PackageId>Knight.Response</PackageId>
-        <Version>1.0.2</Version>
+        <Version>1.1.0</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response</Title>
         <Description>Lightweight, immutable Result/Result&lt;T&gt; library with factories, functional extensions, and pattern matching for C# service layers.</Description>
         <PackageReleaseNotes>
+            Added:
+            - Support for creating Results from **ValidationResult** collections:
+            • `Results.Validation(...)` and `Results.Validation{T}(...)`
+            • Converts validation errors into error messages with field prefixes ("Field: message").
+            - Enricher overloads for attaching metadata:
+            • `Results.Validation(errors, (msg, field) => ...)`
+            • Enables adding structured metadata (e.g., field names) without altering message text.
+
             Changed:
-            - Refactored unit tests to consistently use **Shouldly** assertions (instead of `Assert.*`).
-            - Improved **README** documentation to clarify the default value behavior of `Result&lt;T&gt;.Value`:
-            • Value types (`int`, `bool`, etc.) return their CLR default (`0`, `false`, etc.) unless explicitly set.
-            • Reference types and nullable value types return `null` when not set.
-            - General documentation refinements for consistency.
+            - Normalized validation messages:
+            • Trimmed whitespace from content and field names.
+            • Fallback to "Validation error." when message is null/empty/whitespace.
+            - Minor internal refactors for robustness and testability.
+
+            Fixed:
+            - Ensured `Result` constructors normalize `null` message lists to empty collections.
+            - Achieved **100% mutation score** with Stryker.
         </PackageReleaseNotes>
         <PackageTags>result;response;functional;service-layer;error-handling;patterns;csharp</PackageTags>
         <RepositoryType>git</RepositoryType>
@@ -31,9 +42,14 @@
         <Deterministic>true</Deterministic>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Knight.Response.Tests" />
+    </ItemGroup>
     
     <ItemGroup>
         <PackageReference Include="System.Text.Json" Version="9.0.8" />
+        <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
     </ItemGroup>

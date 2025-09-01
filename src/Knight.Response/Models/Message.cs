@@ -38,5 +38,5 @@ public class Message(MessageType type, string content, IReadOnlyDictionary<strin
     public IReadOnlyDictionary<string, object?> Metadata { get; } =
         metadata is null
             ? new ReadOnlyDictionary<string, object?>(new Dictionary<string, object?>())
-            : new ReadOnlyDictionary<string, object?>(metadata.ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
+            : new ReadOnlyDictionary<string, object?>(metadata.ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.OrdinalIgnoreCase));
 }

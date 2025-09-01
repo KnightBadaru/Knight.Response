@@ -201,6 +201,42 @@ The `Status` enum indicates the outcome of an operation:
 
 ---
 
+## Validation Support (new in 1.1.0)
+You can now construct `Result` and `Result<T>` from `System.ComponentModel.DataAnnotations.ValidationResult` collections.
+```csharp
+using System.ComponentModel.DataAnnotations;
+
+var errors = new List<ValidationResult>
+{
+    new("Name is required", new[] { "Name" }),
+    new("Amount must be greater than 0", new[] { "Amount" }),
+    new("General rule failed")
+};
+
+// Produces Error result with prefixed messages:
+// "Name: Name is required", "Amount: Amount must be greater than 0", "General rule failed"
+var result = Results.Validation(errors);
+```
+For generics:
+```csharp
+var result = Results.Validation<MyEntity>(errors);
+```
+### Metadata Enricher Overloads
+Use an enricher delegate to attach metadata (e.g., field name) without altering text:
+```csharp
+var result = Results.Validation(
+    errors,
+    (msg, field) => string.IsNullOrEmpty(field)
+        ? msg
+        : msg.WithMeta("field", field) // your custom extension
+);
+```
+Default behavior:
+* Prefixed mapping: "Field: message"
+* Enricher overload: raw message text, field passed separately
+
+---
+
 ## License
 
 This project is licensed under the [MIT License](../../LICENSE).

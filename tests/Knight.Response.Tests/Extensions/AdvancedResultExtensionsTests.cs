@@ -2,7 +2,7 @@ using Knight.Response.Extensions;
 using Knight.Response.Factories;
 using Knight.Response.Models;
 using Shouldly;
-using static Knight.Response.Tests.Helpers.MessageBuilder;
+using static Knight.Response.Tests.Infrastructure.MessageBuilder;
 
 namespace Knight.Response.Tests.Extensions;
 
@@ -130,7 +130,7 @@ public class AdvancedResultExtensionsTests
         var result = Results.Failure("a").WithMessage(Info("b"));
 
         // Assert
-        result.Messages.Select(m => m.Content).ShouldBe(new[] { "a", "b" });
+        result.Messages.Select(m => m.Content).ShouldBe(["a", "b"]);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class AdvancedResultExtensionsTests
 
         // Assert
         result.Messages.Select(m => m.Content)
-              .ShouldBe(new[] { "content", "information", "warning", "err" });
+              .ShouldBe(["content", "information", "warning", "err"]);
     }
 
     [Fact]
@@ -167,10 +167,10 @@ public class AdvancedResultExtensionsTests
         const string value = "val";
 
         // Act
-        var result = Results.Success(value).WithMessages(new[] { Warn("a"), Warn("b") });
+        var result = Results.Success(value).WithMessages(Warn("a"), Warn("b"));
 
         // Assert
-        result.Messages.Select(m => m.Content).ShouldBe(new[] { "a", "b" });
+        result.Messages.Select(m => m.Content).ShouldBe(["a", "b"]);
         result.Value.ShouldBe(value);
         result.IsSuccess.ShouldBeTrue();
     }
