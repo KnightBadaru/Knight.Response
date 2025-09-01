@@ -1,6 +1,6 @@
 using Knight.Response.Models;
 
-namespace Knight.Response.Tests.Helpers;
+namespace Knight.Response.Tests.Infrastructure;
 
 internal static class MessageBuilder
 {

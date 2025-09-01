@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using Knight.Response.Core;
+using Knight.Response.Extensions;
 using Knight.Response.Models;
 
 namespace Knight.Response.Factories;
@@ -83,6 +85,7 @@ public static class Results
     /// </summary>
     public static Result Error(IReadOnlyList<Message> messages) => new(Status.Error, messages);
 
+
     /// <summary>
     /// Creates an error <see cref="Result"/> with a single message.
     /// </summary>
@@ -152,6 +155,67 @@ public static class Results
     /// </summary>
     public static Result<T> NotFound<T>(string message = "Resource not found.", Status status = Status.Completed)
         => new(status, default, new List<Message> { new(MessageType.Warning, message) });
+
+    // -------- Validation --------
+
+    /// <summary>
+    /// Builds a <see cref="Result"/> from <see cref="ValidationResult"/> items.
+    /// Returns <see cref="Results.Success()"/> when <paramref name="errors"/> is null or empty.
+    /// Default mapping prefixes messages with "Field: message" when a member name is present.
+    /// </summary>
+    public static Result Validation(IEnumerable<ValidationResult>? errors)
+    {
+        var list = errors?.ToList() ?? [];
+        return list.Count == 0
+            ? Success()
+            : Error(ValidationMappingExtensions.ToMessagesPrefixed(list));
+    }
+
+    /// <summary>
+    /// Builds a <see cref="Result{T}"/> from <see cref="ValidationResult"/> items.
+    /// Returns <see cref="Results.Success{T}()"/> when <paramref name="errors"/> is null or empty.
+    /// Default mapping prefixes messages with "Field: message" when a member name is present.
+    /// </summary>
+    public static Result<T> Validation<T>(IEnumerable<ValidationResult>? errors)
+    {
+        var list = errors?.ToList() ?? [];
+        return list.Count == 0
+            ? Success<T>()
+            : Error<T>(ValidationMappingExtensions.ToMessagesPrefixed(list));
+    }
+
+    /// <summary>
+    /// Builds a <see cref="Result"/> from <see cref="ValidationResult"/> items using a custom
+    /// message enricher to attach field metadata to each error message.
+    /// </summary>
+    /// <param name="errors">Validation results to convert.</param>
+    /// <param name="enrich">
+    /// A delegate that receives the created <see cref="Message"/> and the chosen field name (if any),
+    /// and should return the enriched <see cref="Message"/> (e.g., attach metadata).
+    /// </param>
+    public static Result Validation(
+        IEnumerable<ValidationResult>? errors,
+        Func<Message, string?, Message> enrich)
+    {
+        var list = errors?.ToList() ?? [];
+        return list.Count == 0
+            ? Success()
+            : Error(ValidationMappingExtensions.ToMessagesWithMetadata(list, enrich));
+    }
+
+    /// <summary>
+    /// Builds a <see cref="Result{T}"/> from <see cref="ValidationResult"/> items using a custom
+    /// message enricher to attach field metadata to each error message.
+    /// </summary>
+    public static Result<T> Validation<T>(
+        IEnumerable<ValidationResult>? errors,
+        Func<Message, string?, Message> enrich)
+    {
+        var list = errors?.ToList() ?? [];
+        return list.Count == 0
+            ? Success<T>()
+            : Error<T>(ValidationMappingExtensions.ToMessagesWithMetadata(list, enrich));
+    }
 
     // -------- Aggregate / FromCondition --------
 
