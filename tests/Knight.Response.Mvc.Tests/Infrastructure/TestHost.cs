@@ -1,10 +1,13 @@
 using Knight.Response.Abstractions.Http.Mappers;
-using Knight.Response.AspNetCore.Extensions;
-using Knight.Response.AspNetCore.Options;
+using Knight.Response.Mvc.Extensions;
+using Knight.Response.Mvc.Options;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Knight.Response.AspNetCore.Tests.Infrastructure;
+namespace Knight.Response.Mvc.Tests.Infrastructure;
 
 internal static class TestHost
 {
@@ -14,12 +17,18 @@ internal static class TestHost
             => new Dictionary<string, string[]>();
     }
 
-    public static (DefaultHttpContext http, IServiceProvider services) CreateHttpContext(
+    public static DefaultHttpContext CreateHttpContext(
         KnightResponseOptions? options = null,
         IValidationErrorMapper? validationMapper = null)
     {
         var services = new ServiceCollection();
         services.AddLogging();
+
+        // Minimal set so ObjectResult can write via formatters (System.Text.Json)
+        services.AddMvcCore()
+            .AddDataAnnotations()
+            .AddFormatterMappings()
+            .AddJsonOptions(_ => { });
 
         // Register using the real extension so DI matches production
         services.AddKnightResponse(o =>
@@ -46,17 +55,30 @@ internal static class TestHost
         };
         http.Response.Body = new MemoryStream();
 
-        return (http, provider);
+        return http;
     }
 
 
-    public static async Task<(int status, string body, IHeaderDictionary headers)> ExecuteAsync(IResult result, HttpContext http)
+    public static async Task<(int status, string body, IHeaderDictionary headers)>
+        ExecuteAsync(IActionResult result, HttpContext http)
     {
+        // Ensure we can serialize ObjectResult via MVC formatters
+        // EnsureMvcCoreServices(http);
+
         http.Response.Body = new MemoryStream();
-        await result.ExecuteAsync(http);
+
+        var ctx = new ActionContext(
+            http,
+            new RouteData(),
+            new ActionDescriptor()
+        );
+
+        await result.ExecuteResultAsync(ctx);
+
         http.Response.Body.Seek(0, SeekOrigin.Begin);
         using var reader = new StreamReader(http.Response.Body);
         var body = await reader.ReadToEndAsync();
+
         return (http.Response.StatusCode, body, http.Response.Headers);
     }
 }

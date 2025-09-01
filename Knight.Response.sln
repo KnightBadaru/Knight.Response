@@ -50,6 +50,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.Abstraction
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.Abstractions.Http.Tests", "tests\Knight.Response.Abstractions.Http.Tests\Knight.Response.Abstractions.Http.Tests.csproj", "{C49B807A-5CC1-4FC6-922F-FC55EB432779}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Knight.Response.Mvc.Tests", "tests\Knight.Response.Mvc.Tests\Knight.Response.Mvc.Tests.csproj", "{8C6D808E-D392-4B82-9F27-45A2AEF2DBC4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,7 @@ Global
 		{C797CD0A-F950-40C5-BDE8-7F317EF182AA} = {B0840E78-51EB-4184-959C-D9CA9EC85B01}
 		{57B21E91-06F8-44FF-BD07-8B4135EC2A8C} = {B0840E78-51EB-4184-959C-D9CA9EC85B01}
 		{C49B807A-5CC1-4FC6-922F-FC55EB432779} = {3DD0FB79-BEB3-4C37-BE8C-9E73CD989D4B}
+		{8C6D808E-D392-4B82-9F27-45A2AEF2DBC4} = {3DD0FB79-BEB3-4C37-BE8C-9E73CD989D4B}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3A18BD4B-02DF-423F-A191-A6A0A64E4489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -98,5 +101,9 @@ Global
 		{C49B807A-5CC1-4FC6-922F-FC55EB432779}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C49B807A-5CC1-4FC6-922F-FC55EB432779}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C49B807A-5CC1-4FC6-922F-FC55EB432779}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C6D808E-D392-4B82-9F27-45A2AEF2DBC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C6D808E-D392-4B82-9F27-45A2AEF2DBC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C6D808E-D392-4B82-9F27-45A2AEF2DBC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C6D808E-D392-4B82-9F27-45A2AEF2DBC4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,6 +1,7 @@
 using Knight.Response.Abstractions.Http.Mappers;
 using Knight.Response.Mvc.Options;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Knight.Response.Mvc.Extensions;
 
@@ -10,19 +11,31 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Registers Knight.Response MVC integration, options, and the default validation mapper.
     /// </summary>
-    public static IServiceCollection AddKnightResponseMvc(
+    public static IServiceCollection AddKnightResponse(
         this IServiceCollection services,
         Action<KnightResponseOptions>? configure = null)
     {
-        // Options (uses Defaults if not configured)
+        // Register defaults
+        // Only add the default if nothing else has registered IValidationErrorMapper
+        services.TryAddScoped<IValidationErrorMapper, DefaultValidationErrorMapper>();
+
+        // Configure options
         var builder = services.AddOptions<KnightResponseOptions>();
         if (configure is not null)
         {
             builder.Configure(configure);
         }
 
-        // Default mapper from Abstractions (can be overridden by user)
-        services.AddScoped<IValidationErrorMapper, DefaultValidationErrorMapper>();
+        // If the consumer did not set a mapper (null) or left the default in place,
+        // prefer the DI-registered mapper.
+        builder.PostConfigure<IValidationErrorMapper>((opts, diMapper) =>
+        {
+            if (opts.ValidationMapper is null ||
+                opts.ValidationMapper.GetType() == typeof(DefaultValidationErrorMapper))
+            {
+                opts.ValidationMapper = diMapper;
+            }
+        });
 
         return services;
     }
@@ -30,12 +43,12 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Registers Knight.Response MVC integration with a custom validation error mapper type.
     /// </summary>
-    public static IServiceCollection AddKnightResponseMvc<TMapper>(
+    public static IServiceCollection AddKnightResponse<TMapper>(
         this IServiceCollection services,
         Action<KnightResponseOptions>? configure = null)
         where TMapper : class, IValidationErrorMapper
     {
         services.AddScoped<IValidationErrorMapper, TMapper>();
-        return services.AddKnightResponseMvc(configure);
+        return services.AddKnightResponse(configure);
     }
 }
