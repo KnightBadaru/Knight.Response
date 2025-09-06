@@ -125,7 +125,7 @@ namespace Knight.Response.Mvc.Tests.Factories
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldNotBeNull();
             objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(StatusCodes.Status400BadRequest);
-            var pd = objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
+            objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
         }
 
         // -------------------- Created (201) --------------------
@@ -314,40 +314,23 @@ namespace Knight.Response.Mvc.Tests.Factories
         public void Unauthorized_Always401_WithProblem()
         {
             // Arrange
-            var opts = new KnightResponseOptions
-            {
-                UseProblemDetails = true
-            };
-            var http = TestHost.CreateHttpContext(opts);
-            var result = Results.Failure("auth required");
-
             // Act
             var action = ApiResults.Unauthorized();
 
             // Assert
             var objectResult = action.ShouldBeOfType<UnauthorizedResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status401Unauthorized);
-            // objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
         }
 
         [Fact]
         public void Forbidden_Always403_WithProblem()
         {
             // Arrange
-            var opts = new KnightResponseOptions
-            {
-                UseProblemDetails = true
-            };
-            var http = TestHost.CreateHttpContext(opts);
-            var result = Results.Failure("no permission");
-
             // Act
             var actionResult = ApiResults.Forbidden();
 
             // Assert
-            var objectResult = actionResult.ShouldBeOfType<ForbidResult>();
-            // objectResult.StatusCode.ShouldBe(StatusCodes.Status403Forbidden);
-            // objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
+            actionResult.ShouldBeOfType<ForbidResult>();
         }
 
         // =====================================================

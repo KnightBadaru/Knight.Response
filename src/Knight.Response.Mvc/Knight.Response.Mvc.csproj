@@ -7,7 +7,7 @@
         <LangVersion>latest</LangVersion>
         
         <PackageId>Knight.Response.Mvc</PackageId>
-        <Version>1.0.0-preview01</Version>
+        <Version>0.1.0</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response.Mvc</Title>
         <Description>ASP.NET MVC / Web API 2 adapters for Knight.Response — convert Result/Result&lt;T&gt; to IActionResult/IHttpActionResult with optional RFC7807 ProblemDetails.</Description>
@@ -26,8 +26,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Knight.Response.Abstractions.Http" Version="1.0.2" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0"/>
-        <PackageReference Include="Knight.Response.Abstractions.Http" Version="1.0.1" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
     </ItemGroup>

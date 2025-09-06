@@ -62,9 +62,6 @@ internal static class TestHost
     public static async Task<(int status, string body, IHeaderDictionary headers)>
         ExecuteAsync(IActionResult result, HttpContext http)
     {
-        // Ensure we can serialize ObjectResult via MVC formatters
-        // EnsureMvcCoreServices(http);
-
         http.Response.Body = new MemoryStream();
 
         var ctx = new ActionContext(
