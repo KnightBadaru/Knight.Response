@@ -128,6 +128,40 @@ namespace Knight.Response.Mvc.Tests.Factories
             objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
         }
 
+        [Fact]
+        public void Ok_Failure_WithHttpNull_FallsBack_ToMessages_NotProblemDetails()
+        {
+            // Arrange
+            var result = Results.Failure("bad");
+            var opts = new KnightResponseOptions();
+            var statusCode = opts.StatusCodeResolver(result.Status);
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http: null);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldNotBeNull();
+            objectResult.StatusCode?.ShouldBe(statusCode);
+        }
+
+        [Fact]
+        public void OkT_Failure_WithHttpNull_FallsBack_ToMessages_NotProblemDetails()
+        {
+            // Arrange
+            var result = Results.Failure<Widget>("bad");
+            var opts = new KnightResponseOptions();
+            var statusCode = opts.StatusCodeResolver(result.Status);
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http: null);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldNotBeNull();
+            objectResult.StatusCode?.ShouldBe(statusCode);
+        }
+
         // -------------------- Created (201) --------------------
 
         [Fact]
@@ -161,6 +195,44 @@ namespace Knight.Response.Mvc.Tests.Factories
 
             // Act
             var actionResult = ApiResults.Created(result, http, "/api/widgets/9");
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldNotBeNull();
+            objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(StatusCodes.Status400BadRequest);
+            objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
+        }
+
+        [Fact]
+        public void Created_NonGeneric_Success_Sets201_AndLocation()
+        {
+            // Arrange
+            var result = Results.Success();
+            var http   = TestHost.CreateHttpContext();
+            var location    = "/ops/42";
+
+            // Act
+            var actionResult = ApiResults.Created(result, http, location);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldBe(StatusCodes.Status201Created);
+            http.Response.Headers["Location"].ToString().ShouldBe(location);
+        }
+
+        [Fact]
+        public void Created_NonGeneric_Failure_EmitsProblemDetails_WhenEnabled()
+        {
+            // Arrange
+            var opts = new KnightResponseOptions
+            {
+                UseProblemDetails = true
+            };
+            var http = TestHost.CreateHttpContext(opts);
+            var result = Results.Failure("cannot-create");
+
+            // Act
+            var actionResult = ApiResults.Created(result, http, "/ignored");
 
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
@@ -210,6 +282,44 @@ namespace Knight.Response.Mvc.Tests.Factories
             objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
         }
 
+        [Fact]
+        public void AcceptedT_Success_Defaults_ToValuePayload_AndSets202_AndLocation()
+        {
+            // Arrange
+            var dto = new Widget(1, "w1");
+            var result = Results.Success(dto);
+            var http  = TestHost.CreateHttpContext();
+            var location = "/w1/1";
+
+            // Act
+            var actionResult = ApiResults.Accepted(result, http, location);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldBe(StatusCodes.Status202Accepted);
+            var responseValue = objectResult.Value.ShouldBeOfType<Result<Widget>>();
+            responseValue.Value.ShouldBe(dto);
+        }
+
+        [Fact]
+        public void AcceptedT_Success_Respects_FullyPayload_Configuration()
+        {
+            // Arrange
+            var dto = new Widget(9, "w9");
+            var result = Results.Success(dto);
+            var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
+            var http   =TestHost.CreateHttpContext(opts);
+
+            // Act
+            var actionResult = ApiResults.Accepted(result, http, "/ops/9");
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldBe(StatusCodes.Status202Accepted);
+            var responseValue = objectResult.Value.ShouldBeOfType<Widget>();
+            responseValue.ShouldBe(dto);
+        }
+
         // -------------------- NoContent (204) --------------------
 
         [Fact]
@@ -225,6 +335,23 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var statusCodeResult = actionResult.ShouldBeOfType<ObjectResult>();
             statusCodeResult.StatusCode.ShouldBe(StatusCodes.Status204NoContent);
+            statusCodeResult.Value.ShouldBeNull();
+        }
+
+        [Fact]
+        public void NoContentT_Success_Returns204_NoBody()
+        {
+            // Arrange
+            var http = TestHost.CreateHttpContext();
+            var result = Results.Success<Widget>();
+
+            // Act
+            var actionResult = ApiResults.NoContent(result, http);
+
+            // Assert
+            var statusCodeResult = actionResult.ShouldBeOfType<ObjectResult>();
+            statusCodeResult.StatusCode.ShouldBe(StatusCodes.Status204NoContent);
+            statusCodeResult.Value.ShouldBeNull();
         }
 
         [Fact]

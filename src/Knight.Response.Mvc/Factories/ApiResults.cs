@@ -106,6 +106,13 @@ public static class ApiResults
     public static IActionResult NoContent(Result result, HttpContext? http = null) =>
         BuildSuccessOrFailure(http, StatusCodes.Status204NoContent, result);
 
+    /// <summary>
+    /// Returns 204 No Content when the <paramref name="result"/> is successful.
+    /// On failure, emits a client error (<see cref="ProblemDetails"/> or messages).
+    /// </summary>
+    public static IActionResult NoContent<T>(Result<T> result, HttpContext? http = null) =>
+        BuildSuccessOrFailure(http, StatusCodes.Status204NoContent, result);
+
     // ----------------------- Explicit failure shorthands -----
 
     /// <summary>Returns 400 Bad Request populated from <paramref name="result"/>.</summary>
