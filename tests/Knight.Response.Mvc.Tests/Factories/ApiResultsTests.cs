@@ -1,7 +1,5 @@
-using Knight.Response.Abstractions.Http.Mappers;
 using Knight.Response.Core;
 using Knight.Response.Factories;
-using Knight.Response.Models;
 using Knight.Response.Mvc.Factories;
 using Knight.Response.Mvc.Options;
 using Knight.Response.Mvc.Infrastructure;
@@ -14,25 +12,6 @@ namespace Knight.Response.Mvc.Tests.Factories
 {
     public class ApiResultsTests
     {
-        private sealed class FakeValidationMapper : IValidationErrorMapper
-        {
-            private readonly bool _yieldErrors;
-            public FakeValidationMapper(bool yieldErrors) => _yieldErrors = yieldErrors;
-
-            public IDictionary<string, string[]> Map(IReadOnlyList<Message> messages)
-            {
-                if (!_yieldErrors)
-                {
-                    return new Dictionary<string, string[]>();
-                }
-
-                return new Dictionary<string, string[]>
-                {
-                    ["name"] = messages.Select(m => m.Content).ToArray()
-                };
-            }
-        }
-
         // -------------------- OK (200) --------------------
 
         [Fact]
@@ -278,7 +257,8 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldNotBeNull();
-            objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(StatusCodes.Status400BadRequest);
+            var status = opts.StatusCodeResolver(result.Status);
+            objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(status);
             objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
         }
 
@@ -371,7 +351,8 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldNotBeNull();
-            objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(StatusCodes.Status400BadRequest);
+            var status = opts.StatusCodeResolver(result.Status);
+            objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(status);
             objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
         }
 
@@ -468,13 +449,12 @@ namespace Knight.Response.Mvc.Tests.Factories
         public void BadRequest_WithValidationProblemDetails_UsesValidationShape()
         {
             // Arrange
-            var mapper = new FakeValidationMapper(true);
             var opts = new KnightResponseOptions
             {
                 UseProblemDetails = true,
                 UseValidationProblemDetails = true
             };
-            var http = TestHost.CreateHttpContext(opts,  mapper);
+            var http = TestHost.CreateHttpContext<FakeValidationMapper>(opts);
             var result = Results.Failure("Name: Name is required.");
 
             // Act
@@ -484,6 +464,43 @@ namespace Knight.Response.Mvc.Tests.Factories
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status400BadRequest);
             objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
+        }
+
+        // -------------------- Integration --------------------
+
+        [Fact]
+        public async Task Result_Should_Serialize_Through_MVC()
+        {
+            // Arrange
+            var http = TestHost.CreateHttpContext();
+            var result = Results.Success();
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http);
+            var testResult = await TestHost.ExecuteAsync(actionResult, http);
+
+            // Assert
+            var response = TestHelpers.Deserialize<Result>(testResult.Body)!;
+            response.IsSuccess.ShouldBeTrue();
+            testResult.Body.ShouldNotContain("\"Value\"");
+        }
+
+        [Fact]
+        public async Task ResultT_Should_Serialize_Through_MVC()
+        {
+            // Arrange
+            var dto = new Widget(2, "Second");
+            var http = TestHost.CreateHttpContext();
+            var result = Results.Success(dto);
+
+            // Act
+            var actionResult = ApiResults.Created(result, http);
+            var testResult = await TestHost.ExecuteAsync(actionResult, http);
+
+            // Assert
+            var response = TestHelpers.Deserialize<Result<Widget>>(testResult.Body)!;
+            response.IsSuccess.ShouldBeTrue();
+            response.Value.ShouldBe(dto);
         }
     }
 }
