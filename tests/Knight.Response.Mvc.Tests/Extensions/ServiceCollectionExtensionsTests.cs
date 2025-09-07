@@ -1,12 +1,12 @@
 using Knight.Response.Abstractions.Http.Mappers;
-using Knight.Response.AspNetCore.Extensions;
-using Knight.Response.AspNetCore.Options;
 using Knight.Response.Models;
+using Knight.Response.Mvc.Extensions;
+using Knight.Response.Mvc.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Shouldly;
 
-namespace Knight.Response.AspNetCore.Tests.Extensions;
+namespace Knight.Response.Mvc.Tests.Extensions;
 
 public class ServiceCollectionExtensionsTests
 {
