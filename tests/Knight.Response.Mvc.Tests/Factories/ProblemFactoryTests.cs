@@ -1,6 +1,4 @@
-using Knight.Response.Core;
 using Knight.Response.Factories;
-using Knight.Response.Models;
 using Knight.Response.Mvc.Factories;
 using Knight.Response.Mvc.Infrastructure;
 using Knight.Response.Mvc.Options;
@@ -13,19 +11,13 @@ namespace Knight.Response.Mvc.Tests.Factories
 {
     public class ProblemFactoryTests
     {
-        private static Result Failure(params string[] messages)
-        {
-            var msg = messages.Select(m => new Message(MessageType.Error, m)).ToList();
-            return Results.Error(msg);
-        }
-
         [Fact]
         public void ProblemDetails_WhenUseProblemDetailsTrue_ProducesCompatProblem_WithStatus()
         {
             // Arrange
             var opts = new KnightResponseOptions { UseProblemDetails = true };
             var http = TestHost.CreateHttpContext(opts);
-            var result = Failure("Something went wrong");
+            var result = TestHelpers.Failure("Something went wrong");
             var status = StatusCodes.Status400BadRequest;
 
             // Act
@@ -48,7 +40,7 @@ namespace Knight.Response.Mvc.Tests.Factories
 
             var opts = new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
             var http = TestHost.CreateHttpContext(opts);
-            var result = Failure($"{errorKey1}: {errorMessage1}", $"{errorKey2}: {errorMessage2}");
+            var result = TestHelpers.Failure($"{errorKey1}: {errorMessage1}", $"{errorKey2}: {errorMessage2}");
             const int status = StatusCodes.Status400BadRequest;
 
             // Act
@@ -86,7 +78,7 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Arrange
             var opts = new KnightResponseOptions { UseProblemDetails = true };
             var http = TestHost.CreateHttpContext(opts);
-            var input = Failure("Oops");
+            var input = TestHelpers.Failure("Oops");
             const int status = StatusCodes.Status409Conflict;
 
             // Act
@@ -107,7 +99,7 @@ namespace Knight.Response.Mvc.Tests.Factories
 
             var opts = new KnightResponseOptions { UseProblemDetails = true };
             var http = TestHost.CreateHttpContext(opts);
-            var result = Failure(errorMessage1, errorMessage2);
+            var result = TestHelpers.Failure(errorMessage1, errorMessage2);
             const int status = StatusCodes.Status500InternalServerError;
 
             // Act
