@@ -27,7 +27,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0"/>
-        <PackageReference Include="Knight.Response.Abstractions.Http" Version="1.0.1" />
+        <PackageReference Include="Knight.Response.Abstractions.Http" Version="1.0.2" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
     </ItemGroup>
