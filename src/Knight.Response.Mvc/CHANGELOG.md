@@ -20,9 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0] - 2025-08-29
+## [0.1.0] - 2025-09-14
 ### Added
-- Initial release of `Knight.Response.AspNetCore.Mvc`
+- Initial release of `Knight.Response.Mvc`
 - `ResultExtensions` for converting `Result` / `Result<T>` into `IActionResult`
 - `ServiceCollectionExtensions` for service registration
 - `ApiResults` factory for consistent HTTP responses
@@ -32,4 +32,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[1.0.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v1.0.0
+[0.1.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v0.1.0
