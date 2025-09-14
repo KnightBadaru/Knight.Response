@@ -142,6 +142,7 @@ builder.Services.AddKnightResponse(options =>
 ## Related Packages
 
 * [Knight.Response](../Knight.Response) — Core response model
+* [Knight.Response.Abstractions.Http](../Knight.Response.Abstractions.Http) — Shared HTTP abstractions (ProblemDetails, validation mapping)
 * [Knight.Response.AspNetCore](../Knight.Response.AspNetCore) — ASP.NET Core integration
 
 ### Which package do I use?

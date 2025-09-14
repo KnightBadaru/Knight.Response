@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0] - 2025-09-14
+### Changed
+- Promoted to stable release.
+- No API changes since `0.1.0`; only documentation refinements and readiness validation.
+
+---
+
 ## [0.1.0] - 2025-09-14
 ### Added
 - Initial release of `Knight.Response.Mvc`
@@ -33,3 +40,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 [0.1.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v0.1.0
+[1.0.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v1.0.0
