@@ -54,7 +54,7 @@ ASP.NET Core integration that translates `Result` / `Result<T>` to `IResult`, wi
 
 ---
 
-### 4) Knight.Response.Mvc (In Progress)
+### 4) Knight.Response.Mvc
 
 Classic MVC / Web API 2 (`IActionResult` / `IHttpActionResult`) integration for legacy .NET Framework apps.
 Provides the same clear and consistent `Result` → response translation as the ASP.NET Core package, but for the **System.Web** stack.
