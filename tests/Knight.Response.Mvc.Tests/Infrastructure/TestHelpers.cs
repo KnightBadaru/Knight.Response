@@ -12,6 +12,10 @@ public static class TestHelpers
         PropertyNameCaseInsensitive = true
     };
 
+    public static string HttpStatusUrl(int statusCode = 400) => $"https://httpstatuses.io/{statusCode}";
+    public static string SvcStatus => "svcStatus";
+    public static string Failed => "Failed";
+
     public static T? Deserialize<T>(string json) =>
         string.IsNullOrWhiteSpace(json) ? default : JsonSerializer.Deserialize<T>(json, JsonOpts);
 

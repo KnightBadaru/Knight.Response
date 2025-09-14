@@ -167,7 +167,7 @@ public static class ApiResults
 
         if (http is not null)
         {
-            http.Response.Headers["Location"] = location ?? string.Empty;
+            http.Response.Headers["Location"] = location;
         }
 
         return new ObjectResult(opts.IncludeFullResultPayload ? result : null) { StatusCode = statusCode };
@@ -205,7 +205,7 @@ public static class ApiResults
 
         if (http is not null)
         {
-            http.Response.Headers["Location"] = location ?? string.Empty;
+            http.Response.Headers["Location"] = location;
         }
 
         return new ObjectResult(opts.IncludeFullResultPayload ? result : result.Value)
