@@ -20,7 +20,7 @@
     "project-info": {
       "name": "github.com/KnightBadaru/Knight.Response",
       "version": "main",
-      "module": "Knight.Response.AspNetCore"
+      "module": "Knight.Response.Mvc"
     }
   }
 }

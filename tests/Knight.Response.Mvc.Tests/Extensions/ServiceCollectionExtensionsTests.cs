@@ -67,8 +67,8 @@ public class ServiceCollectionExtensionsTests
         var opts   = sp.GetRequiredService<IOptions<KnightResponseOptions>>().Value;
 
         // Assert
-        mapper.ShouldBeOfType<CustomMapper>();              // DI service itself
-        opts.ValidationMapper.ShouldBeOfType<OptionsMapper>(); // options used at runtime by pipeline
+        mapper.ShouldBeOfType<CustomMapper>();
+        opts.ValidationMapper.ShouldBeOfType<OptionsMapper>();
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
         services.AddScoped<IValidationErrorMapper, CustomMapper>();
 
-        services.AddKnightResponse(); // options.ValidationMapper stays DefaultValidationErrorMapper
+        services.AddKnightResponse();
 
         // Act
         var sp   = services.BuildServiceProvider();
