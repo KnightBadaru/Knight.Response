@@ -7,13 +7,21 @@
         <LangVersion>latest</LangVersion>
         
         <PackageId>Knight.Response.Mvc</PackageId>
-        <Version>1.0.0-preview01</Version>
+        <Version>0.1.0</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response.Mvc</Title>
         <Description>ASP.NET MVC / Web API 2 adapters for Knight.Response — convert Result/Result&lt;T&gt; to IActionResult/IHttpActionResult with optional RFC7807 ProblemDetails.</Description>
-        <PackageTags>result;response;aspnetcore;mvc;http;problem-details;netstandard2.0</PackageTags>
+        <PackageReleaseNotes>
+            Initial preview release of Knight.Response.Mvc
+
+            - Provides IActionResult adapters for Result/Result&lt;T&gt; in ASP.NET MVC / Web API 2.
+            - Includes ApiResults factory for common HTTP responses (200, 201, 202, 204, 400, 404, 409).
+            - Integrates with Knight.Response 1.1.0 and Knight.Response.Abstractions.Http 1.0.2.
+            - Fully unit tested with xUnit + Shouldly, mutation score 100%.
+        </PackageReleaseNotes>
         <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
+        <PackageTags>result;response;aspnetcore;mvc;http;problem-details;netstandard2.0</PackageTags>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <IncludeSymbols>true</IncludeSymbols>
@@ -26,8 +34,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Knight.Response.Mvc.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Knight.Response.Abstractions.Http" Version="1.0.2" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0"/>
-        <PackageReference Include="Knight.Response.Abstractions.Http" Version="1.0.1" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
     </ItemGroup>

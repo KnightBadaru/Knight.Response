@@ -18,8 +18,8 @@ jobs:
             config: stryker-config.abstractions-http.json
           - name: aspnetcore
             config: stryker-config.aspnetcore.json
-#          - name: mvc
-#            config: stryker-config.mvc.json
+          - name: mvc
+            config: stryker-config.mvc.json
 
     steps:
       - name: Checkout (full history)

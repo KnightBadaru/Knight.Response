@@ -1,4 +1,4 @@
-using Knight.Response.Abstractions.Http.Mappers;
+using System.Reflection;
 using Knight.Response.Core;
 using Knight.Response.Factories;
 using Knight.Response.Models;
@@ -14,25 +14,7 @@ namespace Knight.Response.Mvc.Tests.Factories
 {
     public class ApiResultsTests
     {
-        private sealed class FakeValidationMapper : IValidationErrorMapper
-        {
-            private readonly bool _yieldErrors;
-            public FakeValidationMapper(bool yieldErrors) => _yieldErrors = yieldErrors;
-
-            public IDictionary<string, string[]> Map(IReadOnlyList<Message> messages)
-            {
-                if (!_yieldErrors)
-                {
-                    return new Dictionary<string, string[]>();
-                }
-
-                return new Dictionary<string, string[]>
-                {
-                    ["name"] = messages.Select(m => m.Content).ToArray()
-                };
-            }
-        }
-
+        private const string Location = "location";
         // -------------------- OK (200) --------------------
 
         [Fact]
@@ -66,8 +48,10 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
-            var responseValue = objectResult.Value.ShouldBeOfType<Result<Widget>>();
-            responseValue.Value.ShouldBe(dto);
+            var response = objectResult.Value.ShouldBeOfType<Result<Widget>>();
+            response.ShouldNotBeNull();
+            response.ShouldBe(result);
+            response.Value.ShouldBe(dto);
         }
 
         [Fact]
@@ -85,8 +69,8 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
-            var responseValue = objectResult.Value.ShouldBeOfType<Widget>();
-            responseValue.ShouldBe(dto);
+            var response = objectResult.Value.ShouldBeOfType<Widget>();
+            response.ShouldBe(dto);
         }
 
         [Fact]
@@ -103,8 +87,10 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
-            var responseValue = objectResult.Value.ShouldBeOfType<Result<Widget>>();
-            responseValue.Value.ShouldBe(dto);
+            var response = objectResult.Value.ShouldBeOfType<Result<Widget>>();
+            response.ShouldNotBeNull();
+            response.ShouldBe(result);
+            response.Value.ShouldBe(dto);
         }
 
         [Fact]
@@ -125,8 +111,81 @@ namespace Knight.Response.Mvc.Tests.Factories
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldNotBeNull();
             objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(StatusCodes.Status400BadRequest);
-            var pd = objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
+            objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
         }
+
+        [Fact]
+        public void Ok_Failure_WithHttpNull_FallsBack_ToMessages_NotProblemDetails()
+        {
+            // Arrange
+            var result = Results.Failure("bad");
+            var opts = new KnightResponseOptions();
+            var statusCode = opts.StatusCodeResolver(result.Status);
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http: null);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldNotBeNull();
+            objectResult.StatusCode?.ShouldBe(statusCode);
+        }
+
+        [Fact]
+        public void OkT_Failure_WithHttpNull_FallsBack_ToMessages_NotProblemDetails()
+        {
+            // Arrange
+            var result = Results.Failure<Widget>("bad");
+            var opts = new KnightResponseOptions();
+            var statusCode = opts.StatusCodeResolver(result.Status);
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http: null);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldNotBeNull();
+            objectResult.StatusCode?.ShouldBe(statusCode);
+        }
+
+        // // -------------------- Mutants --------------------
+        //
+        // [Fact]
+        // public void Ok_NonGeneric_Success_IncludeFullResultPayload_True_ReturnsFullResultBody()
+        // {
+        //     // Arrange
+        //     var result = Results.Success();
+        //     var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
+        //     var http = TestHost.CreateHttpContext(opts);
+        //
+        //     // Act
+        //     var action = ApiResults.Ok(result, http);
+        //
+        //     // Assert
+        //     var objectResult = action.ShouldBeOfType<ObjectResult>();
+        //     objectResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
+        //     objectResult.Value.ShouldBeSameAs(result);
+        // }
+        //
+        // [Fact]
+        // public void Ok_NonGeneric_Success_IncludeFullResultPayload_False_ReturnsMessagesBody()
+        // {
+        //     // Arrange
+        //     var result = Results.Success();
+        //     // Ensure there is at least one message so messages-vs-null is observable
+        //     result = result.WithMessage(new Message(MessageType.Information, "ok"));
+        //     var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
+        //     var http = TestHost.CreateHttpContext(opts);
+        //
+        //     // Act
+        //     var action = ApiResults.Ok(result, http);
+        //
+        //     // Assert
+        //     var objectResult = action.ShouldBeOfType<ObjectResult>();
+        //     objectResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
+        //     var messages = objectResult.Value.ShouldBeOfType<Result>(); // <- asserts the FALSE branch
+        //     messages.ShouldBe(result);
+        // }
 
         // -------------------- Created (201) --------------------
 
@@ -145,7 +204,7 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status201Created);
-            http.Response.Headers["Location"].ToString().ShouldBe(location);
+            http.Response.Headers[Location].ToString().ShouldBe(location);
         }
 
         [Fact]
@@ -161,6 +220,44 @@ namespace Knight.Response.Mvc.Tests.Factories
 
             // Act
             var actionResult = ApiResults.Created(result, http, "/api/widgets/9");
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldNotBeNull();
+            objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(StatusCodes.Status400BadRequest);
+            objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
+        }
+
+        [Fact]
+        public void Created_NonGeneric_Success_Sets201_AndLocation()
+        {
+            // Arrange
+            var result = Results.Success();
+            var http   = TestHost.CreateHttpContext();
+            var location    = "/ops/42";
+
+            // Act
+            var actionResult = ApiResults.Created(result, http, location);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldBe(StatusCodes.Status201Created);
+            http.Response.Headers[Location].ToString().ShouldBe(location);
+        }
+
+        [Fact]
+        public void Created_NonGeneric_Failure_EmitsProblemDetails_WhenEnabled()
+        {
+            // Arrange
+            var opts = new KnightResponseOptions
+            {
+                UseProblemDetails = true
+            };
+            var http = TestHost.CreateHttpContext(opts);
+            var result = Results.Failure("cannot-create");
+
+            // Act
+            var actionResult = ApiResults.Created(result, http, "/ignored");
 
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
@@ -185,7 +282,7 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status202Accepted);
-            http.Response.Headers["Location"].ToString().ShouldBe(location);
+            http.Response.Headers[Location].ToString().ShouldBe(location);
             objectResult.Value.ShouldBe(result); // non-generic – payload is the Result by design
         }
 
@@ -206,8 +303,47 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldNotBeNull();
-            objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(StatusCodes.Status400BadRequest);
+            var status = opts.StatusCodeResolver(result.Status);
+            objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(status);
             objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
+        }
+
+        [Fact]
+        public void AcceptedT_Success_Defaults_ToValuePayload_AndSets202_AndLocation()
+        {
+            // Arrange
+            var dto = new Widget(1, "w1");
+            var result = Results.Success(dto);
+            var http  = TestHost.CreateHttpContext();
+            var location = "/w1/1";
+
+            // Act
+            var actionResult = ApiResults.Accepted(result, http, location);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldBe(StatusCodes.Status202Accepted);
+            var responseValue = objectResult.Value.ShouldBeOfType<Result<Widget>>();
+            responseValue.Value.ShouldBe(dto);
+        }
+
+        [Fact]
+        public void AcceptedT_Success_Respects_FullyPayload_Configuration()
+        {
+            // Arrange
+            var dto = new Widget(9, "w9");
+            var result = Results.Success(dto);
+            var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
+            var http   =TestHost.CreateHttpContext(opts);
+
+            // Act
+            var actionResult = ApiResults.Accepted(result, http, "/ops/9");
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldBe(StatusCodes.Status202Accepted);
+            var responseValue = objectResult.Value.ShouldBeOfType<Widget>();
+            responseValue.ShouldBe(dto);
         }
 
         // -------------------- NoContent (204) --------------------
@@ -225,6 +361,23 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var statusCodeResult = actionResult.ShouldBeOfType<ObjectResult>();
             statusCodeResult.StatusCode.ShouldBe(StatusCodes.Status204NoContent);
+            statusCodeResult.Value.ShouldBeNull();
+        }
+
+        [Fact]
+        public void NoContentT_Success_Returns204_NoBody()
+        {
+            // Arrange
+            var http = TestHost.CreateHttpContext();
+            var result = Results.Success<Widget>();
+
+            // Act
+            var actionResult = ApiResults.NoContent(result, http);
+
+            // Assert
+            var statusCodeResult = actionResult.ShouldBeOfType<ObjectResult>();
+            statusCodeResult.StatusCode.ShouldBe(StatusCodes.Status204NoContent);
+            statusCodeResult.Value.ShouldBeNull();
         }
 
         [Fact]
@@ -244,7 +397,8 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldNotBeNull();
-            objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(StatusCodes.Status400BadRequest);
+            var status = opts.StatusCodeResolver(result.Status);
+            objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(status);
             objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
         }
 
@@ -314,40 +468,23 @@ namespace Knight.Response.Mvc.Tests.Factories
         public void Unauthorized_Always401_WithProblem()
         {
             // Arrange
-            var opts = new KnightResponseOptions
-            {
-                UseProblemDetails = true
-            };
-            var http = TestHost.CreateHttpContext(opts);
-            var result = Results.Failure("auth required");
-
             // Act
             var action = ApiResults.Unauthorized();
 
             // Assert
             var objectResult = action.ShouldBeOfType<UnauthorizedResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status401Unauthorized);
-            // objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
         }
 
         [Fact]
         public void Forbidden_Always403_WithProblem()
         {
             // Arrange
-            var opts = new KnightResponseOptions
-            {
-                UseProblemDetails = true
-            };
-            var http = TestHost.CreateHttpContext(opts);
-            var result = Results.Failure("no permission");
-
             // Act
             var actionResult = ApiResults.Forbidden();
 
             // Assert
-            var objectResult = actionResult.ShouldBeOfType<ForbidResult>();
-            // objectResult.StatusCode.ShouldBe(StatusCodes.Status403Forbidden);
-            // objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
+            actionResult.ShouldBeOfType<ForbidResult>();
         }
 
         // =====================================================
@@ -358,13 +495,12 @@ namespace Knight.Response.Mvc.Tests.Factories
         public void BadRequest_WithValidationProblemDetails_UsesValidationShape()
         {
             // Arrange
-            var mapper = new FakeValidationMapper(true);
             var opts = new KnightResponseOptions
             {
                 UseProblemDetails = true,
                 UseValidationProblemDetails = true
             };
-            var http = TestHost.CreateHttpContext(opts,  mapper);
+            var http = TestHost.CreateHttpContext<FakeValidationMapper>(opts);
             var result = Results.Failure("Name: Name is required.");
 
             // Act
@@ -374,6 +510,290 @@ namespace Knight.Response.Mvc.Tests.Factories
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status400BadRequest);
             objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
+        }
+
+        // -------------------- Integration --------------------
+
+        [Fact]
+        public async Task Result_Should_Serialize_Through_MVC()
+        {
+            // Arrange
+            var http = TestHost.CreateHttpContext();
+            var result = Results.Success();
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http);
+            var testResult = await TestHost.ExecuteAsync(actionResult, http);
+
+            // Assert
+            var response = TestHelpers.Deserialize<Result>(testResult.Body)!;
+            response.IsSuccess.ShouldBeTrue();
+            testResult.Body.ShouldNotContain("\"Value\"");
+        }
+
+        [Fact]
+        public async Task ResultT_Should_Serialize_Through_MVC()
+        {
+            // Arrange
+            var dto = new Widget(2, "Second");
+            var http = TestHost.CreateHttpContext();
+            var result = Results.Success(dto);
+
+            // Act
+            var actionResult = ApiResults.Created(result, http);
+            var testResult = await TestHost.ExecuteAsync(actionResult, http);
+
+            // Assert
+            var response = TestHelpers.Deserialize<Result<Widget>>(testResult.Body)!;
+            response.IsSuccess.ShouldBeTrue();
+            response.Value.ShouldBe(dto);
+        }
+
+        // -------------------- Mutants Killers --------------------
+
+        [Fact]
+        public void Ok_Failure_UseProblemDetailsTrue_WithNullHttp_Uses_Default_Opts()
+        {
+            // Arrange
+            var result = Results.Error(new List<Message> { new(MessageType.Error, "boom") });
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http: null);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            var response = objectResult.Value.ShouldBeOfType<Result>();
+            response.ShouldBe(result);
+        }
+
+        [Fact]
+        public void Ok_Failure_UseProblemDetailsFalse_WithHttpNotNull_FallsBackToMessages()
+        {
+            // Arrange
+            var result = Results.Error(new List<Message> { new(MessageType.Error, "boom") });
+            var opts = new KnightResponseOptions { UseProblemDetails = false, IncludeFullResultPayload = false };
+            var http = TestHost.CreateHttpContext(opts);
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            var response = objectResult.Value.ShouldBeOfType<List<Message>>();
+            response.ShouldBe(result.Messages);
+        }
+
+        [Fact]
+        public void Ok_Failure_IncludeFullResultPayload_True_ReturnsFullResultBody()
+        {
+            // Arrange
+            var result = Results.Error(new List<Message> { new(MessageType.Error, "x") });
+            var opts = new KnightResponseOptions { UseProblemDetails = false, IncludeFullResultPayload = true };
+            var http   = TestHost.CreateHttpContext(opts);
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.Value.ShouldBeSameAs(result);
+        }
+
+        [Fact]
+        public void Ok_Failure_IncludeFullResultPayload_False_ReturnsMessagesBody()
+        {
+            // Arrange
+            var result = Results.Error(new List<Message> { new(MessageType.Error, "x") });
+            var opts = new KnightResponseOptions { UseProblemDetails = false, IncludeFullResultPayload = false };
+            var http   = TestHost.CreateHttpContext(opts);
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.Value.ShouldBeAssignableTo<IEnumerable<Message>>();
+            var response = objectResult.Value.ShouldBeOfType<List<Message>>();
+            response.ShouldBe(result.Messages);
+        }
+
+        [Fact]
+        public void Created_NonGeneric_Success_WithNullLocation_WritesEmptyLocationHeader()
+        {
+            // Arrange
+            var http   = TestHost.CreateHttpContext();
+            var result = Results.Success();
+
+            // Act
+            var actionResult = ApiResults.Created(result, http, location: null);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldBe(StatusCodes.Status201Created);
+            http.Response.Headers.ContainsKey(Location).ShouldBeFalse();
+        }
+
+        // -------------------- Mutants <T> Killers --------------------
+
+        [Fact]
+        public void OkT_Failure_UseProblemDetailsTrue_WithNullHttp_Uses_Default_Opts()
+        {
+            // Arrange
+            var result = Results.Error<Widget>(new List<Message> { new(MessageType.Error, "boom") });
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http: null);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            var response = objectResult.Value.ShouldBeOfType<Result<Widget>>();
+            response.ShouldBe(result);
+        }
+
+        [Fact]
+        public void OkT_Failure_UseProblemDetailsFalse_IncludeFullResultPayloadFalse_FallsBackToMessages_NotProblemDetails()
+        {
+            // Arrange
+            var result = Results.Error<Widget>(new List<Message> { new(MessageType.Error, "boom") });
+            var opts = new KnightResponseOptions { UseProblemDetails = false, IncludeFullResultPayload = false };
+            var http = TestHost.CreateHttpContext(opts);
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            var response = objectResult.Value.ShouldBeOfType<List<Message>>();
+            response.ShouldBe(result.Messages);
+        }
+
+        [Fact]
+        public void OkT_Failure_UseProblemDetailsFalse_WithHttpNotNull_FallsBackToMessages()
+        {
+            // Arrange
+            var result = Results.Error<Widget>(new List<Message> { new(MessageType.Error, "bad") });
+            var opts = new KnightResponseOptions { UseProblemDetails = false, IncludeFullResultPayload = false };
+            var http   = TestHost.CreateHttpContext(opts);
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            var response = objectResult.Value.ShouldBeOfType<List<Message>>();
+            response.ShouldBe(result.Messages);
+        }
+
+        [Fact]
+        public void OkT_Failure_IncludeFullResultPayload_True_ReturnsFullResultBody()
+        {
+            // Arrange
+            var result = Results.Error<Widget>(new List<Message> { new(MessageType.Error, "x") });
+            var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
+            var http   = TestHost.CreateHttpContext(opts);
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.Value.ShouldBeSameAs(result);
+        }
+
+        [Fact]
+        public void OkT_Failure_IncludeFullResultPayload_False_ReturnsMessagesBody()
+        {
+            // Arrange
+            var result = Results.Error<Widget>(new List<Message> { new(MessageType.Error, "x") });
+            var opts = new KnightResponseOptions { IncludeFullResultPayload = false };
+            var http   = TestHost.CreateHttpContext(opts);
+
+            // Act
+            var actionResult = ApiResults.Ok(result, http);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            var response = objectResult.Value.ShouldBeOfType<List<Message>>();
+            response.ShouldBe(result.Messages);
+        }
+
+        [Fact]
+        public void CreatedT_NonGeneric_Success_WithNullLocation_WritesEmptyLocationHeader()
+        {
+            // Arrange
+            var dto = new Widget(2, "2");
+            var http   = TestHost.CreateHttpContext();
+            var result = Results.Success(dto);
+
+            // Act
+            var actionResult = ApiResults.Created(result, http, location: null);
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldBe(StatusCodes.Status201Created);
+            http.Response.Headers.ContainsKey(Location).ShouldBeFalse();
+        }
+
+        [Fact]
+        public void GenericBuilder_Failure_StatusCodeExactly400_DoesNotInvokeResolver()
+        {
+            var opts = new KnightResponseOptions
+            {
+                UseProblemDetails = false,
+                IncludeFullResultPayload = false,
+                StatusCodeResolver = _ => StatusCodes.Status418ImATeapot
+            };
+            var http = TestHost.CreateHttpContext(opts);
+
+            var failure = Results.Error<Widget>([
+                new Message(MessageType.Error, "boom")
+            ]);
+
+            const int boundary = StatusCodes.Status400BadRequest;
+
+            // Reflect the private generic builder:
+            var mi = typeof(ApiResults)
+                .GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+                .First(m => m.Name == "BuildSuccessOrFailure" &&
+                            m.IsGenericMethodDefinition &&
+                            m.GetParameters().Length == 4);
+
+            var generic = mi.MakeGenericMethod(typeof(Widget));
+
+            // Act
+            var actionResult = (IActionResult)generic.Invoke(null, [http, boundary, failure, null])!;
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldBe(boundary);
+        }
+
+        [Fact]
+        public void GenericBuilder_Failure_StatusCodeBelow400_InvokesResolver()
+        {
+            var opts = new KnightResponseOptions
+            {
+                UseProblemDetails = false,
+                StatusCodeResolver = _ => StatusCodes.Status422UnprocessableEntity
+            };
+
+            var http = TestHost.CreateHttpContext(opts);
+            var failure = Results.Error<Widget>([new Message(MessageType.Error, "x")]);
+
+            var methodInfo = typeof(ApiResults)
+                .GetMethods(BindingFlags.NonPublic | BindingFlags.Static)
+                .First(m => m.Name == "BuildSuccessOrFailure" &&
+                            m.IsGenericMethodDefinition &&
+                            m.GetParameters().Length == 4);
+
+            var generic = methodInfo.MakeGenericMethod(typeof(Widget));
+
+            // Act
+            var actionResult = (IActionResult)generic.Invoke(null, [http, StatusCodes.Status200OK, failure, null])!;
+
+            // Assert
+            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+            objectResult.StatusCode.ShouldBe(StatusCodes.Status422UnprocessableEntity);
         }
     }
 }

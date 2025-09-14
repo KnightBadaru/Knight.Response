@@ -10,16 +10,6 @@ namespace Knight.Response.Mvc.Infrastructure;
 public sealed class CompatValidationProblemDetails : ValidationProblemDetails
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="CompatValidationProblemDetails"/>.
-    /// </summary>
-    /// <remarks>
-    /// This constructor mirrors the parameterless MVC 2.x shape and
-    /// also exposes an <see cref="Extensions"/> dictionary for RFC7807
-    /// custom members.
-    /// </remarks>
-    public CompatValidationProblemDetails() { }
-
-    /// <summary>
     /// Initializes a new instance of <see cref="CompatValidationProblemDetails"/>
     /// with the provided field validation errors.
     /// </summary>
