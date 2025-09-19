@@ -8,6 +8,7 @@ namespace Knight.Response.Tests.Factories
 {
     public class ValidationResultsTests
     {
+        const string ValidationResult = "ValidationResult";
         // -------------------------------
         // Non-generic Results.Validation
         // -------------------------------
@@ -365,6 +366,84 @@ namespace Knight.Response.Tests.Factories
             result.IsSuccess.ShouldBeFalse();
             result.Messages.ShouldHaveSingleItem();
             result.Messages[0].Content.ShouldBe("Name: must not be blank");
+        }
+
+        [Fact]
+        public void Validation_Metadata_IncludesRawValidationResult_WhenFieldPresent()
+        {
+            // Arrange
+            var vr = new ValidationResult("must have name", ["Name"]);
+            var errors = new List<ValidationResult> { vr };
+
+            // Act
+            var result = Results.Validation(errors);
+
+            // Assert
+            result.IsSuccess.ShouldBeFalse();
+            result.Messages.Count.ShouldBe(1);
+            var message = result.Messages[0];
+
+            // key must be EXACT string: "ValidationResult"
+            message.Metadata.ContainsKey(ValidationResult).ShouldBeTrue();
+
+            // value must be the SAME instance we passed in (reference equality)
+            message.Metadata[ValidationResult].ShouldBeSameAs(vr);
+        }
+
+        [Fact]
+        public void Validation_Metadata_IncludesRawValidationResult_WhenNoField()
+        {
+            // Arrange
+            var vr = new ValidationResult("general rule failed");
+            var errors = new List<ValidationResult> { vr };
+
+            // Act
+            var result = Results.Validation(errors);
+
+            // Assert
+            result.IsSuccess.ShouldBeFalse();
+            result.Messages.Count.ShouldBe(1);
+            var meta = result.Messages[0].Metadata;
+
+            meta.ShouldNotBeNull();
+            meta.ContainsKey(ValidationResult).ShouldBeTrue();
+            meta[ValidationResult].ShouldBeSameAs(vr);
+        }
+
+        [Fact]
+        public void Validation_Metadata_Present_ForMultipleErrors_AllMessagesCarryTheirOwnInstance()
+        {
+            // Arrange
+            var vr1 = new ValidationResult("Name required", ["Name"]);
+            var vr2 = new ValidationResult("Amount > 0", ["Amount"]);
+            var errors = new List<ValidationResult> { vr1, vr2 };
+
+            // Act
+            var result = Results.Validation(errors);
+
+            // Assert
+            result.IsSuccess.ShouldBeFalse();
+            result.Messages.Count.ShouldBe(2);
+
+            result.Messages[0].Metadata[ValidationResult].ShouldBeSameAs(vr1);
+            result.Messages[1].Metadata[ValidationResult].ShouldBeSameAs(vr2);
+        }
+
+        [Fact]
+        public void Validation_Metadata_Key_IsCaseSensitive_ExactMatchOnly()
+        {
+            // Arrange
+            var vr = new ValidationResult("oops", ["X"]);
+            var errors = new List<ValidationResult> { vr };
+
+            // Act
+            var result = Results.Validation(errors);
+
+            // Assert
+            var meta = result.Messages[0].Metadata;
+            meta.ContainsKey(ValidationResult).ShouldBeTrue();
+            meta.ContainsKey(ValidationResult).ShouldBeTrue();
+            meta.ContainsKey("validationresult").ShouldBeTrue(); // case in-sensitive
         }
 
         // ---------- Non-generic ----------
