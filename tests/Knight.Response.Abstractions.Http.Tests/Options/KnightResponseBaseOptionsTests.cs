@@ -43,19 +43,18 @@ public class KnightResponseBaseOptionsTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void Defaults_Are_Off_And_Default_Mapper_Is_Present()
+    public void Defaults_Are_Off_And_Default_Mapper_Is_Null()
     {
         // Arrange
         var opts = new TestOptions();
 
         // Act / Assert
-        opts.IncludeFullResultPayload.ShouldBeTrue();
+        opts.IncludeFullResultPayload.ShouldBeFalse();
         opts.UseProblemDetails.ShouldBeFalse();
         opts.UseValidationProblemDetails.ShouldBeFalse();
         opts.IncludeExceptionDetails.ShouldBeFalse();
 
-        opts.ValidationMapper.ShouldNotBeNull();
-        opts.ValidationMapper.ShouldBeOfType<DefaultValidationErrorMapper>();
+        opts.ValidationMapper.ShouldBeNull();
     }
 
     [Fact]
@@ -288,7 +287,7 @@ public class KnightResponseBaseOptionsTests
         ReferenceEquals(def1, def2).ShouldBeFalse();
 
         // Default feature flags
-        def1.IncludeFullResultPayload.ShouldBeTrue();
+        def1.IncludeFullResultPayload.ShouldBeFalse();
         def1.IncludeExceptionDetails.ShouldBeFalse();
         def1.UseProblemDetails.ShouldBeFalse();
         def1.UseValidationProblemDetails.ShouldBeFalse();
@@ -298,8 +297,7 @@ public class KnightResponseBaseOptionsTests
         def1.ValidationBuilder.ShouldBeNull();
 
         // Validation mapper defaulted and usable
-        def1.ValidationMapper.ShouldNotBeNull();
-        def1.ValidationMapper.ShouldBeOfType<DefaultValidationErrorMapper>();
+        def1.ValidationMapper.ShouldBeNull();
 
         // Status resolver present and maps as per defaults
         def1.StatusCodeResolver.ShouldNotBeNull();
