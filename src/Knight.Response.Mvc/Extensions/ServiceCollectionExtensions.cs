@@ -26,17 +26,6 @@ public static class ServiceCollectionExtensions
             builder.Configure(configure);
         }
 
-        // If the consumer did not set a mapper (null) or left the default in place,
-        // prefer the DI-registered mapper.
-        builder.PostConfigure<IValidationErrorMapper>((opts, diMapper) =>
-        {
-            if (opts.ValidationMapper is null ||
-                opts.ValidationMapper.GetType() == typeof(DefaultValidationErrorMapper))
-            {
-                opts.ValidationMapper = diMapper;
-            }
-        });
-
         return services;
     }
 

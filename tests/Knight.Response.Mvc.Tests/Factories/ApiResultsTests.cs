@@ -148,45 +148,6 @@ namespace Knight.Response.Mvc.Tests.Factories
             objectResult.StatusCode?.ShouldBe(statusCode);
         }
 
-        // // -------------------- Mutants --------------------
-        //
-        // [Fact]
-        // public void Ok_NonGeneric_Success_IncludeFullResultPayload_True_ReturnsFullResultBody()
-        // {
-        //     // Arrange
-        //     var result = Results.Success();
-        //     var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
-        //     var http = TestHost.CreateHttpContext(opts);
-        //
-        //     // Act
-        //     var action = ApiResults.Ok(result, http);
-        //
-        //     // Assert
-        //     var objectResult = action.ShouldBeOfType<ObjectResult>();
-        //     objectResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
-        //     objectResult.Value.ShouldBeSameAs(result);
-        // }
-        //
-        // [Fact]
-        // public void Ok_NonGeneric_Success_IncludeFullResultPayload_False_ReturnsMessagesBody()
-        // {
-        //     // Arrange
-        //     var result = Results.Success();
-        //     // Ensure there is at least one message so messages-vs-null is observable
-        //     result = result.WithMessage(new Message(MessageType.Information, "ok"));
-        //     var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
-        //     var http = TestHost.CreateHttpContext(opts);
-        //
-        //     // Act
-        //     var action = ApiResults.Ok(result, http);
-        //
-        //     // Assert
-        //     var objectResult = action.ShouldBeOfType<ObjectResult>();
-        //     objectResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
-        //     var messages = objectResult.Value.ShouldBeOfType<Result>(); // <- asserts the FALSE branch
-        //     messages.ShouldBe(result);
-        // }
-
         // -------------------- Created (201) --------------------
 
         [Fact]

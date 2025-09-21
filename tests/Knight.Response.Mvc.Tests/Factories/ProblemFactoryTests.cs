@@ -177,6 +177,28 @@ namespace Knight.Response.Mvc.Tests.Factories
             vpd.Errors[key2].ShouldBe([value2]);
         }
 
+        [Fact]
+        public void ProblemFactory_Uses_ScopedMapper_From_RequestServices()
+        {
+            var opts = new  KnightResponseOptions
+            {
+                UseProblemDetails = true,
+                UseValidationProblemDetails = true
+            };
+            var http = TestHost.CreateHttpContext<HyphenMapper>(opts);
+
+            var result = Results.Error([new Message(MessageType.Error, "Field: bad")]);
+
+            // Act
+            var action = ProblemFactory.FromResult(http, opts, result, StatusCodes.Status400BadRequest);
+
+            // Assert
+            var obj = action.ShouldBeOfType<ObjectResult>();
+            var vpd = obj.Value.ShouldBeOfType<CompatValidationProblemDetails>();
+            vpd.Errors.Keys.ShouldContain("_"); // came from the custom mapper
+        }
+
+
         // -------------------- Mutants Killers --------------------
         // ============================================================================
         // // Mutation Testing Summary for ProblemFactory
