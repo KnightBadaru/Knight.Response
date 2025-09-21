@@ -1,8 +1,10 @@
+using Knight.Response.Abstractions.Http.Mappers;
 using Knight.Response.AspNetCore.Options;
 using Knight.Response.Core;
 using Knight.Response.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Knight.Response.AspNetCore.Factories;
 
@@ -37,6 +39,24 @@ namespace Knight.Response.AspNetCore.Factories;
 /// </remarks>
 internal static class ProblemFactory
 {
+    private static void AddResult(this ProblemDetails problemDetails, Result result)
+    {
+        problemDetails.Extensions["svcStatus"] = result.Status.ToString();
+        problemDetails.Extensions["messages"] = result.Messages
+            .Select(m => new { type = m.Type.ToString(), content = m.Content, metadata = m.Metadata })
+            .ToArray();
+    }
+
+    // Resolution order (supports Scoped mappers safely):
+    // 1) per-request DI (preferred)
+    // 2) options override (if a user explicitly set one)
+    // 3) fresh default instance as a final fallback
+    private static IValidationErrorMapper ResolveMapper(HttpContext? http, KnightResponseOptions opts)
+    {
+        var mapperFromRequest = http?.RequestServices?.GetService<IValidationErrorMapper>();
+        return mapperFromRequest ?? (opts.ValidationMapper ?? new DefaultValidationErrorMapper());
+    }
+
     /// <summary>
     /// Builds an <see cref="IResult"/> response (ProblemDetails or ValidationProblemDetails) from a
     /// <see cref="Result"/> according to the supplied <see cref="KnightResponseOptions"/>.
@@ -56,7 +76,9 @@ internal static class ProblemFactory
         // Try validation ProblemDetails if enabled and we have mappable errors
         if (opts.UseValidationProblemDetails)
         {
-            var errors = opts.ValidationMapper.Map(result.Messages);
+            var mapper = ResolveMapper(http, opts);
+            var errors = mapper.Map(result.Messages);
+
             if (errors.Count > 0)
             {
                 var vpd = new ValidationProblemDetails(errors)
@@ -113,15 +135,5 @@ internal static class ProblemFactory
             detail:     pd.Detail,
             extensions: pd.Extensions
         );
-    }
-
-    // Internals ================================================================
-
-    private static void AddResult(this ProblemDetails problemDetails, Result result)
-    {
-        problemDetails.Extensions["svcStatus"] = result.Status.ToString();
-        problemDetails.Extensions["messages"] = result.Messages
-            .Select(m => new { type = m.Type.ToString(), content = m.Content, metadata = m.Metadata })
-            .ToArray();
     }
 }
