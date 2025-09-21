@@ -84,10 +84,13 @@ namespace Knight.Response.Abstractions.Http.Options
         /// </summary>
         public Action<TH, Result, TV>? ValidationBuilder { get; set; }
 
+
         /// <summary>
-        /// Gets or sets the validation error mapper used to convert Knight.Response messages into model state dictionaries.
+        /// Optional override. If not set, the mapper is resolved from the current request's DI container:
+        /// <c>http.RequestServices.GetService&lt;IValidationErrorMapper&gt;()</c>.
+        /// Use this to force a specific instance only if you know you do not need per-request scope.
         /// </summary>
-        public IValidationErrorMapper ValidationMapper { get; set; }
+        public IValidationErrorMapper? ValidationMapper { get; set; }
 
         private static int DefaultStatusResolver(Status s) =>
             s == Status.Error      ? 500 :
