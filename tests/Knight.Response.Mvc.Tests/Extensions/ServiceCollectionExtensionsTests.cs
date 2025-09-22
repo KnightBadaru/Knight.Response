@@ -71,22 +71,23 @@ public class ServiceCollectionExtensionsTests
         opts.ValidationMapper.ShouldBeOfType<OptionsMapper>();
     }
 
-    [Fact]
-    public void AddKnightResponse_DI_Wins_When_Options_Keep_Default()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddScoped<IValidationErrorMapper, CustomMapper>();
-
-        services.AddKnightResponse();
-
-        // Act
-        var sp   = services.BuildServiceProvider();
-        var opts = sp.GetRequiredService<IOptions<KnightResponseOptions>>().Value;
-
-        // Assert
-        opts.ValidationMapper.ShouldBeOfType<CustomMapper>();
-    }
+    // This is for next version when using Knight.Response v2
+    // [Fact]
+    // public void AddKnightResponse_DI_Wins_When_Options_Keep_Default()
+    // {
+    //     // Arrange
+    //     var services = new ServiceCollection();
+    //     services.AddScoped<IValidationErrorMapper, CustomMapper>();
+    //
+    //     services.AddKnightResponse();
+    //
+    //     // Act
+    //     var sp   = services.BuildServiceProvider();
+    //     var opts = sp.GetRequiredService<IOptions<KnightResponseOptions>>().Value;
+    //
+    //     // Assert
+    //     opts.ValidationMapper.ShouldBeOfType<CustomMapper>();
+    // }
 
     [Fact]
     public void AddKnightResponse_ConfigDelegate_Sets_Options()
