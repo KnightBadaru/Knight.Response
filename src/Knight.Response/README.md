@@ -1,6 +1,6 @@
 # Knight.Response
 
-**Knight.Response** is a lightweight, immutable, fluent result library for C# services, APIs, and applications. It provides a clean and consistent way to handle outcomes, success/failure states, messages, and functional chaining — making your code simpler, safer, and more expressive.
+**Knight.Response** is a lightweight, immutable, fluent result library for C# services, APIs, and applications. It provides a clean and consistent way to handle outcomes, success/failure states, codes, messages, and functional chaining — making your code simpler, safer, and more expressive.
 
 [![NuGet Version](https://img.shields.io/nuget/v/Knight.Response.svg)](https://www.nuget.org/packages/Knight.Response)
 [![ci](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml/badge.svg)](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml)
@@ -12,10 +12,13 @@
 
 * Immutable `Result` and `Result<T>` types
 * Statuses: `Completed`, `Cancelled`, `Failed`, `Error`
+* Optional `ResultCode` for domain/system-defined reasons
+* Built-in `ResultCodes` (ValidationFailed, NotFound, AlreadyExists, Created, Updated, etc.)
 * Rich `Message` with `MessageType` + optional structured `Metadata`
 * Factory methods: `Success`, `Failure`, `Error`, `Cancel`, `NotFound`, `FromCondition`, `Aggregate`, `Error(Exception)`
 * Functional extensions: `OnSuccess`, `OnFailure`, `Map`, `Bind`
-* Advanced extensions: `Ensure`, `Tap`, `Recover`, `WithMessage`, `WithMessages`
+* Advanced extensions: `Ensure`, `Tap`, `Recover`, `WithCode`, `WithMessage`, `WithMessages`, `WithDetail`
+* Validation helpers: `TryGetValidationResults`, `GetValidationResults`
 * Pattern matching via deconstruction
 * Zero runtime dependencies
 
@@ -24,7 +27,7 @@
 ## Installation
 
 ```bash
-dotnet add package Knight.Response
+dotnet add package Knight.Response --version 2.0.0-preview01
 ```
 
 ---
@@ -33,14 +36,19 @@ dotnet add package Knight.Response
 
 ```csharp
 using Knight.Response;
+using Knight.Response.Models;
 
-var userResult = Results.Success(new User("Knight"))
+var userResult = Results.Success(new User("Knight"), code: ResultCodes.Created)
     .Ensure(u => u!.IsActive, "User is not active")
     .Tap(u => _audit.LogLogin(u!));
 
-if (userResult.IsSuccess)
+if (userResult.IsSuccess())
 {
     Console.WriteLine(userResult.Value!.Name);
+}
+else if (userResult.HasCode(ResultCodes.ValidationFailed.Value))
+{
+    Console.WriteLine("Validation failed");
 }
 ```
 
@@ -52,8 +60,8 @@ if (userResult.IsSuccess)
 public class Result
 {
     public Status Status { get; }
+    public ResultCode? Code { get; }       // optional reason, e.g. "NotFound"
     public IReadOnlyList<Message> Messages { get; }
-    public bool IsSuccess { get; } // Status == Completed
 }
 
 public class Result<T> : Result
@@ -68,6 +76,11 @@ public class Result<T> : Result
 * `Cancelled`
 * `Failed`
 * `Error`
+
+### ResultCode
+
+Optional, transport-agnostic reason for the result.
+Use built-in `ResultCodes` or define your own.
 
 ### MessageType
 
@@ -96,9 +109,9 @@ var msg = new Message(
 | `Results.Success()`                                                  | Create a success result                           |
 | `Results.Success<T>(T value)`                                        | Success result with data                          |
 | `Results.Success<T>(T value, IReadOnlyList<Message> messages)`       | Success with value and messages                   |
-| `Results.Failure(string reason)`                                     | Failure result with message                       |
+| `Results.Failure(string reason, ResultCode? code = null)`            | Failure result with message + optional code       |
 | `Results.Failure(IReadOnlyList<Message> messages)`                   | Failure from messages                             |
-| `Results.Error(string reason)`                                       | Error result                                      |
+| `Results.Error(string reason, ResultCode? code = null)`              | Error result                                      |
 | `Results.Error(Exception ex)`                                        | Error result from exception                       |
 | `Results.Cancel(string reason)`                                      | Cancelled result (defaults to `Warning`)          |
 | `Results.Cancel(IReadOnlyList<Message> messages)`                    | Cancelled from messages                           |
@@ -120,8 +133,9 @@ var mapped = Results.Success(2).Map(x => x * 5); // Success(10)
 var bound = Results.Success("abc").Bind(v => Results.Success(v.ToUpper()));
 ```
 
+* **IsSuccess / IsFailure / IsError / IsCancelled** – Predicates (now extensions, not properties)
 * **OnSuccess** – Runs an action if result is success
-* **OnFailure** – Runs an action if result is failure/error/cancelled
+* **OnFailure** – Runs an action if result is not success
 * **Map** – Transforms the value if success
 * **Bind** – Chains another `Result` operation if success
 
@@ -132,14 +146,40 @@ var bound = Results.Success("abc").Bind(v => Results.Success(v.ToUpper()));
 * **Ensure** – Ensures a predicate holds for success; otherwise returns failure
 * **Tap** – Executes an action for side effects, preserving the result
 * **Recover** – Transforms a failure into a success with fallback value
+* **WithCode** – Adds or replaces a `ResultCode`
 * **WithMessage** – Adds a single message to a result
 * **WithMessages** – Adds multiple messages to a result
+* **WithDetail** – Attaches structured metadata to the last message
 
 ```csharp
 var ensured = Results.Success(5).Ensure(x => x > 0, "Must be positive");
 var tapped = ensured.Tap(v => Console.WriteLine($"Value: {v}"));
-var recovered = Results.Failure<int>("bad").Recover(_ => 42);
+var recovered = Results.Failure<int>("bad", code: ResultCodes.ValidationFailed).Recover(_ => 42);
 var withMsg = recovered.WithMessage(new Message(MessageType.Information, "Recovered with default"));
+```
+
+---
+
+## Validation Support
+
+Validation errors can be converted into results and later retrieved:
+
+```csharp
+using System.ComponentModel.DataAnnotations;
+
+var errors = new List<ValidationResult>
+{
+    new("Name is required", new[] { "Name" }),
+    new("Amount must be greater than 0", new[] { "Amount" })
+};
+
+var result = Results.Validation(errors);
+
+if (result.TryGetValidationResults(out var vr))
+{
+    foreach (var v in vr)
+        Console.WriteLine($"Validation: {v.ErrorMessage}");
+}
 ```
 
 ---
@@ -149,9 +189,9 @@ var withMsg = recovered.WithMessage(new Message(MessageType.Information, "Recove
 You can deconstruct results directly:
 
 ```csharp
-var (status, messages) = Results.Failure("fail!");
+var (ok, code, message) = Results.Failure("fail!", code: ResultCodes.ValidationFailed);
 
-var (status, messages, value) = Results.Success(42);
+var (ok, value, code, message) = Results.Success(42, code: ResultCodes.Created);
 ```
 
 Or use C# pattern matching:
@@ -172,7 +212,7 @@ switch (result)
 
 ## Important: `Result<T>.Value` and default values
 
-When `T` is a **non-nullable value type**, failed results will contain the *default* value of that type (`0` for `int`, `false` for `bool`, etc.). This is a limitation of .NET generics, since value types always have a default.
+When `T` is a **non-nullable value type**, failed results will contain the *default* value of that type (`0` for `int`, `false` for `bool`, etc.). This is a limitation of .NET generics.
 
 ```csharp
 var r1 = Results.Failure<int>("bad");
@@ -187,53 +227,6 @@ Console.WriteLine(r2.Value); // null
 * Use **nullable value types** (e.g. `int?`, `bool?`) if you want `null` to represent "no value".
 * Use **non-nullable value types** if a default like `0` or `false` makes sense in your domain.
 * Reference types (e.g. `string`, `User`) will correctly return `null` when not `Completed`.
-
----
-
-## Status values
-
-The `Status` enum indicates the outcome of an operation:
-
-* `Completed` – success
-* `Cancelled` – cancelled before completion
-* `Failed` – failed due to a known issue
-* `Error` – unexpected/unhandled error
-
----
-
-## Validation Support (new in 1.1.0)
-You can now construct `Result` and `Result<T>` from `System.ComponentModel.DataAnnotations.ValidationResult` collections.
-```csharp
-using System.ComponentModel.DataAnnotations;
-
-var errors = new List<ValidationResult>
-{
-    new("Name is required", new[] { "Name" }),
-    new("Amount must be greater than 0", new[] { "Amount" }),
-    new("General rule failed")
-};
-
-// Produces Error result with prefixed messages:
-// "Name: Name is required", "Amount: Amount must be greater than 0", "General rule failed"
-var result = Results.Validation(errors);
-```
-For generics:
-```csharp
-var result = Results.Validation<MyEntity>(errors);
-```
-### Metadata Enricher Overloads
-Use an enricher delegate to attach metadata (e.g., field name) without altering text:
-```csharp
-var result = Results.Validation(
-    errors,
-    (msg, field) => string.IsNullOrEmpty(field)
-        ? msg
-        : msg.WithMeta("field", field) // your custom extension
-);
-```
-Default behavior:
-* Prefixed mapping: "Field: message"
-* Enricher overload: raw message text, field passed separately
 
 ---
 

@@ -272,7 +272,7 @@ public static class Results
 
         foreach (var result in resultList)
         {
-            if (!result.IsSuccess)
+            if (!result.IsSuccess())
             {
                 foreach (var message in result.Messages)
                 {

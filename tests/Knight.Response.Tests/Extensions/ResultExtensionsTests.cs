@@ -34,7 +34,7 @@ public class ResultExtensionsTests
 
         // Assert
         received.ShouldBe(value);
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class ResultExtensionsTests
 
         // Assert
         mapped.Value.ShouldBe(10);
-        mapped.IsSuccess.ShouldBeTrue();
+        mapped.IsSuccess().ShouldBeTrue();
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public class ResultExtensionsTests
             .Map(x => x + 1);
 
         // Assert
-        mapped.IsSuccess.ShouldBeFalse();
+        mapped.IsSuccess().ShouldBeFalse();
         mapped.Status.ShouldBe(Status.Failed);
         mapped.Messages.ShouldHaveSingleItem();
         mapped.Messages.ShouldContain(m => m.Type == MessageType.Error && m.Content == value);
@@ -103,7 +103,7 @@ public class ResultExtensionsTests
         var mapped = Results.Success<string?>().Map(s => s ?? fallback);
 
         // Assert
-        mapped.IsSuccess.ShouldBeTrue();
+        mapped.IsSuccess().ShouldBeTrue();
         mapped.Value.ShouldBe(fallback);
     }
 
@@ -114,7 +114,7 @@ public class ResultExtensionsTests
         var bound = Results.Success("u").Bind(s => Results.Success(s + "v"));
 
         // Assert
-        bound.IsSuccess.ShouldBeTrue();
+        bound.IsSuccess().ShouldBeTrue();
         bound.Value.ShouldBe("uv");
     }
 
@@ -128,7 +128,7 @@ public class ResultExtensionsTests
         var bound = Results.Failure<string>(reason).Bind(_ => Results.Success("x"));
 
         // Assert
-        bound.IsSuccess.ShouldBeFalse();
+        bound.IsSuccess().ShouldBeFalse();
         bound.Messages.ShouldHaveSingleItem();
         bound.Messages.ShouldContain(m => m.Type == MessageType.Error && m.Content == reason);
     }
@@ -188,7 +188,7 @@ public class ResultExtensionsTests
         var ensured = original.Ensure(v => v == 10, "must be 10");
 
         // Assert
-        ensured.IsSuccess.ShouldBeTrue();
+        ensured.IsSuccess().ShouldBeTrue();
         ensured.Value.ShouldBe(original.Value);
         ensured.Messages.ShouldBeEmpty();
     }
@@ -203,7 +203,7 @@ public class ResultExtensionsTests
         var ensured = Results.Success(3).Ensure(v => v == 4, errorMessage);
 
         // Assert
-        ensured.IsSuccess.ShouldBeFalse();
+        ensured.IsSuccess().ShouldBeFalse();
         ensured.Status.ShouldBe(Status.Failed);
         ensured.Messages.Single().Content.ShouldBe(errorMessage);
     }
@@ -219,7 +219,7 @@ public class ResultExtensionsTests
         var ensured = original.Ensure(_ => false, "ignored");
 
         // Assert
-        ensured.IsSuccess.ShouldBeFalse();
+        ensured.IsSuccess().ShouldBeFalse();
         ensured.Status.ShouldBe(Status.Failed);
         ensured.Messages.Single().Content.ShouldBe(reason);
     }
@@ -239,7 +239,7 @@ public class ResultExtensionsTests
         // Assert
         tapped.ShouldBe(1);
         tappedResult.Value.ShouldBe(original.Value);
-        tappedResult.IsSuccess.ShouldBeTrue();
+        tappedResult.IsSuccess().ShouldBeTrue();
         tappedResult.Messages.ShouldBeEmpty();
     }
 
@@ -254,7 +254,7 @@ public class ResultExtensionsTests
 
         // Assert
         tapped.ShouldBe(0);
-        result.IsSuccess.ShouldBeFalse();
+        result.IsSuccess().ShouldBeFalse();
     }
 
     // -------- Recover --------
@@ -269,7 +269,7 @@ public class ResultExtensionsTests
         var recovered = Results.Failure<string>("missing").Recover(_ => recoveredValue);
 
         // Assert
-        recovered.IsSuccess.ShouldBeTrue();
+        recovered.IsSuccess().ShouldBeTrue();
         recovered.Value.ShouldBe(recoveredValue);
         recovered.Messages.ShouldBeEmpty(); // recovery returns success with no messages by design
     }
@@ -285,7 +285,7 @@ public class ResultExtensionsTests
         var recovered = original.Recover(_ => "fallback");
 
         // Assert
-        recovered.IsSuccess.ShouldBeTrue();
+        recovered.IsSuccess().ShouldBeTrue();
         recovered.Value.ShouldBe(value);
     }
 
@@ -311,7 +311,7 @@ public class ResultExtensionsTests
         var result = Results.Success(1).WithMessage(Warn(messageContent));
 
         // Assert
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
         result.Value.ShouldBe(1);
         result.Messages.Count.ShouldBe(1);
         result.Messages[0].Content.ShouldBe(messageContent);
@@ -340,6 +340,6 @@ public class ResultExtensionsTests
         // Assert
         result.Messages.Select(m => m.Content).ShouldBe(["a", "b"]);
         result.Value.ShouldBe(value);
-        result.IsSuccess.ShouldBeTrue();
+        result.IsSuccess().ShouldBeTrue();
     }
 }

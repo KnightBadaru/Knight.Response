@@ -6,8 +6,8 @@ using Knight.Response.Models;
 namespace Knight.Response.Extensions;
 
 /// <summary>
-/// Composable, immutable helpers for <see cref="Result"/> and <see cref="Result{T}"/>:
-/// predicates, observation hooks, functional composition, validation, code & message helpers,
+/// Composable, immutable helpers for <see cref="Result"/> and <see cref="Result&lt;T&gt;"/>:
+/// predicates, observation hooks, functional composition, validation, code &amp; message helpers,
 /// and ergonomic value accessors. All methods are pure (they return new instances).
 /// </summary>
 public static class ResultExtensions
@@ -105,7 +105,11 @@ public static class ResultExtensions
     /// </summary>
     public static Result OnSuccess(this Result result, Action action)
     {
-        if (result.IsSuccess()) action();
+        if (result.IsSuccess())
+        {
+            action();
+        }
+
         return result;
     }
 
@@ -115,7 +119,11 @@ public static class ResultExtensions
     /// </summary>
     public static Result<T> OnSuccess<T>(this Result<T> result, Action<T?> action)
     {
-        if (result.IsSuccess()) action(result.Value);
+        if (result.IsSuccess())
+        {
+            action(result.Value);
+        }
+
         return result;
     }
 
@@ -125,7 +133,11 @@ public static class ResultExtensions
     /// </summary>
     public static Result OnFailure(this Result result, Action<IReadOnlyList<Message>> action)
     {
-        if (!result.IsSuccess()) action(result.Messages);
+        if (!result.IsSuccess())
+        {
+            action(result.Messages);
+        }
+
         return result;
     }
 
@@ -135,7 +147,11 @@ public static class ResultExtensions
     /// </summary>
     public static Result<T> OnFailure<T>(this Result<T> result, Action<IReadOnlyList<Message>> action)
     {
-        if (!result.IsSuccess()) action(result.Messages);
+        if (!result.IsSuccess())
+        {
+            action(result.Messages);
+        }
+
         return result;
     }
 
@@ -149,7 +165,11 @@ public static class ResultExtensions
     /// </summary>
     public static Result<TU> Map<T, TU>(this Result<T> result, Func<T?, TU> mapper)
     {
-        if (!result.IsSuccess()) return Results.Failure<TU>(result.Messages);
+        if (!result.IsSuccess())
+        {
+            return Results.Failure<TU>(result.Messages);
+        }
+
         return Results.Success(mapper(result.Value));
     }
 
@@ -170,7 +190,11 @@ public static class ResultExtensions
     /// </summary>
     public static Result<T> Ensure<T>(this Result<T> result, Func<T?, bool> predicate, string errorMessage)
     {
-        if (!result.IsSuccess()) return result;
+        if (!result.IsSuccess())
+        {
+            return result;
+        }
+
         return predicate(result.Value) ? result : Results.Failure<T>(errorMessage);
     }
 
@@ -179,7 +203,11 @@ public static class ResultExtensions
     /// </summary>
     public static Result<T> Tap<T>(this Result<T> result, Action<T?> action)
     {
-        if (result.IsSuccess()) action(result.Value);
+        if (result.IsSuccess())
+        {
+            action(result.Value);
+        }
+
         return result;
     }
 
@@ -189,7 +217,11 @@ public static class ResultExtensions
     /// </summary>
     public static Result<T> Recover<T>(this Result<T> result, Func<IReadOnlyList<Message>, T> recovery)
     {
-        if (result.IsSuccess()) return result;
+        if (result.IsSuccess())
+        {
+            return result;
+        }
+
         var fallback = recovery(result.Messages);
         return Results.Success(fallback);
     }
@@ -248,7 +280,10 @@ public static class ResultExtensions
     /// </summary>
     public static Result WithDetail(this Result result, string key, object? value)
     {
-        if (result.Messages.Count == 0) return result;
+        if (result.Messages.Count == 0)
+        {
+            return result;
+        }
 
         var list = new List<Message>(result.Messages);
         var lastIndex = list.Count - 1;
@@ -269,7 +304,10 @@ public static class ResultExtensions
     /// </summary>
     public static Result<T> WithDetail<T>(this Result<T> result, string key, object? value)
     {
-        if (result.Messages.Count == 0) return result;
+        if (result.Messages.Count == 0)
+        {
+            return result;
+        }
 
         var list = new List<Message>(result.Messages);
         var lastIndex = list.Count - 1;
@@ -295,7 +333,12 @@ public static class ResultExtensions
     /// <summary>Tries to read <see cref="Result{T}.Value"/> when successful.</summary>
     public static bool TryGetValue<T>(this Result<T> result, out T? value)
     {
-        if (result.IsSuccess()) { value = result.Value; return true; }
+        if (result.IsSuccess())
+        {
+            value = result.Value;
+            return true;
+        }
+
         value = default;
         return false;
     }

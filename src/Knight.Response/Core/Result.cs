@@ -35,11 +35,6 @@ public class Result(Status status, ResultCode? code = null, IReadOnlyList<Messag
     public IReadOnlyList<Message> Messages { get; } = messages ?? [];
 
     /// <summary>
-    /// Gets a value indicating whether the operation completed successfully.
-    /// </summary>
-    public bool IsSuccess => Status == Status.Completed;
-
-    /// <summary>
     /// Deconstructs the <see cref="Result"/> into its <see cref="Status"/> and <see cref="Messages"/>.
     /// </summary>
     /// <param name="status">The operation's final outcome.</param>
