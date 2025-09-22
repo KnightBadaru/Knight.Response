@@ -494,7 +494,7 @@ public class ResultsTests
         IReadOnlyList<Message>? messages = null;
 
         // Act
-        var result = new Result(Status.Completed, messages);
+        var result = new Result(Status.Completed, messages: messages);
 
         // Assert
         result.IsSuccess.ShouldBeTrue();
@@ -509,7 +509,7 @@ public class ResultsTests
         var messages = new List<Message> { new(MessageType.Information, "hi") };
 
         // Act
-        var result = new Result(Status.Completed, messages);
+        var result = new Result(Status.Completed, messages: messages);
 
         // Assert
         result.Messages.Count.ShouldBe(1);
