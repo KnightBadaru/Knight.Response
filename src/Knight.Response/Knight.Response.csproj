@@ -7,19 +7,29 @@
 
         <!-- NuGet metadata -->
         <PackageId>Knight.Response</PackageId>
-        <Version>2.0.0-preview02</Version>
+        <Version>2.0.0-preview03</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response</Title>
         <Description>Lightweight, immutable Result/Result&lt;T&gt; library with factories, functional extensions, and pattern matching for C# service layers.</Description>
         <PackageReleaseNotes>
             Added:
-            - IsUnsuccessful() extension: shorthand for !IsSuccess(). Returns true for Failed, Error, or Cancelled.
+            - Branching extensions:
+            • `Match` overloads (typed &amp; untyped, with/without messages, returning value or void).
+            • `MatchValue` overloads for producing new Result/Result&lt;T&gt; instances directly.
+            - Predicates:
+            • `IsUnsuccessful()` – shorthand for Status != Completed.
+            • `ValueIsNull&lt;T&gt;()` – true when Result&lt;T&gt;.Value is null.
+            - Detail helpers:
+            • `WithDetail(key, value)` – attach metadata to the last message (case-insensitive, immutable).
 
             Changed:
-            - Removed redundant generic overload TryGetValidationResults&lt;T&gt;(). Use the non-generic TryGetValidationResults() for both Result and Result&lt;T&gt;.
+            - Removed redundant `OnFailure&lt;T&gt;()` extension (duplicated logic of OnFailure).
+            - Consolidated extension classes into a single ResultExtensions set.
+            - Improved XML docs across extensions for clearer NuGet API documentation.
 
-            Notes:
-            - This is a focused preview release to improve ergonomics and simplify the API surface.
+            Fixed:
+            - Defensive metadata copy handling in `WithDetail`.
+            - `TryGetValidationResults` now consistently detects validation metadata.
         </PackageReleaseNotes>
         <PackageTags>result;response;functional;service-layer;error-handling;patterns;csharp</PackageTags>
         <RepositoryType>git</RepositoryType>

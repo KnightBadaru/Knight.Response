@@ -18,6 +18,8 @@
 * Factory methods: `Success`, `Failure`, `Error`, `Cancel`, `NotFound`, `FromCondition`, `Aggregate`, `Error(Exception)`
 * Functional extensions: `OnSuccess`, `OnFailure`, `Map`, `Bind`
 * Advanced extensions: `Ensure`, `Tap`, `Recover`, `WithCode`, `WithMessage`, `WithMessages`, `WithDetail`
+* Branching: `Match`, `MatchValue` for expressive success/failure/null handling
+* Predicates: `IsSuccess`, `IsFailure`, `IsError`, `IsCancelled`, `IsUnsuccessful`, `ValueIsNull`
 * Validation helpers: `TryGetValidationResults`, `GetValidationResults`
 * Pattern matching via deconstruction
 * Zero runtime dependencies
@@ -27,7 +29,7 @@
 ## Installation
 
 ```bash
-dotnet add package Knight.Response --version 2.0.0-preview01
+dotnet add package Knight.Response --version 2.0.0-preview03
 ```
 
 ---
@@ -133,7 +135,7 @@ var mapped = Results.Success(2).Map(x => x * 5); // Success(10)
 var bound = Results.Success("abc").Bind(v => Results.Success(v.ToUpper()));
 ```
 
-* **IsSuccess / IsFailure / IsError / IsCancelled** – Predicates (now extensions, not properties)
+* **IsSuccess / IsFailure / IsError / IsCancelled / IsUnsuccessful**
 * **OnSuccess** – Runs an action if result is success
 * **OnFailure** – Runs an action if result is not success
 * **Map** – Transforms the value if success
@@ -150,13 +152,41 @@ var bound = Results.Success("abc").Bind(v => Results.Success(v.ToUpper()));
 * **WithMessage** – Adds a single message to a result
 * **WithMessages** – Adds multiple messages to a result
 * **WithDetail** – Attaches structured metadata to the last message
+* **ValueIsNull** – Checks if `Result<T>.Value` is null
 
 ```csharp
 var ensured = Results.Success(5).Ensure(x => x > 0, "Must be positive");
 var tapped = ensured.Tap(v => Console.WriteLine($"Value: {v}"));
 var recovered = Results.Failure<int>("bad", code: ResultCodes.ValidationFailed).Recover(_ => 42);
 var withMsg = recovered.WithMessage(new Message(MessageType.Information, "Recovered with default"));
+
+if (recovered.ValueIsNull())
+    Console.WriteLine("No value present.");
 ```
+
+---
+
+## Branching with `Match`
+
+```csharp
+var result = Results.Failure<int>("Not valid", code: ResultCodes.ValidationFailed);
+
+result.Match(
+    onSuccess: v => Console.WriteLine($"Value: {v}"),
+    onFailure: msgs => Console.WriteLine($"Failed: {string.Join(", ", msgs.Select(m => m.Content))}")
+);
+```
+
+### Producing results with `MatchValue`
+
+```csharp
+var processed = result.MatchValue(
+    onSuccess: v => Results.Success(v * 10),
+    onFailure: msgs => Results.Failure<int>("Could not process further")
+);
+```
+
+These let you **return directly** from a method, eliminating repeated `if/else` checks.
 
 ---
 
@@ -189,9 +219,9 @@ if (result.TryGetValidationResults(out var vr))
 You can deconstruct results directly:
 
 ```csharp
-var (ok, code, message) = Results.Failure("fail!", code: ResultCodes.ValidationFailed);
+var (status, code, messages) = Results.Failure("fail!", code: ResultCodes.ValidationFailed);
 
-var (ok, value, code, message) = Results.Success(42, code: ResultCodes.Created);
+var (status, code, messages, value) = Results.Success(42, code: ResultCodes.Created);
 ```
 
 Or use C# pattern matching:

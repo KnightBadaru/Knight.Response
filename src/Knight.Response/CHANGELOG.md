@@ -23,6 +23,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-preview03] - 2025-09-22
+
+### Added
+
+* Branching extensions
+    * Match overloads (typed & untyped, with and without messages, returning value or void).
+    * MatchValue overloads: convenience wrappers for producing new `Result/Result<T>` instances directly.
+
+* Predicates
+    * `IsUnsuccessful()` – shorthand for `Status != Completed`.
+    * `ValueIsNull<T>()` – true when `Result<T>.Value` is `null`.
+
+* Detail helpers
+    * WithDetail(key, value) – attaches metadata to the last message, case-insensitive, immutable.
+
+### Changed
+* Removed redundant `OnFailure<T>()` extension (duplicated logic of `OnFailure`).
+* Consolidated extension classes into a single `ResultExtensions` set for clarity.
+* Improved XML documentation across extensions for NuGet API docs.
+
+### Fixed
+
+* Defensive handling of metadata copies in WithDetail.
+* Validation metadata extraction (`TryGetValidationResults`) now covers both `ValidationResult` and `ValidationResults` keys consistently.
+
+---
+
 ## [2.0.0-preview02] - 2025-09-22
 
 ### Added
@@ -131,3 +158,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.1.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v1.1.0
 [2.0.0-preview01]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview01
 [2.0.0-preview02]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview02
+[2.0.0-preview03]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview03
