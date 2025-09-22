@@ -46,7 +46,7 @@ jobs:
           if git grep -Iq -- '-preview' -- '**/*.csproj' '**/Directory.Build.props' '**/Directory.Packages.props'; then
             echo "Preview detected -> lowering thresholds"
             dotnet stryker --config-file ./${{ matrix.config }} --reporter html --reporter json \
-              --threshold-high 80 --threshold-low 65 --threshold-break 50
+              --threshold-high 80 --threshold-low 65 --break-at 50
           else
             dotnet stryker --config-file ./${{ matrix.config }} --reporter html --reporter json
           fi
@@ -68,7 +68,7 @@ jobs:
           if git grep -Iq -- '-preview' -- '**/*.csproj' '**/Directory.Build.props' '**/Directory.Packages.props'; then
             echo "Preview detected -> lowering thresholds"
             dotnet stryker --config-file ./${{ matrix.config }} \
-              --threshold-high 80 --threshold-low 65 --threshold-break 50
+              --threshold-high 80 --threshold-low 65 --break-at 50
           else
             dotnet stryker --config-file ./${{ matrix.config }}
           fi
