@@ -77,6 +77,14 @@ public static class ResultExtensions
     /// <summary>Returns <c>true</c> when <paramref name="result"/> completed successfully.</summary>
     public static bool IsSuccess(this Result result) => result.Status == Status.Completed;
 
+    /// <summary>
+    /// Determines whether the result is not successful
+    /// (i.e. <see cref="Status.Failed"/>, <see cref="Status.Error"/>, or <see cref="Status.Cancelled"/>).
+    /// </summary>
+    /// <param name="result">The result to check.</param>
+    /// <returns><c>true</c> if the result is not successful; otherwise <c>false</c>.</returns>
+    public static bool IsUnsuccessful(this Result result) => !result.IsSuccess();
+
     /// <summary>Returns <c>true</c> when <paramref name="result"/> represents a business failure.</summary>
     public static bool IsFailure(this Result result) => result.Status == Status.Failed;
 
@@ -364,26 +372,6 @@ public static class ResultExtensions
     /// </param>
     /// <returns><c>true</c> if at least one validation result was found; otherwise <c>false</c>.</returns>
     public static bool TryGetValidationResults(this Result result, out IReadOnlyList<ValidationResult> validationResults)
-    {
-        var list = CollectValidationResults(result.Messages);
-        validationResults = list;
-        return list.Count > 0;
-    }
-
-    /// <summary>
-    /// Attempts to extract all <see cref="ValidationResult"/> instances attached to
-    /// any message metadata on the <paramref name="result"/>. Supports both the
-    /// per-message key "<c>ValidationResult</c>" and the aggregate key
-    /// "<c>ValidationResults</c>".
-    /// </summary>
-    /// <typeparam name="T">The carried value type.</typeparam>
-    /// <param name="result">The source result.</param>
-    /// <param name="validationResults">
-    /// When found, receives a non-empty, read-only list of <see cref="ValidationResult"/>.
-    /// When none are found, receives an empty list.
-    /// </param>
-    /// <returns><c>true</c> if at least one validation result was found; otherwise <c>false</c>.</returns>
-    public static bool TryGetValidationResults<T>(this Result<T> result, out IReadOnlyList<ValidationResult> validationResults)
     {
         var list = CollectValidationResults(result.Messages);
         validationResults = list;

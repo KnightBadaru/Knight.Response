@@ -23,6 +23,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-preview02] - 2025-09-22
+
+### Added
+
+* **IsUnsuccessful()** extension: shorthand for `!IsSuccess()`. Returns true for Failed, Error, or Cancelled results.
+
+### Changed
+
+* Removed redundant generic overload `TryGetValidationResults<T>()`. Consumers should use the non-generic `TryGetValidationResults()` for both `Result` and `Result<T>`.
+
+### Notes
+
+* Focused preview release to polish ergonomic extensions and simplify API surface.
+* `IsValidationError()` deliberately not added; consumers can check via `TryGetValidationResults()` or custom codes.
+
+---
+
 ## [2.0.0-preview01] - 2025-09-22
 
 ### Added
@@ -113,3 +130,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.2]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v1.0.2
 [1.1.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v1.1.0
 [2.0.0-preview01]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview01
+[2.0.0-preview02]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview02

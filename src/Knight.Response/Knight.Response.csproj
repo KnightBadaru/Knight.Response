@@ -12,22 +12,14 @@
         <Title>Knight.Response</Title>
         <Description>Lightweight, immutable Result/Result&lt;T&gt; library with factories, functional extensions, and pattern matching for C# service layers.</Description>
         <PackageReleaseNotes>
-            Breaking:
-            - Removed `IsSuccess` property (now extension method `IsSuccess()`).
-            - This avoids leaking it into API outputs; use new predicate extensions instead.
-
             Added:
-            - Optional `ResultCode` support alongside `Status`.
-            - Built-in `ResultCodes`: ValidationFailed, NotFound, AlreadyExists, Created, Updated, etc.
-            - Extensions:
-            • `WithCode(ResultCode)`
-            • `WithDetail(key, value)`
-            • `TryGetValidationResults(...)` and `GetValidationResults()`
-            - Predicate helpers: `IsSuccess()`, `IsFailure()`, `IsError()`, `IsCancelled()`
+            - IsUnsuccessful() extension: shorthand for !IsSuccess(). Returns true for Failed, Error, or Cancelled.
 
             Changed:
-            - `Result` and `Result&lt;T&gt;` constructors accept optional `ResultCode`.
-            - Advanced and core extensions merged into unified `ResultExtensions`.
+            - Removed redundant generic overload TryGetValidationResults&lt;T&gt;(). Use the non-generic TryGetValidationResults() for both Result and Result&lt;T&gt;.
+
+            Notes:
+            - This is a focused preview release to improve ergonomics and simplify the API surface.
         </PackageReleaseNotes>
         <PackageTags>result;response;functional;service-layer;error-handling;patterns;csharp</PackageTags>
         <RepositoryType>git</RepositoryType>
