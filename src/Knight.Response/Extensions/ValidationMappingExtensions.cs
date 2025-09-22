@@ -29,8 +29,8 @@ namespace Knight.Response.Extensions
                     ? baseText
                     : $"{field?.Trim()}: {baseText.Trim()}";
 
-                // Assuming Message ctor is (MessageType type, string content)
-                list.Add(new Message(MessageType.Error, content));
+                var metadata = new Dictionary<string, object?>{["ValidationResult"] = e};
+                list.Add(new Message(MessageType.Error, content, metadata));
             }
 
             return list;

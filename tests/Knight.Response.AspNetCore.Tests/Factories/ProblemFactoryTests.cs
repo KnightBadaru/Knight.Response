@@ -4,6 +4,7 @@ using Knight.Response.AspNetCore.Options;
 using Knight.Response.AspNetCore.Tests.Infrastructure;
 using Knight.Response.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using Shouldly;
@@ -12,25 +13,6 @@ namespace Knight.Response.AspNetCore.Tests.Factories;
 
 public class ProblemFactoryTests
 {
-    private sealed class FakeValidationMapper : IValidationErrorMapper
-    {
-        private readonly bool _yieldErrors;
-        public FakeValidationMapper(bool yieldErrors) => _yieldErrors = yieldErrors;
-
-        public IDictionary<string, string[]> Map(IReadOnlyList<Message> messages)
-        {
-            if (!_yieldErrors)
-            {
-                return new Dictionary<string, string[]>();
-            }
-
-            return new Dictionary<string, string[]>
-            {
-                ["name"] = messages.Select(m => m.Content).ToArray()
-            };
-        }
-    }
-
     [Fact]
     public async Task FromResult_When_UseValidationProblemDetails_And_Mapper_YieldsErrors_Returns_VPD()
     {
@@ -309,5 +291,27 @@ public class ProblemFactoryTests
         var vpd = TestHelpers.Deserialize<ValidationProblemDetails>(body)!;
         vpd.Errors.ShouldContainKey("name");
         TestHelpers.ExtString(vpd, "hint").ShouldBe("check-forms");
+    }
+
+    [Fact]
+    public void ProblemFactory_Uses_ScopedMapper_From_RequestServices()
+    {
+        var opts = new  KnightResponseOptions
+        {
+            UseProblemDetails = true,
+            UseValidationProblemDetails = true
+        };
+        var mapper = new HyphenMapper();
+        var (http, _) = TestHost.CreateHttpContext(opts, mapper);
+
+        var result = Knight.Response.Factories.Results.Error([new Message(MessageType.Error, "Field: bad")]);
+
+        // Act
+        var action = ProblemFactory.FromResult(http, opts, result, StatusCodes.Status400BadRequest);
+
+        // Assert
+        var problemHttpResult = action.ShouldBeOfType<ProblemHttpResult>();
+        var vpd = problemHttpResult.ProblemDetails.ShouldBeOfType<HttpValidationProblemDetails>();
+        vpd.Errors.Keys.ShouldContain("_"); // came from the custom mapper
     }
 }

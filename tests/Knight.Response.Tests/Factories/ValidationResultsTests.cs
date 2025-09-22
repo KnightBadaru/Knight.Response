@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Knight.Response.Extensions;
 using Knight.Response.Factories;
 using Knight.Response.Models;
 using Knight.Response.Tests.Infrastructure;
@@ -8,6 +9,7 @@ namespace Knight.Response.Tests.Factories
 {
     public class ValidationResultsTests
     {
+        const string ValidationResult = "ValidationResult";
         // -------------------------------
         // Non-generic Results.Validation
         // -------------------------------
@@ -23,7 +25,7 @@ namespace Knight.Response.Tests.Factories
 
             // Assert
             result.ShouldNotBeNull();
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             result.Messages.ShouldNotBeNull();
             result.Messages.Count.ShouldBe(0);
         }
@@ -38,7 +40,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             result.Messages.Count.ShouldBe(0);
         }
 
@@ -56,7 +58,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.Count.ShouldBe(2);
 
             var texts = result.Messages.Select(m => m.Content).ToList();
@@ -78,7 +80,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.Count.ShouldBe(1);
             result.Messages[0].Content.ShouldBe("General validation failed.");
             result.Messages[0].Type.ShouldBe(MessageType.Error);
@@ -98,7 +100,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.Count.ShouldBe(2);
 
             var ordered = result.Messages.Select(m => m.Content).ToList();
@@ -119,7 +121,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.Count.ShouldBe(1);
             result.Messages[0].Content.ShouldBe("Primary: Value invalid.");
         }
@@ -139,7 +141,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.Count.ShouldBe(3);
             result.Messages.All(m => m.Content.Contains("Validation error.")).ShouldBeTrue();
         }
@@ -177,7 +179,7 @@ namespace Knight.Response.Tests.Factories
                 });
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             firstFieldSeen.ShouldBe("Name");
             secondFieldSeen.ShouldBeNull();
         }
@@ -198,7 +200,7 @@ namespace Knight.Response.Tests.Factories
             );
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.Count.ShouldBe(1);
             result.Messages[0].Content.ShouldBe("Name is required."); // no "Name: " prefix
         }
@@ -217,7 +219,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation<Widget>(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             result.Messages.Count.ShouldBe(0);
             result.Value.ShouldBe(default); // default(Widget)
         }
@@ -232,7 +234,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation<Widget>(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             result.Messages.Count.ShouldBe(0);
             result.Value.ShouldBe(default);
         }
@@ -251,7 +253,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation<Widget>(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.Count.ShouldBe(2);
             result.Messages[0].Content.ShouldBe("Id: Id must be > 0.");
             result.Messages[1].Content.ShouldBe("Name: Name is required.");
@@ -278,7 +280,7 @@ namespace Knight.Response.Tests.Factories
                 });
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             capturedField.ShouldBe("FieldA");
             result.Messages.Count.ShouldBe(1);
             result.Messages[0].Content.ShouldBe("Invalid."); // raw, not prefixed
@@ -299,7 +301,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation<Widget>(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.Count.ShouldBe(3);
             result.Messages.All(m => m.Content.Contains("Validation error.")).ShouldBeTrue();
         }
@@ -314,7 +316,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             result.Messages.Count.ShouldBe(0);
         }
 
@@ -328,7 +330,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.Count.ShouldBe(1);
         }
 
@@ -345,7 +347,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages[0].Content.ShouldBe("Name: must not be blank");
         }
 
@@ -362,9 +364,87 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors);
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.ShouldHaveSingleItem();
             result.Messages[0].Content.ShouldBe("Name: must not be blank");
+        }
+
+        [Fact]
+        public void Validation_Metadata_IncludesRawValidationResult_WhenFieldPresent()
+        {
+            // Arrange
+            var vr = new ValidationResult("must have name", ["Name"]);
+            var errors = new List<ValidationResult> { vr };
+
+            // Act
+            var result = Results.Validation(errors);
+
+            // Assert
+            result.IsSuccess().ShouldBeFalse();
+            result.Messages.Count.ShouldBe(1);
+            var message = result.Messages[0];
+
+            // key must be EXACT string: "ValidationResult"
+            message.Metadata.ContainsKey(ValidationResult).ShouldBeTrue();
+
+            // value must be the SAME instance we passed in (reference equality)
+            message.Metadata[ValidationResult].ShouldBeSameAs(vr);
+        }
+
+        [Fact]
+        public void Validation_Metadata_IncludesRawValidationResult_WhenNoField()
+        {
+            // Arrange
+            var vr = new ValidationResult("general rule failed");
+            var errors = new List<ValidationResult> { vr };
+
+            // Act
+            var result = Results.Validation(errors);
+
+            // Assert
+            result.IsSuccess().ShouldBeFalse();
+            result.Messages.Count.ShouldBe(1);
+            var meta = result.Messages[0].Metadata;
+
+            meta.ShouldNotBeNull();
+            meta.ContainsKey(ValidationResult).ShouldBeTrue();
+            meta[ValidationResult].ShouldBeSameAs(vr);
+        }
+
+        [Fact]
+        public void Validation_Metadata_Present_ForMultipleErrors_AllMessagesCarryTheirOwnInstance()
+        {
+            // Arrange
+            var vr1 = new ValidationResult("Name required", ["Name"]);
+            var vr2 = new ValidationResult("Amount > 0", ["Amount"]);
+            var errors = new List<ValidationResult> { vr1, vr2 };
+
+            // Act
+            var result = Results.Validation(errors);
+
+            // Assert
+            result.IsSuccess().ShouldBeFalse();
+            result.Messages.Count.ShouldBe(2);
+
+            result.Messages[0].Metadata[ValidationResult].ShouldBeSameAs(vr1);
+            result.Messages[1].Metadata[ValidationResult].ShouldBeSameAs(vr2);
+        }
+
+        [Fact]
+        public void Validation_Metadata_Key_IsCaseSensitive_ExactMatchOnly()
+        {
+            // Arrange
+            var vr = new ValidationResult("oops", ["X"]);
+            var errors = new List<ValidationResult> { vr };
+
+            // Act
+            var result = Results.Validation(errors);
+
+            // Assert
+            var meta = result.Messages[0].Metadata;
+            meta.ContainsKey(ValidationResult).ShouldBeTrue();
+            meta.ContainsKey(ValidationResult).ShouldBeTrue();
+            meta.ContainsKey("validationresult").ShouldBeTrue(); // case in-sensitive
         }
 
         // ---------- Non-generic ----------
@@ -380,7 +460,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors, (m, _) => { calls++; return m; });
 
             // Assert
-            result.IsSuccess.ShouldBeTrue();                // Success branch hit
+            result.IsSuccess().ShouldBeTrue();                // Success branch hit
             calls.ShouldBe(0);                      // Enricher must NOT be called
         }
 
@@ -398,7 +478,7 @@ namespace Knight.Response.Tests.Factories
             });
 
             // Assert
-            result.IsSuccess.ShouldBeTrue();                // list.Count == 0
+            result.IsSuccess().ShouldBeTrue();                // list.Count == 0
             calls.ShouldBe(0);                      // proves no fallthrough to Error path
         }
 
@@ -416,7 +496,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors, (m, _) => { calls++; return m; });
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();                       // Error branch hit
+            result.IsSuccess().ShouldBeFalse();                       // Error branch hit
             result.Messages.Count.ShouldBe(1);
             calls.ShouldBe(1);                             // proves Error path executed
         }
@@ -436,7 +516,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation(errors, (m, _) => { calls++; return m; });
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.Count.ShouldBe(2);
             calls.ShouldBe(2);                             // kills mutants that skip/enforce wrong branch
         }
@@ -454,7 +534,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation<Widget>(errors, (m, _) => { calls++; return m; });
 
             // Assert
-            result.IsSuccess.ShouldBeTrue();                // Success branch
+            result.IsSuccess().ShouldBeTrue();                // Success branch
             result.Value.ShouldBe(default);         // default(T)
             calls.ShouldBe(0);
         }
@@ -473,7 +553,7 @@ namespace Knight.Response.Tests.Factories
             });
 
             // Assert
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             result.Value.ShouldBe(default);
             calls.ShouldBe(0);
         }
@@ -492,7 +572,7 @@ namespace Knight.Response.Tests.Factories
             var result = Results.Validation<Widget>(errors, (m, _) => { calls++; return m; });
 
             // Assert
-            result.IsSuccess.ShouldBeFalse();
+            result.IsSuccess().ShouldBeFalse();
             result.Messages.Count.ShouldBe(1);
             calls.ShouldBe(1);
         }

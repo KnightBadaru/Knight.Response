@@ -13,12 +13,13 @@ namespace Knight.Response.Core;
 /// </remarks>
 /// <param name="status">The <see cref="Models.Status"/> representing the operation's final outcome.</param>
 /// <param name="value">The optional value produced by the operation.</param>
+/// <param name="code">Optional <see cref="Models.ResultCode"/> representing domain reason for the final outcome.</param>
 /// <param name="messages">
 /// An optional list of <see cref="Message"/> objects containing additional details or context about the result.
 /// If omitted, an empty list is used.
 /// </param>
-public class Result<T>(Status status, T? value = default, IReadOnlyList<Message>? messages = null)
-    : Result(status, messages)
+public class Result<T>(Status status, T? value = default, ResultCode? code = null, IReadOnlyList<Message>? messages = null)
+    : Result(status, code, messages)
 {
     /// <summary>
     /// Gets the value produced by the operation, if any.

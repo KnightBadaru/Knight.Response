@@ -27,9 +27,9 @@ namespace Knight.Response.Abstractions.Http.Options
         /// <para>
         /// When <c>false</c>, only the <c>Value</c> (for <see cref="Result{T}"/>) or an empty body is returned on success.
         /// </para>
-        /// Default is <c>true</c>.
+        /// Default is <c>false</c>.
         /// </summary>
-        public bool IncludeFullResultPayload { get; set; } = true;
+        public bool IncludeFullResultPayload { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to include exception details in responses produced
@@ -84,10 +84,13 @@ namespace Knight.Response.Abstractions.Http.Options
         /// </summary>
         public Action<TH, Result, TV>? ValidationBuilder { get; set; }
 
+
         /// <summary>
-        /// Gets or sets the validation error mapper used to convert Knight.Response messages into model state dictionaries.
+        /// Optional override. If not set, the mapper is resolved from the current request's DI container:
+        /// <c>http.RequestServices.GetService&lt;IValidationErrorMapper&gt;()</c>.
+        /// Use this to force a specific instance only if you know you do not need per-request scope.
         /// </summary>
-        public IValidationErrorMapper ValidationMapper { get; set; } = new DefaultValidationErrorMapper();
+        public IValidationErrorMapper? ValidationMapper { get; set; }
 
         private static int DefaultStatusResolver(Status s) =>
             s == Status.Error      ? 500 :

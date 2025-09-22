@@ -7,28 +7,27 @@
 
         <!-- NuGet metadata -->
         <PackageId>Knight.Response</PackageId>
-        <Version>1.1.0</Version>
+        <Version>2.0.0-preview01</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response</Title>
         <Description>Lightweight, immutable Result/Result&lt;T&gt; library with factories, functional extensions, and pattern matching for C# service layers.</Description>
         <PackageReleaseNotes>
+            Breaking:
+            - Removed `IsSuccess` property (now extension method `IsSuccess()`).
+            - This avoids leaking it into API outputs; use new predicate extensions instead.
+
             Added:
-            - Support for creating Results from **ValidationResult** collections:
-            • `Results.Validation(...)` and `Results.Validation{T}(...)`
-            • Converts validation errors into error messages with field prefixes ("Field: message").
-            - Enricher overloads for attaching metadata:
-            • `Results.Validation(errors, (msg, field) => ...)`
-            • Enables adding structured metadata (e.g., field names) without altering message text.
+            - Optional `ResultCode` support alongside `Status`.
+            - Built-in `ResultCodes`: ValidationFailed, NotFound, AlreadyExists, Created, Updated, etc.
+            - Extensions:
+            • `WithCode(ResultCode)`
+            • `WithDetail(key, value)`
+            • `TryGetValidationResults(...)` and `GetValidationResults()`
+            - Predicate helpers: `IsSuccess()`, `IsFailure()`, `IsError()`, `IsCancelled()`
 
             Changed:
-            - Normalized validation messages:
-            • Trimmed whitespace from content and field names.
-            • Fallback to "Validation error." when message is null/empty/whitespace.
-            - Minor internal refactors for robustness and testability.
-
-            Fixed:
-            - Ensured `Result` constructors normalize `null` message lists to empty collections.
-            - Achieved **100% mutation score** with Stryker.
+            - `Result` and `Result&lt;T&gt;` constructors accept optional `ResultCode`.
+            - Advanced and core extensions merged into unified `ResultExtensions`.
         </PackageReleaseNotes>
         <PackageTags>result;response;functional;service-layer;error-handling;patterns;csharp</PackageTags>
         <RepositoryType>git</RepositoryType>

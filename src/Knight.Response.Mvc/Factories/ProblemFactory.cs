@@ -1,9 +1,11 @@
+using Knight.Response.Abstractions.Http.Mappers;
 using Knight.Response.Core;
 using Knight.Response.Models;
 using Knight.Response.Mvc.Infrastructure;
 using Knight.Response.Mvc.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Knight.Response.Mvc.Factories;
 
@@ -14,6 +16,21 @@ namespace Knight.Response.Mvc.Factories;
 /// </summary>
 internal static class ProblemFactory
 {
+
+
+    private static object ToShallow(Message m) =>
+        new { type = m.Type.ToString(), content = m.Content, metadata = m.Metadata };
+
+    // Resolution order (supports Scoped mappers safely):
+    // 1) per-request DI (preferred)
+    // 2) options override (if a user explicitly set one)
+    // 3) fresh default instance as a final fallback
+    private static IValidationErrorMapper ResolveMapper(HttpContext? http, KnightResponseOptions opts)
+    {
+        var mapperFromRequest = http?.RequestServices?.GetService<IValidationErrorMapper>();
+        return mapperFromRequest ?? (opts.ValidationMapper ?? new DefaultValidationErrorMapper());
+    }
+
     /// <summary>
     /// Build an <see cref="IActionResult"/> from a <see cref="Result"/> using the supplied options.
     /// </summary>
@@ -30,7 +47,9 @@ internal static class ProblemFactory
         // Try ValidationProblemDetails if enabled and we have mappable errors
         if (opts.UseValidationProblemDetails)
         {
-            var errors = opts.ValidationMapper.Map(result.Messages);
+            var mapper = ResolveMapper(http, opts);
+            var errors = mapper.Map(result.Messages);
+
             if (errors.Count > 0)
             {
                 var vpd = new CompatValidationProblemDetails(errors)
@@ -75,7 +94,4 @@ internal static class ProblemFactory
 
         return new ObjectResult(pd) { StatusCode = pd.Status };
     }
-
-    private static object ToShallow(Message m) =>
-        new { type = m.Type.ToString(), content = m.Content, metadata = m.Metadata };
 }
