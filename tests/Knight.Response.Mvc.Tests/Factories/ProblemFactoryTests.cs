@@ -32,30 +32,31 @@ namespace Knight.Response.Mvc.Tests.Factories
             objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
         }
 
-        [Fact]
-        public void ValidationProblemDetails_WhenEnabled_AndValidationPresent_UsesCompatValidationProblemDetails()
-        {
-            // Arrange
-            const string errorKey1 = "Name";
-            const string errorKey2 = "Amount";
-            const string errorMessage1 = "Name is required.";
-            const string errorMessage2 = "Amount: Must be greater than 0";
-
-            var opts = new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
-            var http = TestHost.CreateHttpContext(opts);
-            var result = TestHelpers.Failure($"{errorKey1}: {errorMessage1}", $"{errorKey2}: {errorMessage2}");
-            const int status = StatusCodes.Status400BadRequest;
-
-            // Act
-            var actionResult = ProblemFactory.FromResult(http, opts, result, status);
-
-            // Assert
-            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
-            objectResult.StatusCode.ShouldBe(status);
-            var response = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
-            response.Errors.Keys.ShouldContain(errorKey1);
-            response.Errors.Keys.ShouldContain(errorKey2);
-        }
+        // This is for next version when using Knight.Response v2
+        // [Fact]
+        // public void ValidationProblemDetails_WhenEnabled_AndValidationPresent_UsesCompatValidationProblemDetails()
+        // {
+        //     // Arrange
+        //     const string errorKey1 = "Name";
+        //     const string errorKey2 = "Amount";
+        //     const string errorMessage1 = "Name is required.";
+        //     const string errorMessage2 = "Amount: Must be greater than 0";
+        //
+        //     var opts = new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
+        //     var http = TestHost.CreateHttpContext(opts);
+        //     var result = TestHelpers.Failure($"{errorKey1}: {errorMessage1}", $"{errorKey2}: {errorMessage2}");
+        //     const int status = StatusCodes.Status400BadRequest;
+        //
+        //     // Act
+        //     var actionResult = ProblemFactory.FromResult(http, opts, result, status);
+        //
+        //     // Assert
+        //     var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+        //     objectResult.StatusCode.ShouldBe(status);
+        //     var response = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
+        //     response.Errors.Keys.ShouldContain(errorKey1);
+        //     response.Errors.Keys.ShouldContain(errorKey2);
+        // }
 
         [Fact]
         public void ValidationEnabled_ButNoValidationErrors_FallsBackToCompatProblemDetails()
@@ -239,65 +240,66 @@ namespace Knight.Response.Mvc.Tests.Factories
         // //
         // // ============================================================================
 
-        [Fact]
-        public void ValidationProblemDetails_Title_Is_Set_AsExpected()
-        {
-            // Arrange
-            var opts = new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
-            var http = TestHost.CreateHttpContext(opts);
-            var result = Results.Error(new List<Message>
-            {
-                new(MessageType.Error, "Name: missing")
-            });
-
-            // Act
-            var actionResult = ProblemFactory.FromResult(http, opts, result, StatusCodes.Status400BadRequest);
-
-            // Assert
-            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
-            var vpd = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
-            vpd.Title.ShouldBe("One or more validation errors occurred.");
-        }
-
-        [Fact]
-        public void ValidationProblemDetails_Type_ContainsStatusCode()
-        {
-            // Arrange
-            const int code = StatusCodes.Status422UnprocessableEntity;
-            var opts = new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
-            var http = TestHost.CreateHttpContext(opts);
-            var result = Results.Error(new List<Message> { new(MessageType.Error, "X: fail") });
-
-            // Act
-            var actionResult = ProblemFactory.FromResult(http, opts, result, code);
-
-            // Assert
-            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
-            var vpd = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
-            vpd.Type.ShouldBe(TestHelpers.HttpStatusUrl(code));
-        }
-
-        [Fact]
-        public void ValidationProblemDetails_Includes_Extensions_SvcStatus_And_Messages()
-        {
-            // Arrange
-            var opts =  new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
-            var http = TestHost.CreateHttpContext(opts);
-            var result = Results.Error(new List<Message>
-            {
-                new(MessageType.Error, "Field: bad"),
-                new(MessageType.Error, "Field: worse")
-            });
-
-            // Act
-            var actionResult = ProblemFactory.FromResult(http, opts, result, StatusCodes.Status400BadRequest);
-
-            // Assert
-            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
-            var vpd = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
-            vpd.Extensions.ContainsKey(TestHelpers.SvcStatus).ShouldBeTrue();
-            vpd.Extensions.ContainsKey("messages").ShouldBeTrue();
-        }
+        // This is for next version when using Knight.Response v2
+        // [Fact]
+        // public void ValidationProblemDetails_Title_Is_Set_AsExpected()
+        // {
+        //     // Arrange
+        //     var opts = new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
+        //     var http = TestHost.CreateHttpContext(opts);
+        //     var result = Results.Error(new List<Message>
+        //     {
+        //         new(MessageType.Error, "Name: missing")
+        //     });
+        //
+        //     // Act
+        //     var actionResult = ProblemFactory.FromResult(http, opts, result, StatusCodes.Status400BadRequest);
+        //
+        //     // Assert
+        //     var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+        //     var vpd = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
+        //     vpd.Title.ShouldBe("One or more validation errors occurred.");
+        // }
+        //
+        // [Fact]
+        // public void ValidationProblemDetails_Type_ContainsStatusCode()
+        // {
+        //     // Arrange
+        //     const int code = StatusCodes.Status422UnprocessableEntity;
+        //     var opts = new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
+        //     var http = TestHost.CreateHttpContext(opts);
+        //     var result = Results.Error(new List<Message> { new(MessageType.Error, "X: fail") });
+        //
+        //     // Act
+        //     var actionResult = ProblemFactory.FromResult(http, opts, result, code);
+        //
+        //     // Assert
+        //     var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+        //     var vpd = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
+        //     vpd.Type.ShouldBe(TestHelpers.HttpStatusUrl(code));
+        // }
+        //
+        // [Fact]
+        // public void ValidationProblemDetails_Includes_Extensions_SvcStatus_And_Messages()
+        // {
+        //     // Arrange
+        //     var opts =  new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
+        //     var http = TestHost.CreateHttpContext(opts);
+        //     var result = Results.Error(new List<Message>
+        //     {
+        //         new(MessageType.Error, "Field: bad"),
+        //         new(MessageType.Error, "Field: worse")
+        //     });
+        //
+        //     // Act
+        //     var actionResult = ProblemFactory.FromResult(http, opts, result, StatusCodes.Status400BadRequest);
+        //
+        //     // Assert
+        //     var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+        //     var vpd = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
+        //     vpd.Extensions.ContainsKey(TestHelpers.SvcStatus).ShouldBeTrue();
+        //     vpd.Extensions.ContainsKey("messages").ShouldBeTrue();
+        // }
 
         [Fact]
         public void ProblemDetails_Title_UsesFirstMessage_WhenSingleMessage()
@@ -374,37 +376,38 @@ namespace Knight.Response.Mvc.Tests.Factories
             pd.Extensions.ContainsKey("messages").ShouldBeTrue();
         }
 
-        [Fact]
-        public void ValidationProblemDetails_Invokes_Custom_ValidationBuilder()
-        {
-            // Arrange
-            var called = false;
-            var opts = new KnightResponseOptions
-            {
-                UseProblemDetails = true,
-                UseValidationProblemDetails = true,
-                ValidationBuilder = (_, _, vpd) =>
-                {
-                    called = true;
-                    vpd.Title = "custom-vpd";
-                    vpd.Extensions["custom"] = true;
-                }
-            };
-            var http = TestHost.CreateHttpContext(opts);
-            var result = Results.Error([
-                new Message(MessageType.Error, "Name: missing")
-            ]);
-
-            // Act
-            var actionResult = ProblemFactory.FromResult(http, opts, result, StatusCodes.Status400BadRequest);
-
-            // Assert
-            var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
-            var vpd = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
-            called.ShouldBeTrue();
-            vpd.Title.ShouldBe("custom-vpd");
-            vpd.Extensions.ContainsKey("custom").ShouldBeTrue();
-        }
+        // This is for next version when using Knight.Response v2
+        // [Fact]
+        // public void ValidationProblemDetails_Invokes_Custom_ValidationBuilder()
+        // {
+        //     // Arrange
+        //     var called = false;
+        //     var opts = new KnightResponseOptions
+        //     {
+        //         UseProblemDetails = true,
+        //         UseValidationProblemDetails = true,
+        //         ValidationBuilder = (_, _, vpd) =>
+        //         {
+        //             called = true;
+        //             vpd.Title = "custom-vpd";
+        //             vpd.Extensions["custom"] = true;
+        //         }
+        //     };
+        //     var http = TestHost.CreateHttpContext(opts);
+        //     var result = Results.Error([
+        //         new Message(MessageType.Error, "Name: missing")
+        //     ]);
+        //
+        //     // Act
+        //     var actionResult = ProblemFactory.FromResult(http, opts, result, StatusCodes.Status400BadRequest);
+        //
+        //     // Assert
+        //     var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+        //     var vpd = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
+        //     called.ShouldBeTrue();
+        //     vpd.Title.ShouldBe("custom-vpd");
+        //     vpd.Extensions.ContainsKey("custom").ShouldBeTrue();
+        // }
 
         [Fact]
         public void ProblemDetails_Invokes_Custom_ProblemDetailsBuilder()
