@@ -516,4 +516,55 @@ public class ResultsTests
         result.Messages.Count.ShouldBe(1);
         result.Messages[0].Content.ShouldBe("hi");
     }
+
+    // v2
+
+    [Fact]
+    public void Success_T_SetsCompleted_AndValue_AndOptionalCode()
+    {
+        // Arrange & Act
+        var result = Results.Success(42, code: new ResultCode("Created"));
+
+        // Assert
+        result.Status.ShouldBe(Status.Completed);
+        result.Code?.Value.ShouldBe("Created");
+        result.Value.ShouldBe(42);
+        result.Messages.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Failure_FromString_SetsFailed_AndErrorMessage()
+    {
+        // Arrange & Act
+        var result = Results.Failure("boom");
+
+        // Assert
+        result.Status.ShouldBe(Status.Failed);
+        result.Messages.Single().Content.ShouldBe("boom");
+    }
+
+    [Fact]
+    public void Error_FromException_UsesMessage()
+    {
+        // Arrange
+        var ex = new InvalidOperationException("oops");
+
+        // Act
+        var result = Results.Error(ex);
+
+        // Assert
+        result.Status.ShouldBe(Status.Error);
+        result.Messages.Single().Content.ShouldBe("oops");
+    }
+
+    [Fact]
+    public void Cancel_DefaultsToWarningMessage()
+    {
+        // Arrange & Act
+        var result = Results.Cancel("cancelled");
+
+        // Assert
+        result.Status.ShouldBe(Status.Cancelled);
+        result.Messages.Single().Type.ShouldBe(MessageType.Warning);
+    }
 }

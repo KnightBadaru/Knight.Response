@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using Knight.Response.Core;
 using Knight.Response.Extensions;
 using Knight.Response.Factories;
 using Knight.Response.Models;
@@ -341,5 +343,160 @@ public class ResultExtensionsTests
         result.Messages.Select(m => m.Content).ShouldBe(["a", "b"]);
         result.Value.ShouldBe(value);
         result.IsSuccess().ShouldBeTrue();
+    }
+
+    // v2
+
+    [Fact]
+    public void IsUnsuccessful_False_On_Completed()
+    {
+        // Arrange
+        var result = Results.Success();
+
+        // Act
+        var actual = result.IsUnsuccessful();
+
+        // Assert
+        actual.ShouldBeFalse();
+    }
+
+    [Theory]
+    [InlineData(Status.Failed)]
+    [InlineData(Status.Error)]
+    [InlineData(Status.Cancelled)]
+    public void IsUnsuccessful_True_On_NonCompleted(Status status)
+    {
+        // Arrange
+        var result = new Result(status);
+
+        // Act
+        var actual = result.IsUnsuccessful();
+
+        // Assert
+        actual.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void ValueIsNull_True_When_Value_Is_Null()
+    {
+        // Arrange
+        var result = Results.Success<string?>();
+
+        // Act
+        var actual = result.ValueIsNull();
+
+        // Assert
+        actual.ShouldBeTrue();
+    }
+
+    //
+
+    [Fact]
+    public void Match_Unsuccessful_PassesMessages()
+    {
+        // Arrange
+        var result = Results.Failure<string>("boom");
+
+        // Act
+        var value = result.Match(
+            msgs =>
+            {
+                msgs[0].Content.ShouldBe("boom");
+                return "X";
+            },
+            () => "no value",
+            v => v);
+
+        // Assert
+        value.ShouldBe("X");
+    }
+
+    [Fact]
+    public void Match_NoValue_Branch()
+    {
+        // Arrange
+        var result = Results.Success<string?>();
+
+        // Act
+        var value = result.Match(
+            onUnsuccessful: _ => "bad",
+            onNoValue: () => "empty",
+            onValue: v => v ?? "value");
+
+        // Assert
+        value.ShouldBe("empty");
+    }
+
+    [Fact]
+    public void Match_WithValue_Branch()
+    {
+        // Arrange
+        var result = Results.Success("ok");
+
+        // Act
+        var value = result.Match(
+            _ => "bad",
+            () => "empty",
+            v => v.ToUpper());
+
+        // Assert
+        value.ShouldBe("OK");
+    }
+
+    [Fact]
+    public void MatchValue_Returns_Result_From_Branches()
+    {
+        // Arrange
+        var result = Results.Success("a");
+
+        // Act
+        var output = result.MatchValue(
+            onUnsuccessful: msgs => Results.Failure<int>(msgs),
+            onNoValue: () => Results.Cancel<int>("empty"),
+            onValue: v => Results.Success(v.Length));
+
+        // Assert
+        output.Status.ShouldBe(Status.Completed);
+        output.Value.ShouldBe(1);
+    }
+
+    [Fact]
+    public void WithDetail_Attaches_To_Last_Message_And_Is_CaseInsensitive()
+    {
+        // Arrange
+        var original = Results.Failure([
+            new Message(MessageType.Error, "E1"),
+            new Message(MessageType.Error, "E2", new Dictionary<string, object?> { ["FIELD"] = "X" })
+        ]);
+
+        // Act
+        var updated = original.WithDetail("field", "Y");
+
+        // Assert
+        original.Messages[1].Metadata["FIELD"].ShouldBe("X"); // unchanged
+        updated.Messages[1].Metadata["field"].ShouldBe("Y");  // overwritten
+    }
+
+    [Fact]
+    public void TryGetValidationResults_Finds_Single_And_Many()
+    {
+        // Arrange
+        var vr1 = new ValidationResult("A", ["F1"]);
+        var vr2 = new ValidationResult("B");
+
+        var messages = new List<Message>
+        {
+            new(MessageType.Error, "e1", new Dictionary<string, object?> { ["ValidationResult"] = vr1 }),
+            new(MessageType.Error, "e2", new Dictionary<string, object?> { ["ValidationResults"] = new [] { vr2 } })
+        };
+
+        var result = new Result(Status.Error, messages: messages);
+
+        // Act
+        var success = result.TryGetValidationResults(out var extracted);
+
+        // Assert
+        success.ShouldBeTrue();
+        extracted.Select(e => e.ErrorMessage).ShouldBe(["A", "B"]);
     }
 }
