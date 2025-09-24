@@ -1,5 +1,6 @@
 using System.Reflection;
 using Knight.Response.Core;
+using Knight.Response.Extensions;
 using Knight.Response.Factories;
 using Knight.Response.Models;
 using Knight.Response.Mvc.Factories;
@@ -35,7 +36,7 @@ namespace Knight.Response.Mvc.Tests.Factories
         }
 
         [Fact]
-        public void Ok_Success_FullPayload_Returns200_WithFullResult()
+        public void Ok_Success_Returns200_WithDto()
         {
             // Arrange
             var dto = new Widget(1, "w1");
@@ -48,10 +49,9 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
-            var response = objectResult.Value.ShouldBeOfType<Result<Widget>>();
+            var response = objectResult.Value.ShouldBeOfType<Widget>();
             response.ShouldNotBeNull();
-            response.ShouldBe(result);
-            response.Value.ShouldBe(dto);
+            response.ShouldBe(dto);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace Knight.Response.Mvc.Tests.Factories
         }
 
         [Fact]
-        public void Ok_Generic_Success_FullPayload_Returns200_WithFullResult()
+        public void Ok_Generic_Success_Returns200_WithDto()
         {
             // Arrange
             var dto = new Widget(1, "w1");
@@ -87,10 +87,9 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status200OK);
-            var response = objectResult.Value.ShouldBeOfType<Result<Widget>>();
+            var response = objectResult.Value.ShouldBeOfType<Widget>();
             response.ShouldNotBeNull();
-            response.ShouldBe(result);
-            response.Value.ShouldBe(dto);
+            response.ShouldBe(dto);
         }
 
         [Fact]
@@ -244,7 +243,7 @@ namespace Knight.Response.Mvc.Tests.Factories
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status202Accepted);
             http.Response.Headers[Location].ToString().ShouldBe(location);
-            objectResult.Value.ShouldBe(result); // non-generic – payload is the Result by design
+            objectResult.Value.ShouldBeNull(); // non-generic – payload is null by default
         }
 
         [Fact]
@@ -270,7 +269,7 @@ namespace Knight.Response.Mvc.Tests.Factories
         }
 
         [Fact]
-        public void AcceptedT_Success_Defaults_ToValuePayload_AndSets202_AndLocation()
+        public void AcceptedT_Success_Defaults_ToDto_AndSets202_AndLocation()
         {
             // Arrange
             var dto = new Widget(1, "w1");
@@ -284,8 +283,8 @@ namespace Knight.Response.Mvc.Tests.Factories
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
             objectResult.StatusCode.ShouldBe(StatusCodes.Status202Accepted);
-            var responseValue = objectResult.Value.ShouldBeOfType<Result<Widget>>();
-            responseValue.Value.ShouldBe(dto);
+            var responseValue = objectResult.Value.ShouldBeOfType<Widget>();
+            responseValue.ShouldBe(dto);
         }
 
         [Fact]
@@ -479,7 +478,8 @@ namespace Knight.Response.Mvc.Tests.Factories
         public async Task Result_Should_Serialize_Through_MVC()
         {
             // Arrange
-            var http = TestHost.CreateHttpContext();
+            var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
+            var http = TestHost.CreateHttpContext(opts);
             var result = Results.Success();
 
             // Act
@@ -488,7 +488,7 @@ namespace Knight.Response.Mvc.Tests.Factories
 
             // Assert
             var response = TestHelpers.Deserialize<Result>(testResult.Body)!;
-            response.IsSuccess.ShouldBeTrue();
+            response.IsSuccess().ShouldBeTrue();
             testResult.Body.ShouldNotContain("\"Value\"");
         }
 
@@ -496,8 +496,9 @@ namespace Knight.Response.Mvc.Tests.Factories
         public async Task ResultT_Should_Serialize_Through_MVC()
         {
             // Arrange
+            var opts = new KnightResponseOptions { IncludeFullResultPayload = true };
             var dto = new Widget(2, "Second");
-            var http = TestHost.CreateHttpContext();
+            var http = TestHost.CreateHttpContext(opts);
             var result = Results.Success(dto);
 
             // Act
@@ -506,14 +507,14 @@ namespace Knight.Response.Mvc.Tests.Factories
 
             // Assert
             var response = TestHelpers.Deserialize<Result<Widget>>(testResult.Body)!;
-            response.IsSuccess.ShouldBeTrue();
+            response.IsSuccess().ShouldBeTrue();
             response.Value.ShouldBe(dto);
         }
 
         // -------------------- Mutants Killers --------------------
 
         [Fact]
-        public void Ok_Failure_UseProblemDetailsTrue_WithNullHttp_Uses_Default_Opts()
+        public void Ok_Failure_WithNullHttp_Uses_Default_Opts()
         {
             // Arrange
             var result = Results.Error(new List<Message> { new(MessageType.Error, "boom") });
@@ -523,8 +524,8 @@ namespace Knight.Response.Mvc.Tests.Factories
 
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
-            var response = objectResult.Value.ShouldBeOfType<Result>();
-            response.ShouldBe(result);
+            var response = objectResult.Value.ShouldBeOfType<List<Message>>();
+            response.ShouldBe(result.Messages);
         }
 
         [Fact]
@@ -597,7 +598,7 @@ namespace Knight.Response.Mvc.Tests.Factories
         // -------------------- Mutants <T> Killers --------------------
 
         [Fact]
-        public void OkT_Failure_UseProblemDetailsTrue_WithNullHttp_Uses_Default_Opts()
+        public void OkT_Failure_WithNullHttp_Uses_Default_Opts()
         {
             // Arrange
             var result = Results.Error<Widget>(new List<Message> { new(MessageType.Error, "boom") });
@@ -607,8 +608,8 @@ namespace Knight.Response.Mvc.Tests.Factories
 
             // Assert
             var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
-            var response = objectResult.Value.ShouldBeOfType<Result<Widget>>();
-            response.ShouldBe(result);
+            var response = objectResult.Value.ShouldBeOfType<List<Message>>();
+            response.ShouldBe(result.Messages);
         }
 
         [Fact]

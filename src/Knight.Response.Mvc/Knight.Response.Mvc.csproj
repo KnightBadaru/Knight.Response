@@ -7,23 +7,29 @@
         <LangVersion>latest</LangVersion>
         
         <PackageId>Knight.Response.Mvc</PackageId>
-        <Version>1.0.0</Version>
+        <Version>2.0.0-preview</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response.Mvc</Title>
         <Description>ASP.NET MVC / Web API 2 adapters for Knight.Response — convert Result/Result&lt;T&gt; to IActionResult/IHttpActionResult with optional RFC7807 ProblemDetails.</Description>
         <PackageReleaseNotes>
             Changed:
-            - Promoted from preview (0.1.0) to stable (1.0.0).
-            - No breaking changes; API surface is unchanged.
-            - Documentation updated to clarify supported frameworks and related packages.
+            - Updated dependency to **Knight.Response.Abstractions.Http 2.0.0-preview01**.
+            - Updated service registration:
+            • Removed post-configuration of validation mapper.
+            • Now uses TryAddScoped&lt;IValidationErrorMapper, DefaultValidationErrorMapper&gt; so existing registrations are preserved.
+            • Custom mappers can be registered via AddKnightResponse&lt;TMapper&gt; overload.
+            - Mapper resolution moved into ProblemFactory with runtime fallback:
+            1) RequestServices (per-request DI scope).
+            2) Options.ValidationMapper override.
+            3) New DefaultValidationErrorMapper instance.
 
-            Features:
-            - Convert `Result` / `Result&lt;T&gt;` to `IActionResult` via `ResultExtensions`.
-            - `ApiResults` factory for consistent HTTP responses (200, 201, 202, 204, 400, 404, 409).
-            - `ProblemFactory` for building RFC 7807-style error objects.
-            - `CompatProblemDetails` and `CompatValidationProblemDetails` for MVC compatibility.
-            - Configurable via `KnightResponseOptions`.
-            - Fully unit tested and mutation tested for reliability.
+            Breaking changes:
+            - Default behavior aligned with Knight.Response.Abstractions.Http 2.0.0-preview01:
+            • UseProblemDetails = false
+            • UseValidationProblemDetails = false
+            • IncludeFullResultPayload = false (was true in 0.1.0)
+            • IncludeExceptionDetails = false
+            - Mapper is no longer pre-bound on options and is resolved per-request.
         </PackageReleaseNotes>
         <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
@@ -44,7 +50,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Knight.Response.Abstractions.Http" Version="1.0.2" />
+        <PackageReference Include="Knight.Response.Abstractions.Http" Version="2.0.0-preview01" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0"/>
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />

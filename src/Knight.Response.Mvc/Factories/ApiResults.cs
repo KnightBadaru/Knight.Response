@@ -1,4 +1,5 @@
 using Knight.Response.Core;
+using Knight.Response.Extensions;
 using Knight.Response.Mvc.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -142,7 +143,7 @@ public static class ApiResults
     private static IActionResult BuildSuccessOrFailure(HttpContext? http, int statusCode, Result result, string? location = null)
     {
         var opts = Resolve(http);
-        if (!result.IsSuccess)
+        if (result.IsUnsuccessful())
         {
             if (statusCode < StatusCodes.Status400BadRequest)
             {
@@ -180,7 +181,7 @@ public static class ApiResults
     private static IActionResult BuildSuccessOrFailure<T>(HttpContext? http, int statusCode, Result<T> result, string? location = null)
     {
         var opts = Resolve(http);
-        if (!result.IsSuccess)
+        if (result.IsUnsuccessful())
         {
             if (statusCode < StatusCodes.Status400BadRequest)
             {

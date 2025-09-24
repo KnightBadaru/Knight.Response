@@ -14,15 +14,19 @@ This package is the **MVC counterpart** to `Knight.Response.AspNetCore`, designe
 ## Features
 
 * **Extension Methods**
+
     * `ResultExtensions` → Converts `Result` / `Result<T>` into `IActionResult`
     * `ServiceCollectionExtensions` → Registers Knight.Response services for MVC
 * **Factories**
+
     * `ApiResults` → Strongly-typed helpers to return success, failure, unauthorized, forbidden, etc.
     * `ProblemFactory` → Builds RFC 7807-compatible `ProblemDetails` for error responses
 * **Infrastructure**
+
     * `CompatProblemDetails` → Compatible `ProblemDetails` implementation for MVC / Web API 2
     * `CompatValidationProblemDetails` → Validation error details aligned with modern ASP.NET Core behavior
 * **Options**
+
     * `KnightResponseOptions` → Configurable options for customizing error shape, problem details, etc.
 
 ---
@@ -34,9 +38,9 @@ dotnet add package Knight.Response.Mvc
 ```
 
 This package depends on:
+
 * `Knight.Response` (core results)
 * `Knight.Response.Abstractions.Http` (shared options + mapper)
-* `Microsoft.AspNetCore.Mvc` (2.x)
 
 ---
 
@@ -86,16 +90,20 @@ public class AccountsController : ApiController
 ```
 
 ## Success payload shape
+
 Controlled by `KnightResponseOptions.IncludeFullResultPayload`:
-* **true** (default): return the full `Result` object on success (useful for clients that want messages even on success).
-* **false**:
-  * Ok → returns `Value` (of `Result<T>`) only
-  * Created / Accepted → `Value` only
+
+* **false** (default since 2.0.0-preview01):
+
+    * Ok → returns `Value` (of `Result<T>`) only
+    * Created / Accepted → `Value` only
+* **true**: return the full `Result` object on success (useful for clients that want messages even on success).
 
 ### Failure mapping
-* If `UseValidationProblemDetails` is **true** and the mapper produces fields errors, the response is a **ValidationProblemDetails**.
+
+* If `UseValidationProblemDetails` is **true** and the mapper produces field errors, the response is a **ValidationProblemDetails**.
 * Otherwise, a standard **ProblemDetails** is returned.
-* Status code is resolved from `Result.Status` using `StatusCodeResolver` (defaults: `Failed`= 400, `Cancelled`= 409, `Error`= 500, `Completed` not used)
+* Status code is resolved from `Result.Status` using `StatusCodeResolver` (defaults: `Failed`= 400, `Cancelled`= 409, `Error`= 500, `Completed` not used).
 
 ---
 
@@ -105,37 +113,26 @@ Options type comes from
 
 ```csharp
 public sealed class KnightResponseOptions
-    : KnightResponseBaseOptions<ProblemDetails, ValidationProblemDetails>
+    : KnightResponseBaseOptions<HttpContext, ProblemDetails, ValidationProblemDetails>
 {
-    // Same core properties:
-    // - IncludeFullResultPayload
-    // - UseProblemDetails
-    // - UseValidationProblemDetails
-    // - IncludeExceptionDetails
+    // Core properties:
+    // - IncludeFullResultPayload (default: false)
+    // - UseProblemDetails (default: false)
+    // - UseValidationProblemDetails (default: false)
+    // - IncludeExceptionDetails (default: false)
     // - StatusCodeResolver
-    // - ValidationMapper (default: DefaultValidationErrorMapper from Abstractions)
+    // - ValidationMapper (optional override)
     // - ProblemDetailsBuilder, ValidationBuilder
 }
 ```
 
-Register and customize:
+### Mapper resolution
 
-```csharp
-builder.Services.AddKnightResponse(options =>
-{
-    options.IncludeFullResultPayload    = true;
-    options.UseProblemDetails           = true;
-    options.UseValidationProblemDetails = true;
+At runtime, the validation error mapper is resolved in this order:
 
-    options.StatusCodeResolver = status => status switch
-    {
-        Status.Failed    => StatusCodes.Status400BadRequest,
-        Status.Cancelled => StatusCodes.Status409Conflict,
-        Status.Error     => StatusCodes.Status500InternalServerError,
-        _                => StatusCodes.Status400BadRequest
-    };
-});
-```
+1. From the current request’s DI scope (`HttpContext.RequestServices`).
+2. From the `ValidationMapper` override on options.
+3. If neither is set, a new `DefaultValidationErrorMapper` is used.
 
 ---
 
