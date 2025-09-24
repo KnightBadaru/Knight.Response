@@ -41,6 +41,11 @@ This package depends on:
 
 * `Knight.Response` (core results)
 * `Knight.Response.Abstractions.Http` (shared options + mapper)
+* `Microsoft.AspNetCore.Mvc (2.2.0)` — referenced for `ProblemDetails` compatibility only.
+
+* `Microsoft.AspNetCore.Mvc (2.2.0)` for framework result types (`IActionResult`, `ObjectResult`), `ProblemDetails`, `HttpContext` etc.
+
+  > Note: This does **not** require ASP.NET Core runtime. It is used strictly for types and schema alignment.
 
 ---
 
@@ -146,8 +151,6 @@ At runtime, the validation error mapper is resolved in this order:
 
 * Use **Knight.Response.Mvc** → For **System.Web MVC / Web API 2** apps targeting .NET Framework.
 * Use **Knight.Response.AspNetCore** → For **ASP.NET Core** apps targeting .NET 6/7/8+.
-
-> Note: `Knight.Response.Mvc` may reference `Microsoft.AspNetCore.Mvc` types (like `ProblemDetails`) purely for **compatibility**. This does **not** require ASP.NET Core runtime.
 
 ---
 

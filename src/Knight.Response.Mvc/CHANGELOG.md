@@ -1,22 +1,32 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to **Knight.Response.Mvc** will be documented here.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)  
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [Unreleased]
+## \[Unreleased]
 
 ### Added
-- Nothing yet.
+
+* Nothing yet.
 
 ### Changed
-- Nothing yet.
+
+* Nothing yet.
 
 ### Fixed
-- Nothing yet.
+
+* Nothing yet.
+
+---
+
+## [2.0.0-preview02] - 2025-09-24
+
+### Changed
+
+* **Dependency update:** downgraded `Microsoft.AspNetCore.Mvc` from **2.3.0** → **2.2.0** for broader compatibility in .NET Framework (System.Web MVC / Web API 2) applications.
 
 ---
 
@@ -47,24 +57,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-09-14
 ### Changed
 
-- Promoted to stable release.
-- No API changes since `0.1.0`; only documentation refinements and readiness validation.
+* Promoted to stable release. 
+* No API changes since `0.1.0`; only documentation refinements and readiness validation.
 
 ---
 
 ## [0.1.0] - 2025-09-14
+
 ### Added
 
-- Initial release of `Knight.Response.Mvc`
-- `ResultExtensions` for converting `Result` / `Result<T>` into `IActionResult`
-- `ServiceCollectionExtensions` for service registration
-- `ApiResults` factory for consistent HTTP responses
-- `ProblemFactory` for building RFC 7807-style error objects
-- `CompatProblemDetails` and `CompatValidationProblemDetails` for MVC compatibility
-- `KnightResponseOptions` for customization
+* Initial preview release of `Knight.Response.Mvc`.
+* `ResultExtensions` for converting `Result` / `Result<T>` into `IActionResult`.
+* `ServiceCollectionExtensions` for service registration.
+* `ApiResults` factory for consistent HTTP responses.
+* `ProblemFactory` for building RFC 7807-style error objects.
+* `CompatProblemDetails` and `CompatValidationProblemDetails` for MVC compatibility.
+* `KnightResponseOptions` for customization.
 
 ---
 
 [0.1.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v0.1.0
 [1.0.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v1.0.0
 [2.0.0-preview01]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview01
+[2.0.0-preview02]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview02
