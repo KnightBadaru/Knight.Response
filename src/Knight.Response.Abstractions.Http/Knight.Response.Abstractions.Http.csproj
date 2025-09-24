@@ -7,15 +7,26 @@
         <ImplicitUsings>enable</ImplicitUsings>
 
         <PackageId>Knight.Response.Abstractions.Http</PackageId>
-        <Version>1.0.2</Version>
+        <Version>1.0.3-preview01</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response.Abstractions.Http</Title>
         <Description>Framework-agnostic HTTP abstractions for Knight.Response (shared options and validation mapping).</Description>
         <PackageReleaseNotes>
             Changed:
-            - Updated dependency on **Knight.Response** to v1.1.0.
-            - Guarantees compatibility with new validation support (`Results.Validation(...)`).
-            - No functional changes introduced in this release.
+            - Updated dependency to **Knight.Response 2.0.0-preview03**.
+            - Defaults are now opt-in:
+            • UseProblemDetails = false
+            • UseValidationProblemDetails = false
+            • IncludeFullResultPayload = false (was true before 2.0.0-preview01)
+            • IncludeExceptionDetails = false
+            - Validation error mapper resolution moved to runtime in consuming integrations.
+
+            Removed:
+            - Mapper is no longer pre-bound during options configuration.
+
+            Breaking changes:
+            - Default payload shaping has changed: full Result/Result&lt;T&gt; payloads are not included on success unless explicitly enabled.
+            - Validation mapper must now be registered by the consumer or the integration will fall back to DefaultValidationErrorMapper at runtime.
         </PackageReleaseNotes>
         <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
@@ -24,7 +35,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Knight.Response" Version="1.1.0" />
+        <PackageReference Include="Knight.Response" Version="2.0.0-preview03" />
     </ItemGroup>
 
     <ItemGroup>

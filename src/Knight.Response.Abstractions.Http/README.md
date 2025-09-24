@@ -22,11 +22,11 @@ use to keep behavior consistent.
 * **`KnightResponseBaseOptions<TH, TProblem, TValidation>`**
   Base options class that centralizes:
 
-    * `UseProblemDetails`
-    * `UseValidationProblemDetails`
-    * `IncludeFullResultPayload`
-    * `IncludeExceptionDetails`
-    * `StatusCodeResolver` delegates
+    * `UseProblemDetails` (default: `false`)
+    * `UseValidationProblemDetails` (default: `false`)
+    * `IncludeFullResultPayload` (default: `false`, was `true` before 2.0.0-preview01)
+    * `IncludeExceptionDetails` (default: `false`)
+    * `StatusCodeResolver` delegate
     * Optional builders/hooks for shaping problem responses
 
   The generic parameters let each integration plug in the framework’s
@@ -37,10 +37,9 @@ use to keep behavior consistent.
 
     * **`IValidationErrorMapper`** — abstraction for converting domain `Message`s
       into a `Dictionary<string,string[]>` suitable for validation problems.
-    * **`DefaultValidationErrorMapper`** — pragmatic mapper that:
-
-        * reads an explicit `field` from message metadata when available, and
-        * falls back to parsing messages in the form `"field: message"`.
+    * Consumers are expected to register their own mapper in DI.
+      If none is provided, integrations will fall back to the built‑in
+      **`DefaultValidationErrorMapper`** at runtime.
 
 ---
 
@@ -51,7 +50,7 @@ dotnet add package Knight.Response.Abstractions.Http
 ```
 
 You typically **won’t reference this directly** in application code; it’s a
-transitive dependency of the ASP.NET integration packages. It’s useful if you’re
+transitive dependency of the ASP.NET/MVC integration packages. It’s useful if you’re
 building your own integration and want to align with Knight.Response conventions.
 
 ---
@@ -69,7 +68,7 @@ public sealed class MyValidationMapper : IValidationErrorMapper
 ```
 
 Register this type in the DI container of your chosen integration package
-(e.g., `Knight.Response.AspNetCore` or `Knight.Response.AspNetCore.Mvc`).
+(e.g., `Knight.Response.AspNetCore` or `Knight.Response.Mvc`).
 
 ---
 
