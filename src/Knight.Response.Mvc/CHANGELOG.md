@@ -20,8 +20,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-preview01] - 2025-09-24
+
+### Changed
+
+* **Dependency bump:** now references `Knight.Response.Abstractions.Http 2.0.0-preview01`.
+* **Service registration:** `AddKnightResponse` no longer performs post-configuration of the mapper. Instead, it uses `TryAddScoped<IValidationErrorMapper, DefaultValidationErrorMapper>()` so that:
+
+    * If a mapper has already been registered, it will not be overridden.
+    * If a consumer calls the `AddKnightResponse<TMapper>` overload, that mapper is registered and respected.
+* **Mapper resolution:** `ProblemFactory` now resolves the mapper at runtime:
+
+    1. From the current request’s DI scope (`HttpContext.RequestServices`), if available.
+    2. From the `KnightResponseOptions.ValidationMapper` override, if explicitly set.
+    3. From a new instance of `DefaultValidationErrorMapper` as a last fallback.
+
+### BREAKING CHANGES
+
+* Default behavior is aligned with **Knight.Response.Abstractions.Http 2.0.0-preview01**:
+
+    * All options (`UseProblemDetails`, `UseValidationProblemDetails`, `IncludeFullResultPayload`, `IncludeExceptionDetails`) now default to **`false`**.
+    * Mapper is no longer pre-bound on options. It is resolved per-request with the fallback strategy above.
+
+---
+
 ## [1.0.0] - 2025-09-14
 ### Changed
+
 - Promoted to stable release.
 - No API changes since `0.1.0`; only documentation refinements and readiness validation.
 
@@ -29,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2025-09-14
 ### Added
+
 - Initial release of `Knight.Response.Mvc`
 - `ResultExtensions` for converting `Result` / `Result<T>` into `IActionResult`
 - `ServiceCollectionExtensions` for service registration
@@ -41,3 +67,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.1.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v0.1.0
 [1.0.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v1.0.0
+[2.0.0-preview01]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview01
