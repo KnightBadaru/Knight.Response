@@ -44,15 +44,15 @@ public sealed class DefaultValidationErrorMapper : IValidationErrorMapper
         }
 
         return dictionary.ToDictionary(pair => pair.Key, valuePair => valuePair.Value.ToArray(), StringComparer.OrdinalIgnoreCase);
+    }
 
-        static void Add(Dictionary<string, List<string>> dictionary, string field, string message)
+    static void Add(Dictionary<string, List<string>> dictionary, string field, string message)
+    {
+        if (!dictionary.TryGetValue(field, out var list))
         {
-            if (!dictionary.TryGetValue(field, out var list))
-            {
-                dictionary[field] = list = new List<string>(1);
-            }
-
-            list.Add(message);
+            dictionary[field] = list = new List<string>(1);
         }
+
+        list.Add(message);
     }
 }

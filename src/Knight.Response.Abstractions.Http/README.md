@@ -2,7 +2,7 @@
 
 Cross‑framework abstractions for HTTP result handling in the **Knight.Response** family.
 
-This package collects the **shared contracts and options** that both
+This package collects the **shared contracts, options, and resolvers** that both
 
 * `Knight.Response.AspNetCore` (for modern ASP.NET Core / minimal APIs), and
 * `Knight.Response.AspNetCore.Mvc` (for legacy ASP.NET Core MVC 2.x / .NET Framework scenarios)
@@ -26,20 +26,27 @@ use to keep behavior consistent.
     * `UseValidationProblemDetails` (default: `false`)
     * `IncludeFullResultPayload` (default: `false`, was `true` before 2.0.0-preview01)
     * `IncludeExceptionDetails` (default: `false`)
-    * `StatusCodeResolver` delegate
+    * `CodeToHttp` delegate (optional, domain codes → HTTP codes)
+    * `StatusCodeResolver` delegate (defaults to 400/409/500/200)
     * Optional builders/hooks for shaping problem responses
 
   The generic parameters let each integration plug in the framework’s
   own **HttpContext type (`TH`)**, `ProblemDetails` type (`TProblem`),
   and `ValidationProblemDetails` type (`TValidation`) without duplication.
 
+* **HTTP mapping defaults and resolvers**
+
+    * **`KnightResponseHttpDefaults`** — default mapping from `Status` to HTTP codes.
+    * **`ResultHttpResolver`** — unified logic for resolving an HTTP code from a `Result`,
+      honoring `CodeToHttp` first and falling back to `StatusCodeResolver`.
+
 * **Validation error mapping**
 
     * **`IValidationErrorMapper`** — abstraction for converting domain `Message`s
       into a `Dictionary<string,string[]>` suitable for validation problems.
-    * Consumers are expected to register their own mapper in DI.
-      If none is provided, integrations will fall back to the built‑in
-      **`DefaultValidationErrorMapper`** at runtime.
+    * **`DefaultValidationErrorMapper`** — conservative default implementation.
+    * Consumers can register their own mapper in DI. If none is provided, integrations
+      will fall back to the default.
 
 ---
 
@@ -55,7 +62,9 @@ building your own integration and want to align with Knight.Response conventions
 
 ---
 
-## Quick example (custom mapper)
+## Quick examples
+
+### Custom validation mapper
 
 ```csharp
 using Knight.Response.Abstractions.Http.Mappers;
@@ -69,6 +78,23 @@ public sealed class MyValidationMapper : IValidationErrorMapper
 
 Register this type in the DI container of your chosen integration package
 (e.g., `Knight.Response.AspNetCore` or `Knight.Response.Mvc`).
+
+### Custom HTTP code mapping
+
+```csharp
+using Knight.Response.Models;
+using Knight.Response.Abstractions.Http.Options;
+
+services.AddKnightResponse(opts =>
+{
+    opts.CodeToHttp = code => code?.Value switch
+    {
+        var v when v == ResultCodes.NotFound.Value     => 404,
+        var v when v == ResultCodes.AlreadyExists.Value => 409,
+        _ => null
+    };
+});
+```
 
 ---
 

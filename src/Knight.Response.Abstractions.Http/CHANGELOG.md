@@ -22,6 +22,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.0.0-preview02] - 2025-09-26
+
+### Added
+
+* **ResultHttpResolver**: central resolver for mapping `Result.Status`/`Result.Code` to HTTP status codes.
+* **CodeToHttp**: new optional delegate on `KnightResponseBaseOptions` for mapping `ResultCode` values to HTTP codes.
+* **KnightResponseHttpDefaults**: provides built-in defaults for `Status` → HTTP mapping (`Error=500`, `Cancelled=409`, `Failed=400`, `Completed=200`).
+
+### Changed
+
+* **Dependency bump:** aligned to `Knight.Response 2.0.0-preview04`.
+* `ResolveHttpCode` methods now check `CodeToHttp` first (if set and non-null), then fall back to `StatusCodeResolver`, and finally to `KnightResponseHttpDefaults.StatusToHttp` if none provided.
+* `StatusCodeResolver` on `KnightResponseBaseOptions` is now nullable. Consumers can omit it and rely entirely on defaults.
+
+### BREAKING CHANGES
+
+* `StatusCodeResolver` is no longer guaranteed non-null. Integrations must be updated to call through `ResultHttpResolver` instead of invoking it directly.
+
+---
+
 ## [2.0.0-preview01] - 2025-09-24
 
 ### Changed
@@ -75,7 +95,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-* **KnightResponseBaseOptions\<TH, TProblem, TValidation>**: Base options type to configure HTTP-specific behavior (HttpContext, ProblemDetails, ValidationProblemDetails, payload shaping).
+* **KnightResponseBaseOptions<TH, TProblem, TValidation>**: Base options type to configure HTTP-specific behavior (HttpContext, ProblemDetails, ValidationProblemDetails, payload shaping).
 * **IValidationErrorMapper**: Abstraction for mapping `Message` collections to validation errors.
 * **DefaultValidationErrorMapper**: Default implementation of `IValidationErrorMapper`.
 * Support for sharing configuration and mappers between **Knight.Response.AspNetCore** and **Knight.Response.AspNetCore.Mvc** packages.
@@ -86,3 +106,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [1.0.1]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v1.0.1
 [1.0.2]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v1.0.2
 [2.0.0-preview01]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v2.0.0-preview01
+[2.0.0-preview02]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v2.0.0-preview02

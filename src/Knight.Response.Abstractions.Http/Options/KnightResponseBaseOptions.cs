@@ -1,4 +1,5 @@
 using Knight.Response.Abstractions.Http.Mappers;
+using Knight.Response.Abstractions.Http.Resolution;
 using Knight.Response.Core;
 using Knight.Response.Models;
 
@@ -64,15 +65,43 @@ public class KnightResponseBaseOptions<TH, TP, TV>
     /// </summary>
     public bool UseValidationProblemDetails { get; set; }
 
-    // /// <summary>
-    // /// Maps a domain <see cref="Status"/> to an HTTP status code.
-    // /// </summary>
+    /// <summary>
+    /// Optional delegate for mapping a domain-level <see cref="ResultCode"/> to an HTTP status code.
+    /// </summary>
+    /// <remarks>
+    /// This allows consumers to override or extend the built-in status mapping logic.
+    /// <list type="bullet">
+    ///   <item><description>
+    ///   If provided, this delegate will be invoked first for any <see cref="Result.Code"/>.
+    ///   </description></item>
+    ///   <item><description>
+    ///   If it returns a non-<c>null</c> value, that HTTP code will be used directly.
+    ///   </description></item>
+    ///   <item><description>
+    ///   If it returns <c>null</c> or is <c>null</c> itself, the pipeline falls back to
+    ///   <see cref="StatusCodeResolver"/> which maps based on <see cref="Status"/>.
+    ///   </description></item>
+    /// </list>
+    /// Example usage:
+    /// <code>
+    /// options.CodeToHttp = code => code?.Value switch
+    /// {
+    ///     "NotFound"      => StatusCodes.Status404NotFound,
+    ///     "AlreadyExists" => StatusCodes.Status409Conflict,
+    ///     _ => null
+    /// };
+    /// </code>
+    /// </remarks>
+    public Func<ResultCode?, int?>? CodeToHttp { get; set; }
 
     /// <summary>
     /// Function that maps a <see cref="Status"/> to an HTTP status code for ProblemDetails responses.
-    /// Defaults: Failed=400, Cancelled=409, Error=500. Completed isn't used here.
+    /// Defaults: Failed=400, Cancelled=409, Error=500, Completed=200.
+    /// <para>
+    /// If <c>null</c>, <see cref="KnightResponseHttpDefaults.StatusToHttp"/> will be used as fallback.
+    /// </para>
     /// </summary>
-    public Func<Status, int> StatusCodeResolver { get; set; } = DefaultStatusResolver;
+    public Func<Status, int>? StatusCodeResolver { get; set; }
 
     /// <summary>
     /// Optional last‑mile customization hook for standard ProblemDetails.
@@ -91,10 +120,4 @@ public class KnightResponseBaseOptions<TH, TP, TV>
     /// Use this to force a specific instance only if you know you do not need per-request scope.
     /// </summary>
     public IValidationErrorMapper? ValidationMapper { get; set; }
-
-    private static int DefaultStatusResolver(Status s) =>
-        s == Status.Error      ? 500 :
-        s == Status.Cancelled  ? 409 :
-        s == Status.Failed     ? 400 :
-        200;
 }
