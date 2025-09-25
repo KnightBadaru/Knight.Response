@@ -499,4 +499,395 @@ public class ResultExtensionsTests
         success.ShouldBeTrue();
         extracted.Select(e => e.ErrorMessage).ShouldBe(["A", "B"]);
     }
+
+    // ----------------------------
+    // IsUnsuccessfulOrNull / ValueIsNull
+    // ----------------------------
+
+    [Fact]
+    public void IsUnsuccessfulOrNull_When_Unsuccessful_Should_Return_True()
+    {
+        // Arrange
+        var result = Results.Failure<int>("bad");
+
+        // Act
+        var flag = result.IsUnsuccessfulOrNull();
+
+        // Assert
+        flag.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void IsUnsuccessfulOrNull_When_Success_And_Value_Is_Null_Should_Return_True()
+    {
+        // Arrange
+        var result = Results.Success<string?>();
+
+        // Act
+        var flag = result.IsUnsuccessfulOrNull();
+
+        // Assert
+        flag.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void IsUnsuccessfulOrNull_When_Success_And_Value_NotNull_Should_Return_False()
+    {
+        // Arrange
+        var result = Results.Success("ok");
+
+        // Act
+        var flag = result.IsUnsuccessfulOrNull();
+
+        // Assert
+        flag.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void ValueIsNull_Should_Reflect_Nullness_Only()
+    {
+        // Arrange
+        var a = Results.Success<string?>();
+        var b = Results.Success("value");
+
+        // Act
+        var aNull = a.ValueIsNull();
+        var bNull = b.ValueIsNull();
+
+        // Assert
+        aNull.ShouldBeTrue();
+        bNull.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void IsUnsuccessfulOrNull_Should_Throw_On_Null_Extension_Target()
+    {
+        // Arrange
+        Result<string>? result = null;
+
+        // Act
+        Func<object?> act = () => result!.IsUnsuccessfulOrNull();
+
+        // Assert
+        act.ShouldThrow<ArgumentNullException>();
+    }
+
+    // ----------------------------
+    // Match (typed) – messages & no-messages
+    // ----------------------------
+
+    [Fact]
+    public void Match_Typed_WithMessages_Should_Route_Unsuccessful()
+    {
+        // Arrange
+        var result = Results.Failure<int>("oops");
+
+        // Act
+        var branch = result.Match(
+            onUnsuccessful: messages => $"fail:{messages[0].Content}",
+            onNoValue: () => "none",
+            onValue: _ => "value"
+        );
+
+        // Assert
+        branch.ShouldBe("fail:oops");
+    }
+
+    [Fact]
+    public void Match_Typed_WithMessages_Should_Route_NoValue()
+    {
+        // Arrange
+        var result = Results.Success<string?>();
+
+        // Act
+        var branch = result.Match(
+            onUnsuccessful: _ => "fail",
+            onNoValue: () => "none",
+            onValue: _ => "value"
+        );
+
+        // Assert
+        branch.ShouldBe("none");
+    }
+
+    [Fact]
+    public void Match_Typed_WithMessages_Should_Route_Value()
+    {
+        // Arrange
+        var result = Results.Success("abc");
+
+        // Act
+        var branch = result.Match(
+            onUnsuccessful: _ => "fail",
+            onNoValue: () => "none",
+            onValue: v => v.ToUpperInvariant()
+        );
+
+        // Assert
+        branch.ShouldBe("ABC");
+    }
+
+    [Fact]
+    public void Match_Typed_NoMessages_Should_Route_All_Paths()
+    {
+        // Arrange
+        var fail = Results.Failure<int>("bad");
+        var none = Results.Success<string?>();
+        var ok = Results.Success("x");
+
+        // Act
+        var f = fail.Match(onUnsuccessful: () => "F", onNoValue: () => "N", onValue: _ => "V");
+        var n = none.Match(onUnsuccessful: () => "F", onNoValue: () => "N", onValue: _ => "V");
+        var v = ok.Match(onUnsuccessful: () => "F", onNoValue: () => "N", onValue: _ => "V");
+
+        // Assert
+        f.ShouldBe("F");
+        n.ShouldBe("N");
+        v.ShouldBe("V");
+    }
+
+    // ----------------------------
+    // MatchValue (typed -> typed/untyped)
+    // ----------------------------
+
+    [Fact]
+    public void MatchValue_Typed_To_Typed_Should_Produce_Failure_On_Unsuccessful()
+    {
+        // Arrange
+        var result = Results.Failure<int>("nope");
+
+        // Act
+        var outResult = result.MatchValue(
+            onUnsuccessful: msgs => Results.Failure<string>(msgs),
+            onNoValue: () => Results.Success("empty"),
+            onValue: v => Results.Success(v.ToString())
+        );
+
+        // Assert
+        outResult.IsSuccess().ShouldBeFalse();
+        outResult.Messages[0].Content.ShouldBe("nope");
+    }
+
+    [Fact]
+    public void MatchValue_Typed_To_Untyped_Should_Choose_NoValue()
+    {
+        // Arrange
+        var result = Results.Success<string?>();
+
+        // Act
+        var outResult = result.MatchValue(
+            onUnsuccessful: _ => Results.Error("x"),
+            onNoValue: () => Results.Success(),
+            onValue: _ => Results.Failure("unexpected")
+        );
+
+        // Assert
+        outResult.IsSuccess().ShouldBeTrue();
+    }
+
+    // ----------------------------
+    // OnSuccess / OnFailure
+    // ----------------------------
+
+    [Fact]
+    public void OnSuccess_Should_Invoke_Action_Only_On_Success()
+    {
+        // Arrange
+        var invoked = 0;
+        var ok = Results.Success();
+        var bad = Results.Failure("bad");
+
+        // Act
+        ok.OnSuccess(() => invoked++);
+        bad.OnSuccess(() => invoked++);
+
+        // Assert
+        invoked.ShouldBe(1);
+    }
+
+    [Fact]
+    public void OnFailure_Should_Invoke_Action_Only_On_Failure()
+    {
+        // Arrange
+        var invoked = 0;
+        var ok = Results.Success();
+        var bad = Results.Failure("bad");
+
+        // Act
+        ok.OnFailure(_ => invoked++);
+        bad.OnFailure(_ => invoked++);
+
+        // Assert
+        invoked.ShouldBe(1);
+    }
+
+    // ----------------------------
+    // Map / Bind
+    // ----------------------------
+
+    [Fact]
+    public void Map_Should_Map_On_Success_And_Propagate_Failure()
+    {
+        // Arrange
+        var ok = Results.Success(2);
+        var bad = Results.Failure<int>("nope");
+
+        // Act
+        var mappedOk = ok.Map(x => x * 5);
+        var mappedBad = bad.Map(x => x * 5);
+
+        // Assert
+        mappedOk.IsSuccess().ShouldBeTrue();
+        mappedOk.Value.ShouldBe(10);
+        mappedBad.IsSuccess().ShouldBeFalse();
+        mappedBad.Messages[0].Content.ShouldBe("nope");
+    }
+
+    [Fact]
+    public void Bind_Should_Chain_On_Success_And_Propagate_Failure()
+    {
+        // Arrange
+        var ok = Results.Success("ab");
+        var bad = Results.Failure<string>("broken");
+
+        // Act
+        var boundOk = ok.Bind(v => Results.Success((v ?? "").ToUpperInvariant()));
+        var boundBad = bad.Bind(v => Results.Success((v ?? "").ToUpperInvariant()));
+
+        // Assert
+        boundOk.IsSuccess().ShouldBeTrue();
+        boundOk.Value.ShouldBe("AB");
+        boundBad.IsSuccess().ShouldBeFalse();
+        boundBad.Messages[0].Content.ShouldBe("broken");
+    }
+
+    // ----------------------------
+    // WithCode / HasCode / WithoutCode / conditionals
+    // ----------------------------
+
+    [Fact]
+    public void WithCode_And_HasCode_Should_Work_For_String_And_ResultCode()
+    {
+        // Arrange
+        var r = Results.Success().WithCode(ResultCodes.NotFound);
+
+        // Act
+        var hasByString = r.HasCode("NotFound");
+        var hasByObj = r.HasCode(ResultCodes.NotFound);
+
+        // Assert
+        hasByString.ShouldBeTrue();
+        hasByObj.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void WithCodeIf_And_WithoutCodeIf_Should_Set_And_Clear_Conditionally()
+    {
+        // Arrange
+        var result = Results.Success();
+
+        // Act
+        var set = result.WithCodeIf(true, ResultCodes.Updated);
+        var keep = set.WithoutCodeIf(false);
+        var cleared = keep.WithoutCodeIf(true);
+
+        // Assert
+        set.Code!.Value.ShouldBe("Updated");
+        keep.Code!.Value.ShouldBe("Updated");
+        cleared.Code.ShouldBeNull();
+    }
+
+    [Fact]
+    public void WithoutCode_Should_Clear_Code_Unconditionally()
+    {
+        // Arrange
+        var result = Results.Success().WithCode(ResultCodes.Created);
+
+        // Act
+        var cleared = result.WithoutCode();
+
+        // Assert
+        cleared.Code.ShouldBeNull();
+    }
+
+    // ----------------------------
+    // WithMessage(s) / WithDetail (metadata)
+    // ----------------------------
+
+    [Fact]
+    public void WithMessage_And_WithDetail_Should_Append_And_Enrich_Last_Message()
+    {
+        // Arrange
+        var result = Results.Success()
+            .WithMessage(new Message(MessageType.Information, "hello"));
+
+        // Act
+        var enriched = result.WithDetail("k", 123);
+
+        // Assert
+        enriched.Messages.Count.ShouldBe(1);
+        enriched.Messages[0].Content.ShouldBe("hello");
+        enriched.Messages[0].Metadata["k"].ShouldBe(123);
+    }
+
+    // ----------------------------
+    // Validation extraction
+    // ----------------------------
+
+    [Fact]
+    public void TryGetValidationResults_Should_Collect_Single_And_Many()
+    {
+        // Arrange
+        var single = new ValidationResult("Name required", new[] { "Name" });
+        var many = new[]
+        {
+            new ValidationResult("Amount > 0", new[] { "Amount" }),
+            new ValidationResult("Date required", new[] { "Date" })
+        };
+
+        var r = Results.Error(new List<Message>
+        {
+            new(MessageType.Error, "e1", new Dictionary<string, object?> { ["ValidationResult"] = single }),
+            new(MessageType.Error, "e2", new Dictionary<string, object?> { ["ValidationResults"] = many })
+        });
+
+        // Act
+        var ok = r.TryGetValidationResults(out var list);
+
+        // Assert
+        ok.ShouldBeTrue();
+        list.Count.ShouldBe(3);
+        list.Any(v => v.ErrorMessage == "Name required").ShouldBeTrue();
+        list.Any(v => v.ErrorMessage == "Amount > 0").ShouldBeTrue();
+        list.Any(v => v.ErrorMessage == "Date required").ShouldBeTrue();
+    }
+
+    [Fact]
+    public void GetValueOrDefault_TryGetValue_GetValueOrThrow_Should_Work_As_Documented()
+    {
+        // Arrange
+        var ok = Results.Success(7);
+        var bad = Results.Failure<int>("bad");
+
+        // Act
+        var v1 = ok.GetValueOrDefault(42);
+        var v2 = bad.GetValueOrDefault(42);
+
+        var tryOk = ok.TryGetValue(out var out1);
+        var tryBad = bad.TryGetValue(out var out2);
+
+        Func<object?> throwAct = () => bad.GetValueOrThrow(_ => new InvalidOperationException("nope"));
+
+        // Assert
+        v1.ShouldBe(7);
+        v2.ShouldBe(42);
+
+        tryOk.ShouldBeTrue();
+        out1.ShouldBe(7);
+
+        tryBad.ShouldBeFalse();
+        out2.ShouldBe(0); // default(int)
+
+        throwAct.ShouldThrow<InvalidOperationException>().Message.ShouldBe("nope");
+    }
 }
