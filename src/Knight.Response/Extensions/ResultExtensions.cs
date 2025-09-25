@@ -12,8 +12,6 @@ namespace Knight.Response.Extensions;
 /// </summary>
 public static class ResultExtensions
 {
-    // ---- helpers ----
-
     /// <summary>
     /// Collects validation results from a set of messages, supporting both
     /// "ValidationResult" (single) and "ValidationResults" (multiple).
@@ -69,7 +67,6 @@ public static class ResultExtensions
         return false;
     }
 
-    // ---- helpers ----
     // ---------------------------------------------------------------------
     // Predicates
     // ---------------------------------------------------------------------
@@ -95,6 +92,44 @@ public static class ResultExtensions
     public static bool IsUnsuccessful(this Result result) => !result.IsSuccess();
 
     /// <summary>
+    /// Returns <c>true</c> if the result is either unsuccessful
+    /// (i.e., <see cref="Result.Status"/> is not <see cref="Status.Completed"/>)
+    /// or if it completed successfully but its <see cref="Result{T}.Value"/> is <c>null</c>.
+    /// </summary>
+    /// <typeparam name="T">The type of the value carried by the result.</typeparam>
+    /// <param name="result">The result to check.</param>
+    /// <returns>
+    /// <c>true</c> if the result is unsuccessful or the value is <c>null</c>;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// This helper is useful when your logic requires a non-null value
+    /// for successful results, allowing a single check instead of
+    /// combining <see cref="ResultExtensions.IsUnsuccessful"/> and a null test.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// var result = GetUser();
+    /// if (result.IsUnsuccessfulOrNull())
+    /// {
+    ///     return Results.Failure("Unable to retrieve user");
+    /// }
+    ///
+    /// // safe to use result.Value
+    /// Console.WriteLine(result.Value!.Name);
+    /// </code>
+    /// </example>
+    public static bool IsUnsuccessfulOrNull<T>(this Result<T> result)
+    {
+        if (result == null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+
+        return result.IsUnsuccessful() || result.ValueIsNull();
+    }
+
+    /// <summary>
     /// Determines whether the typed result's value is <c>null</c>.
     /// This does not consider <see cref="Status"/>; it only checks the value reference.
     /// </summary>
@@ -111,6 +146,59 @@ public static class ResultExtensions
     /// <param name="code">The code string to match.</param>
     public static bool HasCode(this Result result, string code) =>
         result.Code is { } c && string.Equals(c.Value, code, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Returns <c>true</c> when <paramref name="result"/> has a <see cref="ResultCode"/>
+    /// equal to <paramref name="code"/> (case-insensitive).
+    /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="code">The code to match.</param>
+    /// <returns>
+    /// <c>true</c> if <see cref="Result.Code"/> is non-null and equals <paramref name="code"/> by value;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// Compares <see cref="ResultCode.Value"/> using <see cref="StringComparison.OrdinalIgnoreCase"/>.
+    /// </remarks>
+    public static bool HasCode(this Result result, ResultCode code) =>
+        result.Code is { } c &&
+        string.Equals(c.Value, code.Value, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Returns <c>true</c> when the typed <paramref name="result"/> has a <see cref="ResultCode"/>
+    /// equal to <paramref name="code"/> (case-insensitive).
+    /// </summary>
+    /// <typeparam name="T">The carried value type.</typeparam>
+    /// <param name="result">The typed result to inspect.</param>
+    /// <param name="code">The code string to match.</param>
+    /// <returns>
+    /// <c>true</c> if <see cref="Result.Code"/> is non-null and equals <paramref name="code"/> by value;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// Compares <see cref="ResultCode.Value"/> using <see cref="StringComparison.OrdinalIgnoreCase"/>.
+    /// </remarks>
+    public static bool HasCode<T>(this Result<T> result, string code) =>
+        result.Code is { } c &&
+        string.Equals(c.Value, code, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Returns <c>true</c> when the typed <paramref name="result"/> has a <see cref="ResultCode"/>
+    /// equal to <paramref name="code"/> (case-insensitive).
+    /// </summary>
+    /// <typeparam name="T">The carried value type.</typeparam>
+    /// <param name="result">The typed result to inspect.</param>
+    /// <param name="code">The code to match.</param>
+    /// <returns>
+    /// <c>true</c> if <see cref="Result.Code"/> is non-null and equals <paramref name="code"/> by value;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    /// <remarks>
+    /// Compares <see cref="ResultCode.Value"/> using <see cref="StringComparison.OrdinalIgnoreCase"/>.
+    /// </remarks>
+    public static bool HasCode<T>(this Result<T> result, ResultCode code) =>
+        result.Code is { } c &&
+        string.Equals(c.Value, code.Value, StringComparison.OrdinalIgnoreCase);
 
     // ---------------------------------------------------------------------
     // Match
@@ -587,52 +675,254 @@ public static class ResultExtensions
     }
 
     // ---------------------------------------------------------------------
-    // Code & Message helpers (immutable)
+    // Code helpers
     // ---------------------------------------------------------------------
 
-    /// <summary>Returns a new <see cref="Result"/> with <see cref="Result.Code"/> set to <paramref name="code"/>.</summary>
+    /// <summary>
+    /// Returns a new <see cref="Result"/> with <see cref="Result.Code"/> set
+    /// to a new <see cref="ResultCode"/> created from <paramref name="code"/>.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="code">The raw string code to wrap into a <see cref="ResultCode"/>.</param>
+    /// <returns>A new <see cref="Result"/> instance with the updated code.</returns>
+    public static Result WithCode(this Result result, string code)
+        => new(result.Status, new ResultCode(code), result.Messages);
+
+    /// <summary>
+    /// Returns a new <see cref="Result"/> with <see cref="Result.Code"/> set to <paramref name="code"/>.
+    /// </summary>
     public static Result WithCode(this Result result, ResultCode code)
         => new(result.Status, code, result.Messages);
 
-    /// <summary>Returns a new <see cref="Result{T}"/> with <see cref="Result.Code"/> set to <paramref name="code"/>.</summary>
+    /// <summary>
+    /// Returns a new <see cref="Result{T}"/> with <see cref="Result.Code"/> set
+    /// to a new <see cref="ResultCode"/> created from <paramref name="code"/>.
+    /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The source typed result.</param>
+    /// <param name="code">The raw string code to wrap into a <see cref="ResultCode"/>.</param>
+    /// <returns>A new <see cref="Result{T}"/> instance with the updated code.</returns>
+    public static Result<T> WithCode<T>(this Result<T> result, string code)
+        => new(result.Status, result.Value, new ResultCode(code), result.Messages);
+
+    /// <summary>
+    /// Returns a new <see cref="Result{T}"/> with <see cref="Result.Code"/> set to <paramref name="code"/>.
+    /// </summary>
     public static Result<T> WithCode<T>(this Result<T> result, ResultCode code)
         => new(result.Status, result.Value, code, result.Messages);
 
-    /// <summary>Returns a new <see cref="Result"/> with <paramref name="message"/> appended.</summary>
+    /// <summary>
+    /// Returns a new <see cref="Result"/> with <see cref="Result.Code"/> set to <paramref name="code"/>
+    /// when <paramref name="condition"/> is <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="condition">When <c>true</c>, the code is applied.</param>
+    /// <param name="code">The domain code to assign.</param>
+    /// <returns>The updated or original <see cref="Result"/>.</returns>
+    public static Result WithCodeIf(this Result result, bool condition, ResultCode code)
+        => condition ? new(result.Status, code, result.Messages) : result;
+
+    /// <summary>
+    /// Returns a new <see cref="Result"/> with <see cref="Result.Code"/> set to a new
+    /// <see cref="ResultCode"/> created from <paramref name="code"/> when
+    /// <paramref name="condition"/> is <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="condition">When <c>true</c>, the code is applied.</param>
+    /// <param name="code">The raw string code to wrap and assign.</param>
+    /// <returns>The updated or original <see cref="Result"/>.</returns>
+    public static Result WithCodeIf(this Result result, bool condition, string code)
+        => condition ? new(result.Status, new ResultCode(code), result.Messages) : result;
+
+    /// <summary>
+    /// Returns a new <see cref="Result"/> with <see cref="Result.Code"/> set to <paramref name="code"/>
+    /// when <paramref name="predicate"/> evaluates to <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="predicate">A predicate evaluated against <paramref name="result"/>.</param>
+    /// <param name="code">The domain code to assign.</param>
+    /// <returns>The updated or original <see cref="Result"/>.</returns>
+    public static Result WithCodeIf(this Result result, Func<Result, bool> predicate, ResultCode code)
+        => predicate(result) ? new(result.Status, code, result.Messages) : result;
+
+    /// <summary>
+    /// Returns a new <see cref="Result"/> with <see cref="Result.Code"/> set to a new
+    /// <see cref="ResultCode"/> created from <paramref name="code"/> when
+    /// <paramref name="predicate"/> evaluates to <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="predicate">A predicate evaluated against <paramref name="result"/>.</param>
+    /// <param name="code">The raw string code to wrap and assign.</param>
+    /// <returns>The updated or original <see cref="Result"/>.</returns>
+    public static Result WithCodeIf(this Result result, Func<Result, bool> predicate, string code)
+        => predicate(result) ? new(result.Status, new ResultCode(code), result.Messages) : result;
+
+    /// <summary>
+    /// Returns a new <see cref="Result{T}"/> with <see cref="Result.Code"/> set to <paramref name="code"/>
+    /// when <paramref name="condition"/> is <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <typeparam name="T">The carried value type.</typeparam>
+    /// <param name="result">The source typed result.</param>
+    /// <param name="condition">When <c>true</c>, the code is applied.</param>
+    /// <param name="code">The domain code to assign.</param>
+    /// <returns>The updated or original <see cref="Result{T}"/>.</returns>
+    public static Result<T> WithCodeIf<T>(this Result<T> result, bool condition, ResultCode code)
+        => condition ? new(result.Status, result.Value, code, result.Messages) : result;
+
+    /// <summary>
+    /// Returns a new <see cref="Result{T}"/> with <see cref="Result.Code"/> set to a new
+    /// <see cref="ResultCode"/> created from <paramref name="code"/> when
+    /// <paramref name="condition"/> is <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <typeparam name="T">The carried value type.</typeparam>
+    /// <param name="result">The source typed result.</param>
+    /// <param name="condition">When <c>true</c>, the code is applied.</param>
+    /// <param name="code">The raw string code to wrap and assign.</param>
+    /// <returns>The updated or original <see cref="Result{T}"/>.</returns>
+    public static Result<T> WithCodeIf<T>(this Result<T> result, bool condition, string code)
+        => condition ? new(result.Status, result.Value, new ResultCode(code), result.Messages) : result;
+
+    /// <summary>
+    /// Returns a new <see cref="Result{T}"/> with <see cref="Result.Code"/> set to <paramref name="code"/>
+    /// when <paramref name="predicate"/> evaluates to <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <typeparam name="T">The carried value type.</typeparam>
+    /// <param name="result">The source typed result.</param>
+    /// <param name="predicate">A predicate evaluated against <paramref name="result"/>.</param>
+    /// <param name="code">The domain code to assign.</param>
+    /// <returns>The updated or original <see cref="Result{T}"/>.</returns>
+    public static Result<T> WithCodeIf<T>(this Result<T> result, Func<Result<T>, bool> predicate, ResultCode code)
+        => predicate(result) ? new(result.Status, result.Value, code, result.Messages) : result;
+
+    /// <summary>
+    /// Returns a new <see cref="Result{T}"/> with <see cref="Result.Code"/> set to a new
+    /// <see cref="ResultCode"/> created from <paramref name="code"/> when
+    /// <paramref name="predicate"/> evaluates to <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <typeparam name="T">The carried value type.</typeparam>
+    /// <param name="result">The source typed result.</param>
+    /// <param name="predicate">A predicate evaluated against <paramref name="result"/>.</param>
+    /// <param name="code">The raw string code to wrap and assign.</param>
+    /// <returns>The updated or original <see cref="Result{T}"/>.</returns>
+    public static Result<T> WithCodeIf<T>(this Result<T> result, Func<Result<T>, bool> predicate, string code)
+        => predicate(result) ? new(result.Status, result.Value, new ResultCode(code), result.Messages) : result;
+
+    /// <summary>
+    /// Returns a new <see cref="Result"/> with <see cref="Result.Code"/> set to <c>null</c>.
+    /// Useful when you want to explicitly clear any existing code.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <returns>A new <see cref="Result"/> with <see cref="Result.Code"/> unset.</returns>
+    public static Result WithoutCode(this Result result)
+        => new(result.Status, code: null, result.Messages);
+
+    /// <summary>
+    /// Returns a new <see cref="Result{T}"/> with <see cref="Result.Code"/> set to <c>null</c>.
+    /// Useful when you want to explicitly clear any existing code.
+    /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The source typed result.</param>
+    /// <returns>A new <see cref="Result{T}"/> with <see cref="Result.Code"/> unset.</returns>
+    public static Result<T> WithoutCode<T>(this Result<T> result)
+        => new(result.Status, result.Value, code: null, result.Messages);
+
+    /// <summary>
+    /// Returns a new <see cref="Result"/> with <see cref="Result.Code"/> cleared (set to <c>null</c>)
+    /// when <paramref name="condition"/> is <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="condition">When <c>true</c>, the code is cleared.</param>
+    /// <returns>The updated or original <see cref="Result"/>.</returns>
+    public static Result WithoutCodeIf(this Result result, bool condition)
+        => condition ? new(result.Status, null, result.Messages) : result;
+
+    /// <summary>
+    /// Returns a new <see cref="Result"/> with <see cref="Result.Code"/> cleared (set to <c>null</c>)
+    /// when <paramref name="predicate"/> evaluates to <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="predicate">A predicate evaluated against <paramref name="result"/>.</param>
+    /// <returns>The updated or original <see cref="Result"/>.</returns>
+    public static Result WithoutCodeIf(this Result result, Func<Result, bool> predicate)
+        => predicate(result) ? new(result.Status, null, result.Messages) : result;
+
+    /// <summary>
+    /// Returns a new <see cref="Result{T}"/> with <see cref="Result.Code"/> cleared (set to <c>null</c>)
+    /// when <paramref name="condition"/> is <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <typeparam name="T">The carried value type.</typeparam>
+    /// <param name="result">The source typed result.</param>
+    /// <param name="condition">When <c>true</c>, the code is cleared.</param>
+    /// <returns>The updated or original <see cref="Result{T}"/>.</returns>
+    public static Result<T> WithoutCodeIf<T>(this Result<T> result, bool condition)
+        => condition ? new(result.Status, result.Value, null, result.Messages) : result;
+
+    /// <summary>
+    /// Returns a new <see cref="Result{T}"/> with <see cref="Result.Code"/> cleared (set to <c>null</c>)
+    /// when <paramref name="predicate"/> evaluates to <c>true</c>; otherwise returns the original instance.
+    /// </summary>
+    /// <typeparam name="T">The carried value type.</typeparam>
+    /// <param name="result">The source typed result.</param>
+    /// <param name="predicate">A predicate evaluated against <paramref name="result"/>.</param>
+    /// <returns>The updated or original <see cref="Result{T}"/>.</returns>
+    public static Result<T> WithoutCodeIf<T>(this Result<T> result, Func<Result<T>, bool> predicate)
+        => predicate(result) ? new(result.Status, result.Value, null, result.Messages) : result;
+
+    // ---------------------------------------------------------------------
+    // Message helper
+    // ---------------------------------------------------------------------
+
+    /// <summary>
+    /// Returns a new <see cref="Result"/> with <paramref name="message"/> appended.
+    /// </summary>
     public static Result WithMessage(this Result result, Message message)
     {
         var list = new List<Message>(result.Messages) { message };
         return new(result.Status, result.Code, list);
     }
 
-    /// <summary>Returns a new <see cref="Result{T}"/> with <paramref name="message"/> appended.</summary>
+    /// <summary>
+    /// Returns a new <see cref="Result{T}"/> with <paramref name="message"/> appended.
+    /// </summary>
     public static Result<T> WithMessage<T>(this Result<T> result, Message message)
     {
         var list = new List<Message>(result.Messages) { message };
         return new(result.Status, result.Value, result.Code, list);
     }
 
-    /// <summary>Returns a new <see cref="Result"/> with <paramref name="additional"/> appended.</summary>
+    /// <summary>
+    /// Returns a new <see cref="Result"/> with <paramref name="additional"/> appended.
+    /// </summary>
     public static Result WithMessages(this Result result, IEnumerable<Message> additional)
     {
         var combined = result.Messages.Concat(additional).ToList();
         return new(result.Status, result.Code, combined);
     }
 
-    /// <summary>Returns a new <see cref="Result{T}"/> with <paramref name="additional"/> appended.</summary>
+    /// <summary>
+    /// Returns a new <see cref="Result{T}"/> with <paramref name="additional"/> appended.
+    /// </summary>
     public static Result<T> WithMessages<T>(this Result<T> result, IEnumerable<Message> additional)
     {
         var combined = result.Messages.Concat(additional).ToList();
         return new(result.Status, result.Value, result.Code, combined);
     }
 
-    /// <summary>Params overload to append multiple messages.</summary>
+    /// <summary>
+    /// Params overload to append multiple messages.
+    /// </summary>
     public static Result WithMessages(this Result result, params Message[] messages)
         => result.WithMessages((IEnumerable<Message>)messages);
 
-    /// <summary>Params overload to append multiple messages (typed).</summary>
+    /// <summary>
+    /// Params overload to append multiple messages (typed).
+    /// </summary>
     public static Result<T> WithMessages<T>(this Result<T> result, params Message[] messages)
         => result.WithMessages((IEnumerable<Message>)messages);
+
+    // ---------------------------------------------------------------------
+    // Metadata helpers
+    // ---------------------------------------------------------------------
 
     /// <summary>
     /// Returns a new instance with a metadata key/value attached to the <b>last</b> message.
@@ -682,73 +972,19 @@ public static class ResultExtensions
         return new(result.Status, result.Value, result.Code, list);
     }
 
-    // /// <summary>
-    // /// True when the result is successful (<see cref="Status.Completed"/>) and carries a non-null value.
-    // /// </summary>
-    // public static bool ValueIsNull<T>(this Result<T> r) => r.Value is null;
-    //
-    // /// <summary>
-    // /// Branches on (a) unsuccessful, (b) success with null value, or (c) success with value,
-    // /// and returns a value of <typeparamref name="R"/>.
-    // /// </summary>
-    // /// <typeparam name="T">The carried value type.</typeparam>
-    // /// <typeparam name="R">The return type.</typeparam>
-    // /// <param name="result">The source result.</param>
-    // /// <param name="onUnsuccessful">Invoked when <paramref name="result"/> is not successful.</param>
-    // /// <param name="onNoValue">Invoked when successful but <see cref="Result{T}.Value"/> is null.</param>
-    // /// <param name="onValue">Invoked when successful and value is non-null.</param>
-    // public static R Match<T, R>(
-    //     this Result<T> result,
-    //     Func<IReadOnlyList<Message>, R> onUnsuccessful,
-    //     Func<R> onNoValue,
-    //     Func<T, R> onValue)
-    // {
-    //     if (result.IsUnsuccessful())
-    //     {
-    //         return onUnsuccessful(result.Messages);
-    //     }
-    //
-    //     if (result.ValueIsNull())
-    //     {
-    //         return onNoValue();
-    //     }
-    //
-    //     return onValue(result.Value!);
-    // }
-    //
-    // /// <summary>
-    // /// Action-based Match (no return). Branches on unsuccessful / no value / value.
-    // /// </summary>
-    // public static void Match<T>(
-    //     this Result<T> result,
-    //     Action<IReadOnlyList<Message>> onUnsuccessful,
-    //     Action onNoValue,
-    //     Action<T> onValue)
-    // {
-    //     if (result.IsUnsuccessful())
-    //     {
-    //         onUnsuccessful(result.Messages);
-    //         return;
-    //     }
-    //
-    //     if (result.ValueIsNull())
-    //     {
-    //         onNoValue();
-    //         return;
-    //     }
-    //
-    //     onValue(result.Value!);
-    // }
-
     // ---------------------------------------------------------------------
     // Value helpers
     // ---------------------------------------------------------------------
 
-    /// <summary>Gets <see cref="Result{T}.Value"/> when successful; otherwise returns <paramref name="fallback"/>.</summary>
+    /// <summary>
+    /// Gets <see cref="Result{T}.Value"/> when successful; otherwise returns <paramref name="fallback"/>.
+    /// </summary>
     public static T? GetValueOrDefault<T>(this Result<T> result, T? fallback = default)
         => result.IsSuccess() ? result.Value : fallback;
 
-    /// <summary>Tries to read <see cref="Result{T}.Value"/> when successful.</summary>
+    /// <summary>
+    /// Tries to read <see cref="Result{T}.Value"/> when successful.
+    /// </summary>
     public static bool TryGetValue<T>(this Result<T> result, out T? value)
     {
         if (result.IsSuccess())
@@ -761,7 +997,9 @@ public static class ResultExtensions
         return false;
     }
 
-    /// <summary>Gets <see cref="Result{T}.Value"/> or throws an exception created by <paramref name="exceptionFactory"/>.</summary>
+    /// <summary>
+    /// Gets <see cref="Result{T}.Value"/> or throws an exception created by <paramref name="exceptionFactory"/>.
+    /// </summary>
     public static T GetValueOrThrow<T>(this Result<T> result, Func<Result<T>, Exception> exceptionFactory)
         => result.IsSuccess() ? result.Value! : throw exceptionFactory(result);
 
