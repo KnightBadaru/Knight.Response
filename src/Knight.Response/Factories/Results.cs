@@ -13,152 +13,231 @@ public static class Results
 {
     // -------- Success --------
 
-    /// <summary>Creates a successful <see cref="Result"/>.</summary>
+    /// <summary>
+    /// Creates a successful <see cref="Result"/>.
+    /// </summary>
     public static Result Success() => new(Status.Completed);
 
-    /// <summary>Creates a successful <see cref="Result"/> with an optional domain <see cref="ResultCode"/>.</summary>
-    /// <param name="code">Domain reason identifier (e.g., "Created").</param>
+    /// <summary>
+    /// Creates a successful <see cref="Result"/> with an optional domain <see cref="ResultCode"/>.
+    /// </summary>
+    /// <param name="code">
+    /// Domain reason identifier (e.g., "Created").
+    /// </param>
     public static Result Success(ResultCode? code) => new(Status.Completed, code: code);
 
-    /// <summary>Creates a successful <see cref="Result{T}"/> without a value.</summary>
+    /// <summary>
+    /// Creates a successful <see cref="Result{T}"/> without a value.
+    /// </summary>
     public static Result<T> Success<T>() => new(Status.Completed);
 
-    /// <summary>Creates a successful <see cref="Result{T}"/> without a value, with an optional domain <see cref="ResultCode"/>.</summary>
-    public static Result<T> Success<T>(ResultCode? code) => new(Status.Completed, value: default, code: code);
+    /// <summary>
+    /// Creates a successful <see cref="Result{T}"/> without a value, with an optional domain <see cref="ResultCode"/>.
+    /// </summary>
+    public static Result<T> Success<T>(ResultCode? code) => new(Status.Completed, code: code);
 
-    /// <summary>Creates a successful <see cref="Result{T}"/> with a value.</summary>
+    /// <summary>
+    /// Creates a successful <see cref="Result{T}"/> with a value.
+    /// </summary>
     /// <typeparam name="T">The value type.</typeparam>
     /// <param name="value">The value to return.</param>
     public static Result<T> Success<T>(T value) => new(Status.Completed, value);
 
-    /// <summary>Creates a successful <see cref="Result{T}"/> with a value and optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a successful <see cref="Result{T}"/> with a value and optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result<T> Success<T>(T value, ResultCode? code) => new(Status.Completed, value, code: code);
 
-    /// <summary>Creates a successful <see cref="Result"/> with messages.</summary>
+    /// <summary>
+    /// Creates a successful <see cref="Result"/> with messages.
+    /// </summary>
     /// <param name="messages">Additional messages to include.</param>
     public static Result Success(IReadOnlyList<Message> messages) => new(Status.Completed, messages: messages);
 
-    /// <summary>Creates a successful <see cref="Result"/> with messages and an optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a successful <see cref="Result"/> with messages and an optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result Success(IReadOnlyList<Message> messages, ResultCode? code) => new(Status.Completed, code: code, messages: messages);
 
-    /// <summary>Creates a successful <see cref="Result{T}"/> with messages.</summary>
-    public static Result<T> Success<T>(IReadOnlyList<Message> messages) => new(Status.Completed, value: default, messages: messages);
+    /// <summary>
+    /// Creates a successful <see cref="Result{T}"/> with messages.
+    /// </summary>
+    public static Result<T> Success<T>(IReadOnlyList<Message> messages) => new(Status.Completed, messages: messages);
 
-    /// <summary>Creates a successful <see cref="Result{T}"/> with messages and an optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a successful <see cref="Result{T}"/> with messages and an optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result<T> Success<T>(IReadOnlyList<Message> messages, ResultCode? code)
         => new(Status.Completed, value: default, code: code, messages: messages);
 
-    /// <summary>Creates a successful <see cref="Result{T}"/> with value and messages.</summary>
+    /// <summary>
+    /// Creates a successful <see cref="Result{T}"/> with value and messages.
+    /// </summary>
     public static Result<T> Success<T>(T value, IReadOnlyList<Message> messages) => new(Status.Completed, value, messages: messages);
 
-    /// <summary>Creates a successful <see cref="Result{T}"/> with value, messages, and an optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a successful <see cref="Result{T}"/> with value, messages, and an optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result<T> Success<T>(T value, IReadOnlyList<Message> messages, ResultCode? code)
         => new(Status.Completed, value, code: code, messages: messages);
 
 
     // -------- Failure --------
 
-    /// <summary>Creates a failed <see cref="Result"/> with messages.</summary>
+    /// <summary>
+    /// Creates a failed <see cref="Result"/> with messages.
+    /// </summary>
     public static Result Failure(IReadOnlyList<Message> messages) => new(Status.Failed, messages: messages);
 
-    /// <summary>Creates a failed <see cref="Result"/> with messages and an optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a failed <see cref="Result"/> with messages and an optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result Failure(IReadOnlyList<Message> messages, ResultCode? code) => new(Status.Failed, code: code, messages: messages);
 
-    /// <summary>Creates a failed <see cref="Result"/> with a single message.</summary>
+    /// <summary>
+    /// Creates a failed <see cref="Result"/> with a single message.
+    /// </summary>
     /// <param name="reason">The failure reason.</param>
     /// <param name="type">Message type for the reason (defaults to <see cref="MessageType.Error"/>).</param>
     /// <param name="metadata">Optional metadata.</param>
     public static Result Failure(string reason, MessageType type = MessageType.Error, IReadOnlyDictionary<string, object?>? metadata = null)
         => new(Status.Failed, messages: new List<Message> { new(type, reason, metadata) });
 
-    /// <summary>Creates a failed <see cref="Result"/> with a single message and optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a failed <see cref="Result"/> with a single message and optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result Failure(string reason, ResultCode? code, MessageType type = MessageType.Error, IReadOnlyDictionary<string, object?>? metadata = null)
         => new(Status.Failed, code: code, messages: new List<Message> { new(type, reason, metadata) });
 
-    /// <summary>Creates a failed <see cref="Result{T}"/> with messages.</summary>
+    /// <summary>
+    /// Creates a failed <see cref="Result{T}"/> with messages.
+    /// </summary>
     public static Result<T> Failure<T>(IReadOnlyList<Message> messages) => new(Status.Failed, value: default, messages: messages);
 
-    /// <summary>Creates a failed <see cref="Result{T}"/> with messages and optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a failed <see cref="Result{T}"/> with messages and optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result<T> Failure<T>(IReadOnlyList<Message> messages, ResultCode? code)
-        => new(Status.Failed, value: default, code: code, messages: messages);
+        => new(Status.Failed, code: code, messages: messages);
 
-    /// <summary>Creates a failed <see cref="Result{T}"/> with a single message.</summary>
+    /// <summary>
+    /// Creates a failed <see cref="Result{T}"/> with a single message.
+    /// </summary>
     public static Result<T> Failure<T>(string reason, MessageType type = MessageType.Error, IReadOnlyDictionary<string, object?>? metadata = null)
-        => new(Status.Failed, value: default, messages: new List<Message> { new(type, reason, metadata) });
+        => new(Status.Failed, messages: new List<Message> { new(type, reason, metadata) });
 
-    /// <summary>Creates a failed <see cref="Result{T}"/> with a single message and optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a failed <see cref="Result{T}"/> with a single message and optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result<T> Failure<T>(string reason, ResultCode? code, MessageType type = MessageType.Error, IReadOnlyDictionary<string, object?>? metadata = null)
-        => new(Status.Failed, value: default, code: code, messages: new List<Message> { new(type, reason, metadata) });
+        => new(Status.Failed, code: code, messages: new List<Message> { new(type, reason, metadata) });
 
 
     // -------- Error --------
 
-    /// <summary>Creates an error <see cref="Result"/> with messages.</summary>
+    /// <summary>
+    /// Creates an error <see cref="Result"/> with messages.
+    /// </summary>
     public static Result Error(IReadOnlyList<Message> messages) => new(Status.Error, messages: messages);
 
-    /// <summary>Creates an error <see cref="Result"/> with messages and optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates an error <see cref="Result"/> with messages and optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result Error(IReadOnlyList<Message> messages, ResultCode? code) => new(Status.Error, code: code, messages: messages);
 
-    /// <summary>Creates an error <see cref="Result"/> with a single message.</summary>
+    /// <summary>
+    /// reates an error <see cref="Result"/> with a single message.
+    /// </summary>
     public static Result Error(string reason, MessageType type = MessageType.Error, IReadOnlyDictionary<string, object?>? metadata = null)
         => new(Status.Error, messages: new List<Message> { new(type, reason, metadata) });
 
-    /// <summary>Creates an error <see cref="Result"/> with a single message and optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates an error <see cref="Result"/> with a single message and optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result Error(string reason, ResultCode? code, MessageType type = MessageType.Error, IReadOnlyDictionary<string, object?>? metadata = null)
         => new(Status.Error, code: code, messages: new List<Message> { new(type, reason, metadata) });
 
-    /// <summary>Creates an error <see cref="Result{T}"/> with messages.</summary>
+    /// <summary>
+    /// Creates an error <see cref="Result{T}"/> with messages.
+    /// </summary>
     public static Result<T> Error<T>(IReadOnlyList<Message> messages) => new(Status.Error, value: default, messages: messages);
 
-    /// <summary>Creates an error <see cref="Result{T}"/> with messages and optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates an error <see cref="Result{T}"/> with messages and optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result<T> Error<T>(IReadOnlyList<Message> messages, ResultCode? code)
-        => new(Status.Error, value: default, code: code, messages: messages);
+        => new(Status.Error, code: code, messages: messages);
 
-    /// <summary>Creates an error <see cref="Result{T}"/> with a single message.</summary>
+    /// <summary>
+    /// Creates an error <see cref="Result{T}"/> with a single message.
+    /// </summary>
     public static Result<T> Error<T>(string reason, MessageType type = MessageType.Error, IReadOnlyDictionary<string, object?>? metadata = null)
-        => new(Status.Error, value: default, messages: new List<Message> { new(type, reason, metadata) });
+        => new(Status.Error, messages: new List<Message> { new(type, reason, metadata) });
 
-    /// <summary>Creates an error <see cref="Result{T}"/> with a single message and optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates an error <see cref="Result{T}"/> with a single message and optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result<T> Error<T>(string reason, ResultCode? code, MessageType type = MessageType.Error, IReadOnlyDictionary<string, object?>? metadata = null)
-        => new(Status.Error, value: default, code: code, messages: new List<Message> { new(type, reason, metadata) });
+        => new(Status.Error, code: code, messages: new List<Message> { new(type, reason, metadata) });
 
-    /// <summary>Wraps an <see cref="Exception"/> as an error <see cref="Result"/>.</summary>
+    /// <summary>
+    /// Wraps an <see cref="Exception"/> as an error <see cref="Result"/>.
+    /// </summary>
     public static Result Error(Exception ex) => Error(ex.Message);
 
-    /// <summary>Wraps an <see cref="Exception"/> as an error <see cref="Result{T}"/>.</summary>
+    /// <summary>
+    /// Wraps an <see cref="Exception"/> as an error <see cref="Result{T}"/>.
+    /// </summary>
     public static Result<T> Error<T>(Exception ex) => Error<T>(ex.Message);
 
 
     // -------- Cancel --------
 
-    /// <summary>Creates a cancelled <see cref="Result"/> with messages.</summary>
+    /// <summary>
+    /// Creates a cancelled <see cref="Result"/> with messages.
+    /// </summary>
     public static Result Cancel(IReadOnlyList<Message> messages) => new(Status.Cancelled, messages: messages);
 
-    /// <summary>Creates a cancelled <see cref="Result"/> with messages and optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a cancelled <see cref="Result"/> with messages and optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result Cancel(IReadOnlyList<Message> messages, ResultCode? code) => new(Status.Cancelled, code: code, messages: messages);
 
-    /// <summary>Creates a cancelled <see cref="Result"/> with a single message (defaults to warning).</summary>
+    /// <summary>
+    /// Creates a cancelled <see cref="Result"/> with a single message (defaults to warning).
+    /// </summary>
     public static Result Cancel(string reason, MessageType type = MessageType.Warning, IReadOnlyDictionary<string, object?>? metadata = null)
         => new(Status.Cancelled, messages: new List<Message> { new(type, reason, metadata) });
 
-    /// <summary>Creates a cancelled <see cref="Result"/> with a single message and optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a cancelled <see cref="Result"/> with a single message and optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result Cancel(string reason, ResultCode? code, MessageType type = MessageType.Warning, IReadOnlyDictionary<string, object?>? metadata = null)
         => new(Status.Cancelled, code: code, messages: new List<Message> { new(type, reason, metadata) });
 
-    /// <summary>Creates a cancelled <see cref="Result{T}"/> with messages.</summary>
+    /// <summary>
+    /// Creates a cancelled <see cref="Result{T}"/> with messages.
+    /// </summary>
     public static Result<T> Cancel<T>(IReadOnlyList<Message> messages) => new(Status.Cancelled, value: default, messages: messages);
 
-    /// <summary>Creates a cancelled <see cref="Result{T}"/> with messages and optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a cancelled <see cref="Result{T}"/> with messages and optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result<T> Cancel<T>(IReadOnlyList<Message> messages, ResultCode? code)
-        => new(Status.Cancelled, value: default, code: code, messages: messages);
+        => new(Status.Cancelled, code: code, messages: messages);
 
-    /// <summary>Creates a cancelled <see cref="Result{T}"/> with a single message (defaults to warning).</summary>
+    /// <summary>
+    /// Creates a cancelled <see cref="Result{T}"/> with a single message (defaults to warning).
+    /// </summary>
     public static Result<T> Cancel<T>(string reason, MessageType type = MessageType.Warning, IReadOnlyDictionary<string, object?>? metadata = null)
-        => new(Status.Cancelled, value: default, messages: new List<Message> { new(type, reason, metadata) });
+        => new(Status.Cancelled, messages: new List<Message> { new(type, reason, metadata) });
 
-    /// <summary>Creates a cancelled <see cref="Result{T}"/> with a single message and optional domain <see cref="ResultCode"/>.</summary>
-    public static Result<T> Cancel<T>(string reason, ResultCode? code, MessageType type = MessageType.Warning, IReadOnlyDictionary<string, object?>? metadata = null)
-        => new(Status.Cancelled, value: default, code: code, messages: new List<Message> { new(type, reason, metadata) });
+    /// <summary>
+    /// Creates a cancelled <see cref="Result{T}"/> with a single message and optional domain <see cref="ResultCode"/>.
+    /// </summary>
+    public static Result<T> Cancel<T>(string reason, ResultCode? code, MessageType type = MessageType.Warning,
+        IReadOnlyDictionary<string, object?>? metadata = null)
+        => new(Status.Cancelled, code: code, messages: new List<Message> { new(type, reason, metadata) });
 
 
     // -------- NotFound --------
@@ -177,11 +256,141 @@ public static class Results
 
     /// <summary>Creates a typed "not found" result. Defaults to Completed + Warning.</summary>
     public static Result<T> NotFound<T>(string message = "Resource not found.", Status status = Status.Completed)
-        => new(status, value: default, messages: new List<Message> { new(MessageType.Warning, message) });
+        => new(status, messages: new List<Message> { new(MessageType.Warning, message) });
 
-    /// <summary>Creates a typed "not found" result with optional domain <see cref="ResultCode"/>.</summary>
+    /// <summary>
+    /// Creates a typed "not found" result with optional domain <see cref="ResultCode"/>.
+    /// </summary>
     public static Result<T> NotFound<T>(string message, ResultCode? code, Status status = Status.Completed)
-        => new(status, value: default, code: code, messages: new List<Message> { new(MessageType.Warning, message) });
+        => new(status, code: code, messages: new List<Message> { new(MessageType.Warning, message) });
+
+    // -------- NoContent (untyped) --------
+
+    /// <summary>
+    /// Creates a result indicating the operation completed successfully
+    /// but there is no content to return.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="Result"/> with <see cref="Status.Completed"/> and no code/messages.
+    /// </returns>
+    public static Result NoContent() => Success();
+
+    /// <summary>
+    /// Creates a result indicating the operation completed successfully
+    /// but there is no content to return, with an optional domain <see cref="ResultCode"/>.
+    /// </summary>
+    /// <param name="code">Optional domain code (e.g., <c>ResultCodes.NoContent</c>).</param>
+    public static Result NoContent(ResultCode? code) => Success(code: code);
+
+    /// <summary>
+    /// Creates a result indicating the operation completed successfully
+    /// but there is no content to return, with messages.
+    /// </summary>
+    /// <param name="messages">Additional messages to include (e.g., informational context).</param>
+    public static Result NoContent(IReadOnlyList<Message> messages) => Success(messages: messages);
+
+    /// <summary>
+    /// Creates a result indicating the operation completed successfully
+    /// but there is no content to return, with messages and an optional domain <see cref="ResultCode"/>.
+    /// </summary>
+    /// <param name="messages">Additional messages to include.</param>
+    /// <param name="code">Optional domain code (e.g., <c>ResultCodes.NoContent</c>).</param>
+    public static Result NoContent(IReadOnlyList<Message> messages, ResultCode? code)
+        => Success(code: code, messages: messages);
+
+    /// <summary>
+    /// Creates a result indicating the operation completed successfully
+    /// but there is no content to return, with a single message.
+    /// </summary>
+    /// <param name="message">The description (defaults to <c>"No content."</c>).</param>
+    /// <param name="type">Message type (defaults to <see cref="MessageType.Information"/>).</param>
+    /// <param name="metadata">Optional metadata for the message.</param>
+    public static Result NoContent(
+        string message,
+        MessageType type = MessageType.Information,
+        IReadOnlyDictionary<string, object?>? metadata = null)
+        => Success(messages: new List<Message> { new(type, message, metadata) });
+
+    /// <summary>
+    /// Creates a result indicating the operation completed successfully
+    /// but there is no content to return, with a single message and an optional domain <see cref="ResultCode"/>.
+    /// </summary>
+    /// <param name="message">The description (e.g., reason for no content).</param>
+    /// <param name="code">Optional domain code (e.g., <c>ResultCodes.NoContent</c>).</param>
+    /// <param name="type">Message type (defaults to <see cref="MessageType.Information"/>).</param>
+    /// <param name="metadata">Optional metadata for the message.</param>
+    public static Result NoContent(
+        string message,
+        ResultCode? code,
+        MessageType type = MessageType.Information,
+        IReadOnlyDictionary<string, object?>? metadata = null)
+        => Success(code: code, messages: new List<Message> { new(type, message, metadata) });
+
+
+    // -------- NoContent (typed) --------
+
+    /// <summary>
+    /// Creates a typed result indicating the operation completed successfully
+    /// but there is no content to return.
+    /// </summary>
+    /// <typeparam name="T">The (absent) value type.</typeparam>
+    public static Result<T> NoContent<T>() => Success<T>();
+
+    /// <summary>
+    /// Creates a typed result indicating the operation completed successfully
+    /// but there is no content to return, with an optional domain <see cref="ResultCode"/>.
+    /// </summary>
+    /// <typeparam name="T">The (absent) value type.</typeparam>
+    /// <param name="code">Optional domain code (e.g., <c>ResultCodes.NoContent</c>).</param>
+    public static Result<T> NoContent<T>(ResultCode? code) => Success<T>(code: code);
+
+    /// <summary>
+    /// Creates a typed result indicating the operation completed successfully
+    /// but there is no content to return, with messages.
+    /// </summary>
+    /// <typeparam name="T">The (absent) value type.</typeparam>
+    /// <param name="messages">Additional messages to include (e.g., informational context).</param>
+    public static Result<T> NoContent<T>(IReadOnlyList<Message> messages) => Success<T>(messages: messages);
+
+    /// <summary>
+    /// Creates a typed result indicating the operation completed successfully
+    /// but there is no content to return, with messages and an optional domain <see cref="ResultCode"/>.
+    /// </summary>
+    /// <typeparam name="T">The (absent) value type.</typeparam>
+    /// <param name="messages">Additional messages to include.</param>
+    /// <param name="code">Optional domain code (e.g., <c>ResultCodes.NoContent</c>).</param>
+    public static Result<T> NoContent<T>(IReadOnlyList<Message> messages, ResultCode? code)
+        => Success<T>(messages: messages, code: code);
+
+    /// <summary>
+    /// Creates a typed result indicating the operation completed successfully
+    /// but there is no content to return, with a single message.
+    /// </summary>
+    /// <typeparam name="T">The (absent) value type.</typeparam>
+    /// <param name="message">The description (defaults to <c>"No content."</c>).</param>
+    /// <param name="type">Message type (defaults to <see cref="MessageType.Information"/>).</param>
+    /// <param name="metadata">Optional metadata for the message.</param>
+    public static Result<T> NoContent<T>(
+        string message,
+        MessageType type = MessageType.Information,
+        IReadOnlyDictionary<string, object?>? metadata = null)
+        => Success<T>(messages: new List<Message> { new(type, message, metadata) });
+
+    /// <summary>
+    /// Creates a typed result indicating the operation completed successfully
+    /// but there is no content to return, with a single message and an optional domain <see cref="ResultCode"/>.
+    /// </summary>
+    /// <typeparam name="T">The (absent) value type.</typeparam>
+    /// <param name="message">The description (e.g., reason for no content).</param>
+    /// <param name="code">Optional domain code (e.g., <c>ResultCodes.NoContent</c>).</param>
+    /// <param name="type">Message type (defaults to <see cref="MessageType.Information"/>).</param>
+    /// <param name="metadata">Optional metadata for the message.</param>
+    public static Result<T> NoContent<T>(
+        string message,
+        ResultCode? code,
+        MessageType type = MessageType.Information,
+        IReadOnlyDictionary<string, object?>? metadata = null)
+        => Success<T>(messages: new List<Message> { new(type, message, metadata) });
 
 
     // -------- Validation --------
@@ -284,11 +493,15 @@ public static class Results
         return failed.Count == 0 ? Success() : Failure(failed);
     }
 
-    /// <summary>Creates a <see cref="Result"/> based on a boolean condition.</summary>
+    /// <summary>
+    /// Creates a <see cref="Result"/> based on a boolean condition.
+    /// </summary>
     public static Result FromCondition(bool condition, string errorMessage)
         => condition ? Success() : Failure(errorMessage);
 
-    /// <summary>Creates a <see cref="Result{T}"/> based on a boolean condition.</summary>
+    /// <summary>
+    /// Creates a <see cref="Result{T}"/> based on a boolean condition.
+    /// </summary>
     public static Result<T> FromCondition<T>(bool condition, T value, string errorMessage)
         => condition ? Success(value) : Failure<T>(errorMessage);
 }
