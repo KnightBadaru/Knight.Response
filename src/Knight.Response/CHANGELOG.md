@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## \[Unreleased]
+## [Unreleased]
 
 ### Added
 
@@ -23,22 +23,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-preview04] - 2025-09-25
+
+### Added
+
+* New predicate helpers:
+
+    * `IsUnsuccessfulOrNull<T>()` – true if the result is unsuccessful or its value is `null`.
+    * `ValueIsNull<T>()` – explicit check for `Result<T>.Value == null`.
+* New `ResultCodes.NoContent` well-known code for transport-agnostic 204 scenarios.
+* Factory overloads:
+
+    * `Results.NoContent()` and typed/untyped variants with optional messages and codes.
+* Code helpers:
+
+    * `WithCode(ResultCode?)` – assign or override domain codes.
+    * `WithoutCode()` – clear any assigned code.
+    * `HasCode(ResultCode)` and `HasCode(string)` – check equality by instance or string value (case-insensitive).
+
+### Changed
+
+* Extended `ResultExtensions` with richer match semantics:
+
+    * `MatchValue` overloads for mapping to new results.
+    * `Match` overloads for typed/untyped results, with/without messages.
+* Documentation refinements across extensions for consistency.
+
+### Fixed
+
+* Improved unit test coverage for new extensions (`IsUnsuccessfulOrNull`, `Map`, `Match`).
+
+---
+
 ## [2.0.0-preview03] - 2025-09-22
 
 ### Added
 
 * Branching extensions
+
     * Match overloads (typed & untyped, with and without messages, returning value or void).
     * MatchValue overloads: convenience wrappers for producing new `Result/Result<T>` instances directly.
 
 * Predicates
+
     * `IsUnsuccessful()` – shorthand for `Status != Completed`.
     * `ValueIsNull<T>()` – true when `Result<T>.Value` is `null`.
 
 * Detail helpers
+
     * WithDetail(key, value) – attaches metadata to the last message, case-insensitive, immutable.
 
 ### Changed
+
 * Removed redundant `OnFailure<T>()` extension (duplicated logic of `OnFailure`).
 * Consolidated extension classes into a single `ResultExtensions` set for clarity.
 * Improved XML documentation across extensions for NuGet API docs.
@@ -159,3 +195,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [2.0.0-preview01]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview01
 [2.0.0-preview02]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview02
 [2.0.0-preview03]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview03
+[2.0.0-preview04]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview04

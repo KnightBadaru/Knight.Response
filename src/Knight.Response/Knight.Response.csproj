@@ -7,29 +7,14 @@
 
         <!-- NuGet metadata -->
         <PackageId>Knight.Response</PackageId>
-        <Version>2.0.0-preview03</Version>
+        <Version>2.0.0-preview04</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response</Title>
         <Description>Lightweight, immutable Result/Result&lt;T&gt; library with factories, functional extensions, and pattern matching for C# service layers.</Description>
         <PackageReleaseNotes>
-            Added:
-            - Branching extensions:
-            • `Match` overloads (typed &amp; untyped, with/without messages, returning value or void).
-            • `MatchValue` overloads for producing new Result/Result&lt;T&gt; instances directly.
-            - Predicates:
-            • `IsUnsuccessful()` – shorthand for Status != Completed.
-            • `ValueIsNull&lt;T&gt;()` – true when Result&lt;T&gt;.Value is null.
-            - Detail helpers:
-            • `WithDetail(key, value)` – attach metadata to the last message (case-insensitive, immutable).
-
-            Changed:
-            - Removed redundant `OnFailure&lt;T&gt;()` extension (duplicated logic of OnFailure).
-            - Consolidated extension classes into a single ResultExtensions set.
-            - Improved XML docs across extensions for clearer NuGet API documentation.
-
-            Fixed:
-            - Defensive metadata copy handling in `WithDetail`.
-            - `TryGetValidationResults` now consistently detects validation metadata.
+            - Added: `IsUnsuccessfulOrNull`, `HasCode` overloads, `WithCode`/`WithoutCode` helpers, `NoContent` factory, extended `ResultCodes`.
+            - Improved: XML docs, test coverage to reduce mutants.
+            - Fixed: Minor issues in extensions and message metadata handling.
         </PackageReleaseNotes>
         <PackageTags>result;response;functional;service-layer;error-handling;patterns;csharp</PackageTags>
         <RepositoryType>git</RepositoryType>

@@ -13,13 +13,13 @@
 * Immutable `Result` and `Result<T>` types
 * Statuses: `Completed`, `Cancelled`, `Failed`, `Error`
 * Optional `ResultCode` for domain/system-defined reasons
-* Built-in `ResultCodes` (ValidationFailed, NotFound, AlreadyExists, Created, Updated, etc.)
+* Built-in `ResultCodes` (ValidationFailed, NotFound, AlreadyExists, NoContent, Created, Updated, Deleted, etc.)
 * Rich `Message` with `MessageType` + optional structured `Metadata`
-* Factory methods: `Success`, `Failure`, `Error`, `Cancel`, `NotFound`, `FromCondition`, `Aggregate`, `Error(Exception)`
+* Factory methods: `Success`, `Failure`, `Error`, `Cancel`, `NotFound`, `NoContent`, `FromCondition`, `Aggregate`, `Error(Exception)`
 * Functional extensions: `OnSuccess`, `OnFailure`, `Map`, `Bind`
-* Advanced extensions: `Ensure`, `Tap`, `Recover`, `WithCode`, `WithMessage`, `WithMessages`, `WithDetail`
+* Advanced extensions: `Ensure`, `Tap`, `Recover`, `WithCode`, `WithoutCode`, `WithMessage`, `WithMessages`, `WithDetail`
 * Branching: `Match`, `MatchValue` for expressive success/failure/null handling
-* Predicates: `IsSuccess`, `IsFailure`, `IsError`, `IsCancelled`, `IsUnsuccessful`, `ValueIsNull`
+* Predicates: `IsSuccess`, `IsFailure`, `IsError`, `IsCancelled`, `IsUnsuccessful`, `IsUnsuccessfulOrNull`, `ValueIsNull`
 * Validation helpers: `TryGetValidationResults`, `GetValidationResults`
 * Pattern matching via deconstruction
 * Zero runtime dependencies
@@ -29,7 +29,7 @@
 ## Installation
 
 ```bash
-dotnet add package Knight.Response --version 2.0.0-preview03
+dotnet add package Knight.Response --version 2.0.0-preview04
 ```
 
 ---
@@ -48,7 +48,7 @@ if (userResult.IsSuccess())
 {
     Console.WriteLine(userResult.Value!.Name);
 }
-else if (userResult.HasCode(ResultCodes.ValidationFailed.Value))
+else if (userResult.HasCode(ResultCodes.ValidationFailed))
 {
     Console.WriteLine("Validation failed");
 }
@@ -106,21 +106,21 @@ var msg = new Message(
 
 ## Factory Methods
 
-| Method                                                               | Description                                       |
-| -------------------------------------------------------------------- | ------------------------------------------------- |
-| `Results.Success()`                                                  | Create a success result                           |
-| `Results.Success<T>(T value)`                                        | Success result with data                          |
-| `Results.Success<T>(T value, IReadOnlyList<Message> messages)`       | Success with value and messages                   |
-| `Results.Failure(string reason, ResultCode? code = null)`            | Failure result with message + optional code       |
-| `Results.Failure(IReadOnlyList<Message> messages)`                   | Failure from messages                             |
-| `Results.Error(string reason, ResultCode? code = null)`              | Error result                                      |
-| `Results.Error(Exception ex)`                                        | Error result from exception                       |
-| `Results.Cancel(string reason)`                                      | Cancelled result (defaults to `Warning`)          |
-| `Results.Cancel(IReadOnlyList<Message> messages)`                    | Cancelled from messages                           |
-| `Results.NotFound()`                                                 | "Not found" (defaults to `Completed` + `Warning`) |
-| `Results.NotFound(string message, Status status = Status.Completed)` | "Not found" with override status                  |
-| `Results.FromCondition(bool condition, string failMessage)`          | Success if true, Failure if false                 |
-| `Results.Aggregate(IEnumerable<Result> results)`                     | Combine multiple results                          |
+| Method                                                         | Description                                       |
+| -------------------------------------------------------------- | ------------------------------------------------- |
+| `Results.Success()`                                            | Create a success result                           |
+| `Results.Success<T>(T value)`                                  | Success result with data                          |
+| `Results.Success<T>(T value, IReadOnlyList<Message> messages)` | Success with value and messages                   |
+| `Results.Failure(string reason, ResultCode? code = null)`      | Failure result with message + optional code       |
+| `Results.Failure(IReadOnlyList<Message> messages)`             | Failure from messages                             |
+| `Results.Error(string reason, ResultCode? code = null)`        | Error result                                      |
+| `Results.Error(Exception ex)`                                  | Error result from exception                       |
+| `Results.Cancel(string reason)`                                | Cancelled result (defaults to `Warning`)          |
+| `Results.Cancel(IReadOnlyList<Message> messages)`              | Cancelled from messages                           |
+| `Results.NotFound()`                                           | "Not found" (defaults to `Completed` + `Warning`) |
+| `Results.NoContent()`                                          | "No content" (defaults to `Completed`)            |
+| `Results.FromCondition(bool condition, string failMessage)`    | Success if true, Failure if false                 |
+| `Results.Aggregate(IEnumerable<Result> results)`               | Combine multiple results                          |
 
 ---
 
@@ -135,7 +135,7 @@ var mapped = Results.Success(2).Map(x => x * 5); // Success(10)
 var bound = Results.Success("abc").Bind(v => Results.Success(v.ToUpper()));
 ```
 
-* **IsSuccess / IsFailure / IsError / IsCancelled / IsUnsuccessful**
+* **IsSuccess / IsFailure / IsError / IsCancelled / IsUnsuccessful / IsUnsuccessfulOrNull**
 * **OnSuccess** – Runs an action if result is success
 * **OnFailure** – Runs an action if result is not success
 * **Map** – Transforms the value if success
@@ -148,7 +148,7 @@ var bound = Results.Success("abc").Bind(v => Results.Success(v.ToUpper()));
 * **Ensure** – Ensures a predicate holds for success; otherwise returns failure
 * **Tap** – Executes an action for side effects, preserving the result
 * **Recover** – Transforms a failure into a success with fallback value
-* **WithCode** – Adds or replaces a `ResultCode`
+* **WithCode / WithoutCode** – Adds, replaces, or clears a `ResultCode`
 * **WithMessage** – Adds a single message to a result
 * **WithMessages** – Adds multiple messages to a result
 * **WithDetail** – Attaches structured metadata to the last message
@@ -172,8 +172,8 @@ if (recovered.ValueIsNull())
 var result = Results.Failure<int>("Not valid", code: ResultCodes.ValidationFailed);
 
 result.Match(
-    onSuccess: v => Console.WriteLine($"Value: {v}"),
-    onFailure: msgs => Console.WriteLine($"Failed: {string.Join(", ", msgs.Select(m => m.Content))}")
+    onUnsuccessful: msgs => Console.WriteLine($"Failed: {string.Join(", ", msgs.Select(m => m.Content))}"),
+    onSuccess: () => Console.WriteLine("All good!")
 );
 ```
 
@@ -181,8 +181,9 @@ result.Match(
 
 ```csharp
 var processed = result.MatchValue(
-    onSuccess: v => Results.Success(v * 10),
-    onFailure: msgs => Results.Failure<int>("Could not process further")
+    onUnsuccessful: msgs => Results.Failure<int>("Could not process further"),
+    onNoValue: () => Results.NoContent<int>(),
+    onValue: v => Results.Success(v * 10)
 );
 ```
 
