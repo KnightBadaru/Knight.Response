@@ -1,3 +1,4 @@
+using Knight.Response.Abstractions.Http.Resolution;
 using Knight.Response.Core;
 using Knight.Response.Extensions;
 using Knight.Response.Mvc.Options;
@@ -143,35 +144,46 @@ public static class ApiResults
     private static IActionResult BuildSuccessOrFailure(HttpContext? http, int statusCode, Result result, string? location = null)
     {
         var opts = Resolve(http);
+        var resolved = ResultHttpResolver.ResolveHttpCode(result, opts);
+
         if (result.IsUnsuccessful())
         {
-            if (statusCode < StatusCodes.Status400BadRequest)
+            if (!IsExplicitFailureCode(statusCode))
             {
-                statusCode = opts.StatusCodeResolver(result.Status);
+                statusCode = resolved; // ensure proper 4xx/5xx
             }
 
             if (opts.UseProblemDetails && http is not null)
             {
-                // Centralised ProblemDetails formatting
                 return ProblemFactory.FromResult(http, opts, result, statusCode);
             }
 
-            // Simple fallback: return messages with the requested status.
-            return new ObjectResult(opts.IncludeFullResultPayload ? result : result.Messages) { StatusCode = statusCode };
+            return new ObjectResult(opts.IncludeFullResultPayload ? result : result.Messages)
+            {
+                StatusCode = statusCode
+            };
         }
 
-        // NoContent
+        // success path
+        if (IsDefaultSuccessCode(statusCode))
+        {
+            statusCode = resolved; // e.g., 204 when Code == NoContent, else 200
+        }
+
         if (statusCode == StatusCodes.Status204NoContent)
         {
             return new ObjectResult(null) { StatusCode = StatusCodes.Status204NoContent };
         }
 
-        if (http is not null)
+        if (http is not null && !string.IsNullOrEmpty(location))
         {
             http.Response.Headers["Location"] = location;
         }
 
-        return new ObjectResult(opts.IncludeFullResultPayload ? result : null) { StatusCode = statusCode };
+        return new ObjectResult(opts.IncludeFullResultPayload ? result : null)
+        {
+            StatusCode = statusCode
+        };
     }
 
     /// <summary>
@@ -181,30 +193,38 @@ public static class ApiResults
     private static IActionResult BuildSuccessOrFailure<T>(HttpContext? http, int statusCode, Result<T> result, string? location = null)
     {
         var opts = Resolve(http);
+        var resolved = ResultHttpResolver.ResolveHttpCode(result, opts);
+
         if (result.IsUnsuccessful())
         {
-            if (statusCode < StatusCodes.Status400BadRequest)
+            if (!IsExplicitFailureCode(statusCode))
             {
-                statusCode = opts.StatusCodeResolver(result.Status);
+                statusCode = resolved; // ensure proper 4xx/5xx
             }
 
             if (opts.UseProblemDetails && http is not null)
             {
-                // Centralised ProblemDetails formatting
                 return ProblemFactory.FromResult(http, opts, result, statusCode);
             }
 
-            // Simple fallback: return messages with the requested status.
-            return new ObjectResult(opts.IncludeFullResultPayload ? result : result.Messages) { StatusCode = statusCode };
+            return new ObjectResult(opts.IncludeFullResultPayload ? result : result.Messages)
+            {
+                StatusCode = statusCode
+            };
         }
 
-        // NoContent
+        // success path
+        if (IsDefaultSuccessCode(statusCode))
+        {
+            statusCode = resolved; // e.g., 204 when Code == NoContent, else 200
+        }
+
         if (statusCode == StatusCodes.Status204NoContent)
         {
             return new ObjectResult(null) { StatusCode = StatusCodes.Status204NoContent };
         }
 
-        if (http is not null)
+        if (http is not null && !string.IsNullOrEmpty(location))
         {
             http.Response.Headers["Location"] = location;
         }
@@ -228,5 +248,17 @@ public static class ApiResults
 
         var opt = http.RequestServices.GetService<IOptions<KnightResponseOptions>>()?.Value;
         return opt ?? new KnightResponseOptions();
+    }
+
+    private static bool IsExplicitFailureCode(int statusCode)
+    {
+        // Any explicit 4xx or 5xx code counts as “explicit failure”
+        return statusCode >= StatusCodes.Status400BadRequest;
+    }
+
+    private static bool IsDefaultSuccessCode(int statusCode)
+    {
+        // Treat 0 (unset) and 200 OK as “default success”
+        return statusCode == 0 || statusCode == StatusCodes.Status200OK;
     }
 }

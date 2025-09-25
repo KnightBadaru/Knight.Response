@@ -1,4 +1,5 @@
-﻿using Knight.Response.Core;
+﻿using Knight.Response.Abstractions.Http.Resolution;
+using Knight.Response.Core;
 using Knight.Response.Factories;
 using Knight.Response.Models;
 using Knight.Response.Mvc.Extensions;
@@ -82,7 +83,11 @@ public class ResultExtensionsTests
     public void ToOkActionResult_Generic_Failure_EmitsProblemDetails_WhenEnabled()
     {
         // Arrange
-        var opts = new KnightResponseOptions { UseProblemDetails = true };
+        var opts = new KnightResponseOptions
+        {
+            UseProblemDetails = true ,
+            StatusCodeResolver = KnightResponseHttpDefaults.StatusToHttp
+        };
         const string content = "oops";
         var result = Results.Error<Widget>(new List<Message> { new(MessageType.Error, content) });
         var http   = TestHost.CreateHttpContext(opts);
@@ -109,7 +114,7 @@ public class ResultExtensionsTests
         var action = result.ToOkActionResult(http: null);
 
         // Assert
-        var status = new KnightResponseOptions().StatusCodeResolver(result.Status);
+        var status = KnightResponseHttpDefaults.StatusToHttp(result.Status);
         var objectResult = action.ShouldBeOfType<ObjectResult>();
         objectResult.StatusCode.ShouldBe(status);
         objectResult.Value.ShouldNotBeNull();
@@ -140,7 +145,11 @@ public class ResultExtensionsTests
     public void ToCreatedActionResult_Failure_EmitsProblemDetails_WhenEnabled()
     {
         // Arrange
-        var opts = new KnightResponseOptions { UseProblemDetails = true };
+        var opts = new KnightResponseOptions
+        {
+            UseProblemDetails = true,
+            StatusCodeResolver = KnightResponseHttpDefaults.StatusToHttp
+        };
         const string content = "cannot create";
         var result = Results.Error(new List<Message> { new(MessageType.Error, content) });
         var http   = TestHost.CreateHttpContext(opts);
@@ -189,7 +198,7 @@ public class ResultExtensionsTests
         // Assert
         var objectResult = action.ShouldBeOfType<ObjectResult>();
         objectResult.StatusCode.ShouldNotBeNull();
-        var status = opts.StatusCodeResolver(result.Status);
+        var status = KnightResponseHttpDefaults.StatusToHttp(result.Status);
         objectResult.StatusCode?.ShouldBeGreaterThanOrEqualTo(status);
         var problem = objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
         problem.Title.ShouldBe(content);

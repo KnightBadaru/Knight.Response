@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ---
 
-## \[Unreleased]
+## [Unreleased]
 
 ### Added
 
@@ -19,6 +19,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 ### Fixed
 
 * Nothing yet.
+
+---
+
+## [2.0.0-preview03] - 2025-09-25
+
+### Changed
+
+* **Centralized HTTP resolution:** `ApiResults` now delegates all status code resolution to `ResultHttpResolver` from **Knight.Response.Abstractions.Http**.
+* **Cleaner implementation:** Duplicate inline logic for mapping `Result.Status` and `Result.Code` has been removed in favor of `ResultHttpResolver.ResolveHttpCode(...)`.
+* **Consistent handling:** Both generic and non-generic `BuildSuccessOrFailure` methods now share the same resolution pipeline.
 
 ---
 
@@ -55,9 +65,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 ---
 
 ## [1.0.0] - 2025-09-14
+
 ### Changed
 
-* Promoted to stable release. 
+* Promoted to stable release.
 * No API changes since `0.1.0`; only documentation refinements and readiness validation.
 
 ---
@@ -80,3 +91,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 [1.0.0]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v1.0.0
 [2.0.0-preview01]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview01
 [2.0.0-preview02]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview02
+[2.0.0-preview03]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview03

@@ -7,14 +7,15 @@
         <LangVersion>latest</LangVersion>
         
         <PackageId>Knight.Response.Mvc</PackageId>
-        <Version>2.0.0-preview02</Version>
+        <Version>2.0.0-preview03</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response.Mvc</Title>
         <Description>ASP.NET MVC / Web API 2 adapters for Knight.Response — convert Result/Result&lt;T&gt; to IActionResult/IHttpActionResult with optional RFC7807 ProblemDetails.</Description>
         <PackageReleaseNotes>
-            Changed:
-            - Dependency update: Microsoft.AspNetCore.Mvc downgraded from 2.3.0 → 2.2.0 for compatibility.
-            - Clarified documentation: package references IActionResult, ObjectResult, ProblemDetails, and HttpContext types for response composition; no ASP.NET Core runtime required.
+            - Now uses ResultHttpResolver (CodeToHttp first, then Status fallback).
+            - Honors codes like NoContent/NotFound; upgrades default 200→204 when applicable.
+            - ProblemDetails path unchanged; validation mapper resolved per-request.
+            - Updated deps: Core 2.0.0-preview04
         </PackageReleaseNotes>
         <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
@@ -35,7 +36,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Knight.Response.Abstractions.Http" Version="2.0.0-preview01" />
+        <PackageReference Include="Knight.Response.Abstractions.Http" Version="2.0.0-preview02" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0"/>
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="All" />

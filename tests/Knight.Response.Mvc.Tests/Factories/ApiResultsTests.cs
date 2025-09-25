@@ -1,4 +1,5 @@
 using System.Reflection;
+using Knight.Response.Abstractions.Http.Resolution;
 using Knight.Response.Core;
 using Knight.Response.Extensions;
 using Knight.Response.Factories;
@@ -118,7 +119,7 @@ public class ApiResultsTests
     {
         // Arrange
         var result = Results.Failure("bad");
-        var opts = new KnightResponseOptions();
+        var opts = new KnightResponseOptions { StatusCodeResolver = KnightResponseHttpDefaults.StatusToHttp };
         var statusCode = opts.StatusCodeResolver(result.Status);
 
         // Act
@@ -135,7 +136,7 @@ public class ApiResultsTests
     {
         // Arrange
         var result = Results.Failure<Widget>("bad");
-        var opts = new KnightResponseOptions();
+        var opts = new KnightResponseOptions{ StatusCodeResolver = KnightResponseHttpDefaults.StatusToHttp };
         var statusCode = opts.StatusCodeResolver(result.Status);
 
         // Act
@@ -252,7 +253,8 @@ public class ApiResultsTests
         // Arrange
         var opts = new KnightResponseOptions
         {
-            UseProblemDetails = true
+            UseProblemDetails = true,
+            StatusCodeResolver = KnightResponseHttpDefaults.StatusToHttp
         };
         var http = TestHost.CreateHttpContext(opts);
         var result = Results.Failure("queued-but-invalid");
@@ -346,7 +348,8 @@ public class ApiResultsTests
         // Arrange
         var opts = new KnightResponseOptions
         {
-            UseProblemDetails = true
+            UseProblemDetails = true,
+            StatusCodeResolver = KnightResponseHttpDefaults.StatusToHttp
         };
         var http = TestHost.CreateHttpContext(opts);
         var result = Results.Failure("cannot-complete");
