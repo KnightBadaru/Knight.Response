@@ -3,6 +3,7 @@ using Knight.Response.AspNetCore.Factories;
 using Knight.Response.AspNetCore.Options;
 using Knight.Response.AspNetCore.Tests.Infrastructure;
 using Knight.Response.Core;
+using Knight.Response.Extensions;
 using Knight.Response.Models;
 using Microsoft.AspNetCore.Http;
 using Shouldly;
@@ -62,7 +63,7 @@ public class ApiResultsTests
 
             result.ShouldNotBeNull();
             result.Value.ShouldBe(value);
-            result.IsSuccess.ShouldBeTrue();
+            result.IsSuccess().ShouldBeTrue();
             result.Status.ShouldBe(Status.Completed);
         }
         else

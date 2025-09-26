@@ -44,4 +44,17 @@ public class Result(Status status, ResultCode? code = null, IReadOnlyList<Messag
         status = Status;
         messages = Messages;
     }
+
+    /// <summary>
+    /// Deconstructs this result into its <see cref="Status"/>, optional <see cref="ResultCode"/>, and <see cref="Messages"/>.
+    /// </summary>
+    /// <param name="status">The operation outcome.</param>
+    /// <param name="code">The optional domain code, or <c>null</c> if none.</param>
+    /// <param name="messages">The list of messages (empty if none).</param>
+    public void Deconstruct(out Status status, out ResultCode? code, out IReadOnlyList<Message> messages)
+    {
+        status = Status;
+        code = Code;
+        messages = Messages;
+    }
 }

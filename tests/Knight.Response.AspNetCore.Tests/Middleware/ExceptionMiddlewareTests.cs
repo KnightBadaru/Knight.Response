@@ -68,8 +68,6 @@ public class ExceptionMiddlewareTests
         http.Response.Body.Seek(0, SeekOrigin.Begin);
         var body = await new StreamReader(http.Response.Body).ReadToEndAsync();
 
-        // logger.Received().Log(LogLevel.Error,Arg.Any<Exception?>(), Arg.Any<string>(), Arg.Any<object?[]>());
-
         body.ShouldContain("Unhandled exception:");
         body.ShouldContain("bad");
 

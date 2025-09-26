@@ -7,12 +7,9 @@ using Shouldly;
 
 namespace Knight.Response.Tests.Factories;
 
-public class ValidationResultsTests
+public class ValidationTests
 {
     const string ValidationResult = "ValidationResult";
-    // -------------------------------
-    // Non-generic Results.Validation
-    // -------------------------------
 
     [Fact]
     public void Validation_NullCollection_ReturnsSuccess_NoMessages()
@@ -21,7 +18,7 @@ public class ValidationResultsTests
         IEnumerable<ValidationResult>? errors = null;
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.ShouldNotBeNull();
@@ -37,7 +34,7 @@ public class ValidationResultsTests
         var errors = Array.Empty<ValidationResult>();
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeTrue();
@@ -55,7 +52,7 @@ public class ValidationResultsTests
         };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -77,7 +74,7 @@ public class ValidationResultsTests
         };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -97,7 +94,7 @@ public class ValidationResultsTests
         };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -118,7 +115,7 @@ public class ValidationResultsTests
         };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -138,7 +135,7 @@ public class ValidationResultsTests
         };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -160,7 +157,7 @@ public class ValidationResultsTests
         string? secondFieldSeen = null;
 
         // Act
-        var result = Results.Validation(
+        var result = Results.ValidationFailure(
             errors,
             (msg, field) =>
             {
@@ -194,7 +191,7 @@ public class ValidationResultsTests
         };
 
         // Act
-        var result = Results.Validation(
+        var result = Results.ValidationFailure(
             errors,
             (msg, _) => msg // no enrichment; verify base text is raw, not prefixed
         );
@@ -205,9 +202,7 @@ public class ValidationResultsTests
         result.Messages[0].Content.ShouldBe("Name is required."); // no "Name: " prefix
     }
 
-    // --------------------------------
-    // Generic Results.Validation<T>
-    // --------------------------------
+    // ---------- Type ----------
 
     [Fact]
     public void ValidationT_NullCollection_ReturnsSuccess_DefaultValue()
@@ -216,7 +211,7 @@ public class ValidationResultsTests
         IEnumerable<ValidationResult>? errors = null;
 
         // Act
-        var result = Results.Validation<Widget>(errors);
+        var result = Results.ValidationFailure<Widget>(errors);
 
         // Assert
         result.IsSuccess().ShouldBeTrue();
@@ -231,7 +226,7 @@ public class ValidationResultsTests
         var errors = Enumerable.Empty<ValidationResult>();
 
         // Act
-        var result = Results.Validation<Widget>(errors);
+        var result = Results.ValidationFailure<Widget>(errors);
 
         // Assert
         result.IsSuccess().ShouldBeTrue();
@@ -250,7 +245,7 @@ public class ValidationResultsTests
         };
 
         // Act
-        var result = Results.Validation<Widget>(errors);
+        var result = Results.ValidationFailure<Widget>(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -271,7 +266,7 @@ public class ValidationResultsTests
         string? capturedField = null;
 
         // Act
-        var result = Results.Validation<Widget>(
+        var result = Results.ValidationFailure<Widget>(
             errors,
             (msg, field) =>
             {
@@ -298,7 +293,7 @@ public class ValidationResultsTests
         };
 
         // Act
-        var result = Results.Validation<Widget>(errors);
+        var result = Results.ValidationFailure<Widget>(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -313,7 +308,7 @@ public class ValidationResultsTests
         IEnumerable<ValidationResult>? errors = null;
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeTrue();
@@ -327,7 +322,7 @@ public class ValidationResultsTests
         var errors = new[] { new ValidationResult("Boom", ["Field"]) };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -344,7 +339,7 @@ public class ValidationResultsTests
         };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -361,7 +356,7 @@ public class ValidationResultsTests
         };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -377,7 +372,7 @@ public class ValidationResultsTests
         var errors = new List<ValidationResult> { vr };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -399,7 +394,7 @@ public class ValidationResultsTests
         var errors = new List<ValidationResult> { vr };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -420,7 +415,7 @@ public class ValidationResultsTests
         var errors = new List<ValidationResult> { vr1, vr2 };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -438,7 +433,7 @@ public class ValidationResultsTests
         var errors = new List<ValidationResult> { vr };
 
         // Act
-        var result = Results.Validation(errors);
+        var result = Results.ValidationFailure(errors);
 
         // Assert
         var meta = result.Messages[0].Metadata;
@@ -457,7 +452,7 @@ public class ValidationResultsTests
         var calls = 0;
 
         // Act
-        var result = Results.Validation(errors, (m, _) => { calls++; return m; });
+        var result = Results.ValidationFailure(errors, (m, _) => { calls++; return m; });
 
         // Assert
         result.IsSuccess().ShouldBeTrue();                // Success branch hit
@@ -471,7 +466,7 @@ public class ValidationResultsTests
         var calls = 0;
 
         // Act
-        var result = Results.Validation(new List<ValidationResult>(), (m, _) =>
+        var result = Results.ValidationFailure(new List<ValidationResult>(), (m, _) =>
         {
             calls++;
             return m;
@@ -493,7 +488,7 @@ public class ValidationResultsTests
         var calls = 0;
 
         // Act
-        var result = Results.Validation(errors, (m, _) => { calls++; return m; });
+        var result = Results.ValidationFailure(errors, (m, _) => { calls++; return m; });
 
         // Assert
         result.IsSuccess().ShouldBeFalse();                       // Error branch hit
@@ -513,7 +508,7 @@ public class ValidationResultsTests
         var calls = 0;
 
         // Act
-        var result = Results.Validation(errors, (m, _) => { calls++; return m; });
+        var result = Results.ValidationFailure(errors, (m, _) => { calls++; return m; });
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -531,7 +526,7 @@ public class ValidationResultsTests
         var calls = 0;
 
         // Act
-        var result = Results.Validation<Widget>(errors, (m, _) => { calls++; return m; });
+        var result = Results.ValidationFailure<Widget>(errors, (m, _) => { calls++; return m; });
 
         // Assert
         result.IsSuccess().ShouldBeTrue();                // Success branch
@@ -546,7 +541,7 @@ public class ValidationResultsTests
         var calls = 0;
 
         // Act
-        var result = Results.Validation<Widget>(new List<ValidationResult>(), (m, _) =>
+        var result = Results.ValidationFailure<Widget>(new List<ValidationResult>(), (m, _) =>
         {
             calls++;
             return m;
@@ -569,11 +564,32 @@ public class ValidationResultsTests
         var calls = 0;
 
         // Act
-        var result = Results.Validation<Widget>(errors, (m, _) => { calls++; return m; });
+        var result = Results.ValidationFailure<Widget>(errors, (m, _) => { calls++; return m; });
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
         result.Messages.Count.ShouldBe(1);
         calls.ShouldBe(1);
+    }
+
+    [Fact]
+    public void ValidationFailed_Defaults_To_ValidationFailed_Code()
+    {
+        // Arrange
+        var result = Results.ValidationFailure("oops");
+
+        // Act & Assert
+        result.Code.ShouldBe(ResultCodes.ValidationFailed);
+    }
+
+    [Fact]
+    public void ValidationFailed_Can_Be_Overridden_With_Custom_Code()
+    {
+        // Arrange
+        var custom = new ResultCode("CustomCode");
+        var result = Results.ValidationFailure("oops", custom);
+
+        // Act & Assert
+        result.Code.ShouldBe(custom);
     }
 }

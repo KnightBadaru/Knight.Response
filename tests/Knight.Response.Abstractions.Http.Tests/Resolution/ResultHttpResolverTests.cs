@@ -19,7 +19,7 @@ public class ResultHttpResolverTests
         // Arrange
         var opts = new KnightResponseBaseOptions<object, object, object>
         {
-            CodeToHttp = c => c?.Value == ResultCodes.NotFound.Value ? 404 : (int?)null,
+            CodeToHttp = c => c?.Value == ResultCodes.NotFound.Value ? 404 : null,
             // Status fallback won't be hit
         };
         var result = Results.Failure("nope").WithCode(ResultCodes.NotFound);
@@ -95,7 +95,7 @@ public class ResultHttpResolverTests
         // Arrange
         var opts = new KnightResponseBaseOptions<object, object, object>
         {
-            CodeToHttp = c => c?.Value == ResultCodes.AlreadyExists.Value ? 409 : (int?)null
+            CodeToHttp = c => c?.Value == ResultCodes.AlreadyExists.Value ? 409 : null
         };
         var result = Results.Failure<int>("exists").WithCode(ResultCodes.AlreadyExists);
 
@@ -197,5 +197,41 @@ public class ResultHttpResolverTests
 
         // Assert
         mapped.ShouldBe(expected);
+    }
+
+    [Fact]
+    public void CodeToHttp_Takes_Precedence_When_Returns_NonNull()
+    {
+        // Arrange
+        var opts = new KnightResponseBaseOptions<object, object, object>
+        {
+            CodeToHttp = c => c?.Value == ResultCodes.NotFound.Value ? 404 : null,
+            StatusCodeResolver = s => s == Status.Error ? 500 : 200
+        };
+        var result = Results.NotFound().WithCode(ResultCodes.NotFound);
+
+        // Act
+        var code = ResultHttpResolver.ResolveHttpCode(result, opts);
+
+        // Assert
+        code.ShouldBe(404);
+    }
+
+    [Fact]
+    public void Falls_Back_To_Status_When_CodeToHttp_Null_Or_Returns_Null()
+    {
+        // Arrange
+        var opts = new KnightResponseBaseOptions<object, object, object>
+        {
+            CodeToHttp = _ => null,
+            StatusCodeResolver = KnightResponseHttpDefaults.StatusToHttp
+        };
+        var result = Results.Error("boom");
+
+        // Act
+        var code = ResultHttpResolver.ResolveHttpCode(result, opts);
+
+        // Assert
+        code.ShouldBe(500);
     }
 }

@@ -23,6 +23,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-preview05] - 2025-09-26
+
+### Added
+
+* New value-check helpers:
+
+    * `ValueIsNullOrEmpty<T>()` – true if a collection is null or empty.
+    * `ValueIsNullOrWhiteSpace()` – true if a string value is null/empty/whitespace.
+* Factory methods for well-known codes now default their `ResultCode`:
+
+    * `Results.NotFound(...)` defaults to `ResultCodes.NotFound`.
+    * `Results.NoContent(...)` defaults to `ResultCodes.NoContent`.
+    * New specialized factories: `Results.Created(...)`, `Results.Updated(...)`, `Results.Deleted(...)`.
+* Validation helpers:
+
+    * Consolidated into `ValidationFailure(...)` with overloads supporting messages, lists, and typed/untyped results.
+    * Defaults to `ResultCodes.ValidationFailed` if no code is provided.
+
+### Changed
+
+* Factories now consistently leverage existing `Failure(...)` / `Error(...)` + `.WithCode(...)` instead of raw constructors for better immutability and consistency.
+* Expanded XML documentation across new helpers and factories.
+
+### Fixed
+
+* Improved Stryker mutation coverage:
+
+    * Additional tests for `WithDetail` (case-insensitive key replacement).
+    * Tests for `Match`, `Map`, and `Recover` edge cases.
+    * Coverage for validation and metadata enrichment paths.
+
+---
+
 ## [2.0.0-preview04] - 2025-09-25
 
 ### Added
@@ -196,3 +229,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [2.0.0-preview02]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview02
 [2.0.0-preview03]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview03
 [2.0.0-preview04]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview04
+[2.0.0-preview05]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview05

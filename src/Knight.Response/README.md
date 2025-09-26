@@ -13,14 +13,14 @@
 * Immutable `Result` and `Result<T>` types
 * Statuses: `Completed`, `Cancelled`, `Failed`, `Error`
 * Optional `ResultCode` for domain/system-defined reasons
-* Built-in `ResultCodes` (ValidationFailed, NotFound, AlreadyExists, NoContent, Created, Updated, Deleted, etc.)
+* Built-in `ResultCodes` (ValidationFailed, NotFound, AlreadyExists, NoContent, Created, Updated, Deleted, NotSupported, ServiceUnavailable, etc.)
 * Rich `Message` with `MessageType` + optional structured `Metadata`
-* Factory methods: `Success`, `Failure`, `Error`, `Cancel`, `NotFound`, `NoContent`, `FromCondition`, `Aggregate`, `Error(Exception)`
+* Factory methods: `Success`, `Failure`, `Error`, `Cancel`, `NotFound`, `NoContent`, `Created`, `Updated`, `Deleted`, `FromCondition`, `Aggregate`
 * Functional extensions: `OnSuccess`, `OnFailure`, `Map`, `Bind`
 * Advanced extensions: `Ensure`, `Tap`, `Recover`, `WithCode`, `WithoutCode`, `WithMessage`, `WithMessages`, `WithDetail`
 * Branching: `Match`, `MatchValue` for expressive success/failure/null handling
-* Predicates: `IsSuccess`, `IsFailure`, `IsError`, `IsCancelled`, `IsUnsuccessful`, `IsUnsuccessfulOrNull`, `ValueIsNull`
-* Validation helpers: `TryGetValidationResults`, `GetValidationResults`
+* Predicates: `IsSuccess`, `IsFailure`, `IsError`, `IsCancelled`, `IsUnsuccessful`, `IsUnsuccessfulOrNull`, `ValueIsNull`, `ValueIsNullOrEmpty`, `ValueIsNullOrWhiteSpace`
+* Validation helpers: `ValidationFailure`, `TryGetValidationResults`, `GetValidationResults`
 * Pattern matching via deconstruction
 * Zero runtime dependencies
 
@@ -29,7 +29,7 @@
 ## Installation
 
 ```bash
-dotnet add package Knight.Response --version 2.0.0-preview04
+dotnet add package Knight.Response --version 2.0.0-preview05
 ```
 
 ---
@@ -106,21 +106,21 @@ var msg = new Message(
 
 ## Factory Methods
 
-| Method                                                         | Description                                       |
-| -------------------------------------------------------------- | ------------------------------------------------- |
-| `Results.Success()`                                            | Create a success result                           |
-| `Results.Success<T>(T value)`                                  | Success result with data                          |
-| `Results.Success<T>(T value, IReadOnlyList<Message> messages)` | Success with value and messages                   |
-| `Results.Failure(string reason, ResultCode? code = null)`      | Failure result with message + optional code       |
-| `Results.Failure(IReadOnlyList<Message> messages)`             | Failure from messages                             |
-| `Results.Error(string reason, ResultCode? code = null)`        | Error result                                      |
-| `Results.Error(Exception ex)`                                  | Error result from exception                       |
-| `Results.Cancel(string reason)`                                | Cancelled result (defaults to `Warning`)          |
-| `Results.Cancel(IReadOnlyList<Message> messages)`              | Cancelled from messages                           |
-| `Results.NotFound()`                                           | "Not found" (defaults to `Completed` + `Warning`) |
-| `Results.NoContent()`                                          | "No content" (defaults to `Completed`)            |
-| `Results.FromCondition(bool condition, string failMessage)`    | Success if true, Failure if false                 |
-| `Results.Aggregate(IEnumerable<Result> results)`               | Combine multiple results                          |
+| Method                                                      | Description                                                         |
+|-------------------------------------------------------------|---------------------------------------------------------------------|
+| `Results.Success()`                                         | Create a success result                                             |
+| `Results.Success<T>(T value)`                               | Success result with data                                            |
+| `Results.Failure(string reason, ResultCode? code = null)`   | Failure result with message + optional code                         |
+| `Results.Error(Exception ex)`                               | Error result from exception                                         |
+| `Results.Cancel(string reason)`                             | Cancelled result (defaults to `Warning`)                            |
+| `Results.NotFound()`                                        | Not found (defaults `Code = ResultCodes.NotFound`)                  |
+| `Results.NoContent()`                                       | No content (defaults `Code = ResultCodes.NoContent`)                |
+| `Results.Created()`                                         | Created (defaults `Code = ResultCodes.Created`)                     |
+| `Results.Updated()`                                         | Updated (defaults `Code = ResultCodes.Updated`)                     |
+| `Results.Deleted()`                                         | Deleted (defaults `Code = ResultCodes.Deleted`)                     |
+| `Results.ValidationFailure()`                               | Validation failure (defaults `Code = ResultCodes.ValidationFailed`) |
+| `Results.FromCondition(bool condition, string failMessage)` | Success if true, Failure if false                                   |
+| `Results.Aggregate(IEnumerable<Result> results)`            | Combine multiple results                                            |
 
 ---
 
@@ -149,16 +149,14 @@ var bound = Results.Success("abc").Bind(v => Results.Success(v.ToUpper()));
 * **Tap** – Executes an action for side effects, preserving the result
 * **Recover** – Transforms a failure into a success with fallback value
 * **WithCode / WithoutCode** – Adds, replaces, or clears a `ResultCode`
-* **WithMessage** – Adds a single message to a result
-* **WithMessages** – Adds multiple messages to a result
+* **WithMessage / WithMessages** – Adds one or more messages
 * **WithDetail** – Attaches structured metadata to the last message
-* **ValueIsNull** – Checks if `Result<T>.Value` is null
+* **ValueIsNull / ValueIsNullOrEmpty / ValueIsNullOrWhiteSpace** – Value checks
 
 ```csharp
 var ensured = Results.Success(5).Ensure(x => x > 0, "Must be positive");
 var tapped = ensured.Tap(v => Console.WriteLine($"Value: {v}"));
-var recovered = Results.Failure<int>("bad", code: ResultCodes.ValidationFailed).Recover(_ => 42);
-var withMsg = recovered.WithMessage(new Message(MessageType.Information, "Recovered with default"));
+var recovered = Results.Failure<int>("bad").WithCode(ResultCodes.ValidationFailed).Recover(_ => 42);
 
 if (recovered.ValueIsNull())
     Console.WriteLine("No value present.");
@@ -213,6 +211,12 @@ if (result.TryGetValidationResults(out var vr))
 }
 ```
 
+Or use the `ValidationFailure` factory for explicit failure:
+
+```csharp
+var result = Results.ValidationFailed("Name is required");
+```
+
 ---
 
 ## Pattern Matching
@@ -224,40 +228,6 @@ var (status, code, messages) = Results.Failure("fail!", code: ResultCodes.Valida
 
 var (status, code, messages, value) = Results.Success(42, code: ResultCodes.Created);
 ```
-
-Or use C# pattern matching:
-
-```csharp
-switch (result)
-{
-    case { Status: Status.Completed }:
-        Console.WriteLine("Success!");
-        break;
-    case { Status: Status.Failed, Messages: var msgs }:
-        Console.WriteLine($"Failed: {msgs[0].Content}");
-        break;
-}
-```
-
----
-
-## Important: `Result<T>.Value` and default values
-
-When `T` is a **non-nullable value type**, failed results will contain the *default* value of that type (`0` for `int`, `false` for `bool`, etc.). This is a limitation of .NET generics.
-
-```csharp
-var r1 = Results.Failure<int>("bad");
-Console.WriteLine(r1.Value); // 0
-
-var r2 = Results.Failure<int?>("bad");
-Console.WriteLine(r2.Value); // null
-```
-
-### Guidance
-
-* Use **nullable value types** (e.g. `int?`, `bool?`) if you want `null` to represent "no value".
-* Use **non-nullable value types** if a default like `0` or `false` makes sense in your domain.
-* Reference types (e.g. `string`, `User`) will correctly return `null` when not `Completed`.
 
 ---
 

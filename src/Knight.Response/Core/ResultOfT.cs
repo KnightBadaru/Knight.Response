@@ -42,4 +42,19 @@ public class Result<T>(Status status, T? value = default, ResultCode? code = nul
         messages = Messages;
         value = Value;
     }
+
+    /// <summary>
+    /// Deconstructs this result into its <see cref="Status"/>, optional <see cref="ResultCode"/>, <see cref="Messages"/>, and <see cref="Value"/>.
+    /// </summary>
+    /// <param name="status">The operation outcome.</param>
+    /// <param name="code">The optional domain code, or <c>null</c> if none.</param>
+    /// <param name="messages">The list of messages (empty if none).</param>
+    /// <param name="value">The value produced, or <c>default</c> if absent.</param>
+    public void Deconstruct(out Status status, out ResultCode? code, out IReadOnlyList<Message> messages, out T? value)
+    {
+        status = Status;
+        code = Code;
+        messages = Messages;
+        value = Value;
+    }
 }

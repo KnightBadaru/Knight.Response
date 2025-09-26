@@ -7,14 +7,16 @@
 
         <!-- NuGet metadata -->
         <PackageId>Knight.Response</PackageId>
-        <Version>2.0.0-preview04</Version>
+        <Version>2.0.0-preview05</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response</Title>
         <Description>Lightweight, immutable Result/Result&lt;T&gt; library with factories, functional extensions, and pattern matching for C# service layers.</Description>
         <PackageReleaseNotes>
-            - Added: `IsUnsuccessfulOrNull`, `HasCode` overloads, `WithCode`/`WithoutCode` helpers, `NoContent` factory, extended `ResultCodes`.
-            - Improved: XML docs, test coverage to reduce mutants.
-            - Fixed: Minor issues in extensions and message metadata handling.
+            Preview release with improved result factories and HTTP mappings:
+            - Default ResultCodes for NotFound/NoContent
+            - New ValidationFailed helpers
+            - Advanced predicates: ValueIsNullOrEmpty, ValueIsNullOrWhiteSpace
+            - Added WithoutCode extensions
         </PackageReleaseNotes>
         <PackageTags>result;response;functional;service-layer;error-handling;patterns;csharp</PackageTags>
         <RepositoryType>git</RepositoryType>

@@ -1,4 +1,3 @@
-using Knight.Response.Core;
 using Knight.Response.Models;
 
 namespace Knight.Response.Abstractions.Http.Resolution;
@@ -37,6 +36,7 @@ public static class KnightResponseHttpDefaults
             var v when v == ResultCodes.ConcurrencyConflict.Value => 409,
 
             // server issues
+            var v when v == ResultCodes.NotSupported.Value        => 501,
             var v when v == ResultCodes.ServiceUnavailable.Value  => 503,
             var v when v == ResultCodes.UnexpectedError.Value     => 500,
 

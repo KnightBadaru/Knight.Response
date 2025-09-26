@@ -1,8 +1,10 @@
+using Knight.Response.Abstractions.Http.Resolution;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Knight.Response.Core;
 using Knight.Response.AspNetCore.Options;
+using Knight.Response.Extensions;
 
 namespace Knight.Response.AspNetCore.Factories;
 
@@ -160,18 +162,25 @@ public static class ApiResults
     // Internals ================================================================
 
     private static IResult Build(HttpContext? http, int statusCode, Result result, string? location = null) =>
-        result.IsSuccess
+        result.IsSuccess()
             ? BuildSuccess(http, statusCode, result, location)
             : BuildFailure(http, result, statusCode);
 
     private static IResult Build<T>(HttpContext? http, int statusCode, Result<T> result, string? location = null) =>
-        result.IsSuccess
+        result.IsSuccess()
             ? BuildSuccess(http, statusCode, result, location)
             : BuildFailure(http, result, statusCode);
 
     private static IResult BuildSuccess(HttpContext? http, int statusCode, Result result, string? location)
     {
         var opts = ResolveOptions(http);
+        var resolved = ResultHttpResolver.ResolveHttpCode(result, opts);
+
+        // Let resolver upgrade default 200/0 (e.g., to 204 for NoContent)
+        if (IsDefaultSuccessCode(statusCode))
+        {
+            statusCode = resolved;
+        }
 
         if (statusCode == StatusCodes.Status204NoContent)
         {
@@ -200,6 +209,17 @@ public static class ApiResults
     private static IResult BuildSuccess<T>(HttpContext? http, int statusCode, Result<T> result, string? location)
     {
         var opts = ResolveOptions(http);
+        var resolved = ResultHttpResolver.ResolveHttpCode(result, opts);
+
+        if (IsDefaultSuccessCode(statusCode))
+        {
+            statusCode = resolved;
+        }
+
+        if (statusCode == StatusCodes.Status204NoContent)
+        {
+            return Results.NoContent();
+        }
 
         if (statusCode == StatusCodes.Status201Created)
         {
@@ -223,21 +243,21 @@ public static class ApiResults
     private static IResult BuildFailure(HttpContext? http, Result result, int? statusCode = null)
     {
         var opts = ResolveOptions(http);
-        if (statusCode.HasValue && statusCode.Value < StatusCodes.Status400BadRequest)
-        {
-            statusCode = opts.StatusCodeResolver(result.Status);
-        }
+        var resolved = ResultHttpResolver.ResolveHttpCode(result, opts);
 
-        statusCode ??= opts.StatusCodeResolver(result.Status);
+        // If caller didn’t force a 4xx/5xx, use the resolved failure code
+        var final = statusCode.HasValue
+            ? IsExplicitFailureCode(statusCode.Value) ? statusCode.Value : resolved
+            : resolved;
 
         if (opts.UseProblemDetails && http is not null)
         {
-            // Centralised ProblemDetails formatting
-            return ProblemFactory.FromResult(http, opts, result, statusCode);
+            return ProblemFactory.FromResult(http, opts, result, final);
         }
 
-        // Simple fallback: return messages with the requested status.
-        return Results.Json(opts.IncludeFullResultPayload ? result : result.Messages, statusCode: statusCode);
+        return Results.Json(opts.IncludeFullResultPayload
+            ? result
+            : result.Messages, statusCode: final);
     }
 
     private static KnightResponseOptions ResolveOptions(HttpContext? http)
@@ -250,4 +270,7 @@ public static class ApiResults
         var opt = http.RequestServices.GetService<IOptions<KnightResponseOptions>>()?.Value;
         return opt ?? new KnightResponseOptions();
     }
+
+    private static bool IsExplicitFailureCode(int code) => code >= StatusCodes.Status400BadRequest;
+    private static bool IsDefaultSuccessCode(int code) => code == 0 || code == StatusCodes.Status200OK;
 }
