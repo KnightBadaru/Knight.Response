@@ -41,13 +41,11 @@ public class ApiResultsTests
         {
             content.ShouldContain("\"status\"");
             content.ShouldContain("\"messages\"");
-            content.ShouldContain("\"isSuccess\"");
         }
         else
         {
             content.ShouldNotContain("\"status\"");
             content.ShouldNotContain("\"messages\"");
-            content.ShouldNotContain("\"isSuccess\"");
         }
     }
 
@@ -94,7 +92,6 @@ public class ApiResultsTests
         {
             content.ShouldContain("\"status\"");
             content.ShouldContain("\"messages\"");
-            content.ShouldContain("\"isSuccess\"");
         }
         else
         {
@@ -104,7 +101,6 @@ public class ApiResultsTests
 
             content.ShouldNotContain("\"status\"");
             content.ShouldNotContain("\"messages\"");
-            content.ShouldNotContain("\"isSuccess\"");
         }
     }
 

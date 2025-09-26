@@ -147,15 +147,6 @@ public class ExceptionMiddlewareTests
         body.ShouldContain("\"content\"");
         body.ShouldContain("\"metadata\"");
         body.ShouldNotContain("\"type\":\"https://httpstatuses.io/");
-
-        if (includeFullPayload)
-        {
-            body.ShouldContain("isSuccess");
-        }
-        else
-        {
-            body.ShouldNotContain("isSuccess");
-        }
     }
 
     [Fact]

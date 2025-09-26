@@ -1,6 +1,8 @@
+using Knight.Response.Abstractions.Http.Resolution;
 using Knight.Response.AspNetCore.Options;
 using Knight.Response.Core;
 using Knight.Response.Extensions;
+using Knight.Response.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -22,9 +24,7 @@ public sealed class KnightResponseExceptionMiddleware
     private readonly ILogger<KnightResponseExceptionMiddleware> _logger;
     private readonly KnightResponseOptions _options;
 
-    /// <summary>
-    /// Creates the middleware.
-    /// </summary>
+    /// <summary>Creates the middleware.</summary>
     public KnightResponseExceptionMiddleware(
         RequestDelegate next,
         ILogger<KnightResponseExceptionMiddleware> logger,
@@ -35,9 +35,7 @@ public sealed class KnightResponseExceptionMiddleware
         _options = options.Value;
     }
 
-    /// <summary>
-    /// Invokes the middleware for the current request.
-    /// </summary>
+    /// <summary>Invokes the middleware for the current request.</summary>
     public async Task Invoke(HttpContext context)
     {
         try
@@ -57,7 +55,7 @@ public sealed class KnightResponseExceptionMiddleware
 
             if (_options.IncludeExceptionDetails)
             {
-                // Safely add structured diagnostics safely when enabled
+                // Attach structured diagnostics (only when explicitly enabled)
                 var meta = new Dictionary<string, object?>
                 {
                     ["exceptionType"] = ex.GetType().FullName,
@@ -68,15 +66,15 @@ public sealed class KnightResponseExceptionMiddleware
                     ["traceId"]       = context.TraceIdentifier
                 };
 
-                error = error.WithMessage(new Models.Message(
-                    Models.MessageType.Error,
+                error = error.WithMessage(new Message(
+                    MessageType.Error,
                     "Exception details attached.",
                     meta
                 ));
             }
 
-            // Choose HTTP status (defaults to 500 for Error)
-            var status = _options.StatusCodeResolver.Invoke(error.Status);
+            // Choose HTTP status using the shared resolver (CodeToHttp → Status fallback)
+            var status = ResultHttpResolver.ResolveHttpCode(error, _options);
 
             IResult failure;
 
@@ -87,11 +85,10 @@ public sealed class KnightResponseExceptionMiddleware
             }
             else
             {
-                // Simple JSON array of messages, no ProblemDetails wrapper
+                // Simple JSON payload (either full Result or just messages)
                 failure = Results.Json(_options.IncludeFullResultPayload ? error : error.Messages, statusCode: status);
             }
 
-            // Start a fresh response and let the IResult write headers/body
             if (!context.Response.HasStarted)
             {
                 context.Response.Clear();
