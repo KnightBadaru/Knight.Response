@@ -7,14 +7,14 @@
         <ImplicitUsings>enable</ImplicitUsings>
 
         <PackageId>Knight.Response.Abstractions.Http</PackageId>
-        <Version>2.0.0-preview02</Version>
+        <Version>2.0.0-preview03</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response.Abstractions.Http</Title>
         <Description>Framework-agnostic HTTP abstractions for Knight.Response (shared options and validation mapping).</Description>
         <PackageReleaseNotes>
-            - Added ResultHttpResolver with unified CodeToHttp/Status fallback.
-            - Introduced KnightResponseHttpDefaults with Status→HTTP defaults.
-            - CodeToHttp delegate now optional and consumer-configurable.
+            Added ResultHttpResolver for consistent status resolution across frameworks.
+            Made StatusCodeResolver optional with fallback to KnightResponseHttpDefaults.
+            Improved CodeToHttp defaults including NotSupported → 405.
         </PackageReleaseNotes>
         <RepositoryUrl>https://github.com/KnightBadaru/Knight.Response</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
@@ -23,7 +23,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Knight.Response" Version="2.0.0-preview04" />
+        <PackageReference Include="Knight.Response" Version="2.0.0-preview05" />
     </ItemGroup>
 
     <ItemGroup>

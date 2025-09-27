@@ -27,7 +27,7 @@ use to keep behavior consistent.
     * `IncludeFullResultPayload` (default: `false`, was `true` before 2.0.0-preview01)
     * `IncludeExceptionDetails` (default: `false`)
     * `CodeToHttp` delegate (optional, domain codes → HTTP codes)
-    * `StatusCodeResolver` delegate (defaults to 400/409/500/200)
+    * `StatusCodeResolver` delegate (defaults to 400/409/500/200, nullable from 2.0.0-preview03)
     * Optional builders/hooks for shaping problem responses
 
   The generic parameters let each integration plug in the framework’s
@@ -89,8 +89,10 @@ services.AddKnightResponse(opts =>
 {
     opts.CodeToHttp = code => code?.Value switch
     {
-        var v when v == ResultCodes.NotFound.Value     => 404,
-        var v when v == ResultCodes.AlreadyExists.Value => 409,
+        var v when v == ResultCodes.NotFound.Value       => 404,
+        var v when v == ResultCodes.AlreadyExists.Value  => 409,
+        var v when v == ResultCodes.NoContent.Value      => 204,
+        var v when v == ResultCodes.NotSupported.Value   => 405,
         _ => null
     };
 });

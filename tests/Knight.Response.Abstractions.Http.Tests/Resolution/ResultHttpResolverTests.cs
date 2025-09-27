@@ -234,4 +234,99 @@ public class ResultHttpResolverTests
         // Assert
         code.ShouldBe(500);
     }
+
+    [Fact]
+    public void ResolveHttpCode_With_Code_Uses_CodeToHttp_Defaults()
+    {
+        // Arrange
+        var opts = new KnightResponseBaseOptions<object, object, object>
+        {
+            CodeToHttp = KnightResponseHttpDefaults.CodeToHttp,
+            StatusCodeResolver = null // ensure we hit code mapping first
+        };
+
+        var result = Results.NotFound(message: "missing"); // defaults Code => ResultCodes.NotFound
+
+        // Act
+        var code = ResultHttpResolver.ResolveHttpCode(result, opts);
+
+        // Assert
+        code.ShouldBe(404);
+    }
+
+    [Fact]
+    public void ResolveHttpCode_NoCode_And_NoResolvers_FallsBackTo_Default_Status_Mapping()
+    {
+        // Arrange
+        var opts = new KnightResponseBaseOptions<object, object, object>
+        {
+            CodeToHttp = null,
+            StatusCodeResolver = null // force ultimate fallback
+        };
+
+        var result = Results.Success(); // Status.Completed
+
+        // Act
+        var code = ResultHttpResolver.ResolveHttpCode(result, opts);
+
+        // Assert
+        code.ShouldBe(200); // KnightResponseHttpDefaults.StatusToHttp(Completed)
+    }
+
+    [Fact]
+    public void ResolveHttpCode_AllResolversNull_For_Error_Status_Uses_Default_500()
+    {
+        // Arrange
+        var opts = new KnightResponseBaseOptions<object, object, object>
+        {
+            CodeToHttp = null,
+            StatusCodeResolver = null
+        };
+
+        var result = Results.Error("boom"); // Status.Error
+
+        // Act
+        var code = ResultHttpResolver.ResolveHttpCode(result, opts);
+
+        // Assert
+        code.ShouldBe(500);
+    }
+
+    [Fact]
+    public void ResolveHttpCode_Typed_With_Code_Uses_CodeToHttp_Defaults()
+    {
+        // Arrange
+        var opts = new KnightResponseBaseOptions<object, object, object>
+        {
+            CodeToHttp = KnightResponseHttpDefaults.CodeToHttp,
+            StatusCodeResolver = null
+        };
+
+        var result = Results.Success(value: 123, code: ResultCodes.Created); // maps to 201 via defaults
+
+        // Act
+        var code = ResultHttpResolver.ResolveHttpCode(result, opts);
+
+        // Assert
+        code.ShouldBe(201);
+    }
+
+    [Fact]
+    public void ResolveHttpCode_CodeToHttp_ReturnsNull_Uses_Custom_StatusCodeResolver()
+    {
+        // Arrange
+        var opts = new KnightResponseBaseOptions<object, object, object>
+        {
+            CodeToHttp = _ => null,
+            StatusCodeResolver = _ => 499 // custom fallback
+        };
+
+        var result = Results.Failure("nope"); // Status.Failed
+
+        // Act
+        var code = ResultHttpResolver.ResolveHttpCode(result, opts);
+
+        // Assert
+        code.ShouldBe(499);
+    }
 }

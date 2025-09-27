@@ -1,4 +1,5 @@
 using Knight.Response.Abstractions.Http.Mappers;
+using Knight.Response.Abstractions.Http.Resolution;
 using Knight.Response.AspNetCore.Options;
 using Knight.Response.Core;
 using Knight.Response.Models;
@@ -53,7 +54,7 @@ internal static class ProblemFactory
     // 3) fresh default instance as a final fallback
     private static IValidationErrorMapper ResolveMapper(HttpContext? http, KnightResponseOptions opts)
     {
-        var mapperFromRequest = http?.RequestServices?.GetService<IValidationErrorMapper>();
+        var mapperFromRequest = http?.RequestServices.GetService<IValidationErrorMapper>();
         return mapperFromRequest ?? (opts.ValidationMapper ?? new DefaultValidationErrorMapper());
     }
 
@@ -71,9 +72,8 @@ internal static class ProblemFactory
     /// </returns>
     public static IResult FromResult(HttpContext http, KnightResponseOptions opts, Result result, int? statusCode = null)
     {
-        var pdStatusCode = statusCode ?? opts.StatusCodeResolver(result.Status);
+        var code = statusCode ?? ResultHttpResolver.ResolveHttpCode(result, opts);
 
-        // Try validation ProblemDetails if enabled and we have mappable errors
         if (opts.UseValidationProblemDetails)
         {
             var mapper = ResolveMapper(http, opts);
@@ -83,13 +83,20 @@ internal static class ProblemFactory
             {
                 var vpd = new ValidationProblemDetails(errors)
                 {
-                    Status = pdStatusCode,
+                    Status = code,
                     Title  = "One or more validation errors occurred.",
-                    Type   = $"https://httpstatuses.io/{pdStatusCode}"
+                    Type   = $"https://httpstatuses.io/{code}"
                 };
 
                 // Include useful context for clients
                 vpd.AddResult(result);
+
+                // Also include ResultCode (when present)
+                if (result.Code is not null)
+                {
+                    vpd.Extensions["svcCode"] = result.Code.Value;
+                }
+
                 // Allow app to tweak/extend
                 opts.ValidationBuilder?.Invoke(http, result, vpd);
 
@@ -116,14 +123,20 @@ internal static class ProblemFactory
 
         var pd = new ProblemDetails
         {
-            Status = pdStatusCode,
+            Status = code,
             Title  = title,
             Detail = detail,
-            Type   = $"https://httpstatuses.io/{pdStatusCode}"
+            Type   = $"https://httpstatuses.io/{code}"
         };
 
         // Include structured messages for clients that want richer context
         pd.AddResult(result);
+
+        // Also include ResultCode (when present)
+        if (result.Code is not null)
+        {
+            pd.Extensions["svcCode"] = result.Code.Value;
+        }
 
         // Allow app-level customization
         opts.ProblemDetailsBuilder?.Invoke(http, result, pd);

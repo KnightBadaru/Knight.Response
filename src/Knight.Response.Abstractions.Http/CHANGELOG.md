@@ -22,6 +22,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.0.0-preview03] - 2025-09-27
+
+### Added
+* **ProblemDetails enrichment**: `Result.Code` (when present) is now included in the extensions bag of both ProblemDetails and ValidationProblemDetails. 
+  * Key: "svcCode" → the string value of the ResultCode.
+
+### Changed
+* **Dependency bump**: aligned to `Knight.Response 2.0.0-preview05`. 
+* Internal cleanup and resolver improvements for consistency across MVC and Minimal APIs.
+
+---
+
 ## [2.0.0-preview02] - 2025-09-25
 
 ### Added
@@ -107,3 +119,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [1.0.2]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v1.0.2
 [2.0.0-preview01]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v2.0.0-preview01
 [2.0.0-preview02]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v2.0.0-preview02
+[2.0.0-preview03]: https://github.com/KnightBadaru/Knight.Response/releases/tag/abstractions-http-v2.0.0-preview03
