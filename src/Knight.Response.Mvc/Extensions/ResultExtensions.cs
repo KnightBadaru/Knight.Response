@@ -18,6 +18,37 @@ namespace Knight.Response.Mvc.Extensions;
 public static class ResultExtensions
 {
     /// <summary>
+    /// Converts a <see cref="Result"/> to an <see cref="IActionResult"/> using the configured
+    /// resolvers (Status/Code→HTTP mapping, ProblemDetails preferences, payload shape, etc.).
+    /// <para>
+    /// Global “determine the right HTTP response for me” helper.
+    /// May return any status (2xx/4xx/5xx) depending on the <paramref name="result"/> and options.
+    /// Internally defers to <see cref="ApiResults.Ok(Result, HttpContext?)"/>.
+    /// </para>
+    /// </summary>
+    /// <param name="result">The domain result to convert.</param>
+    /// <param name="http">Optional <see cref="HttpContext"/> to resolve <see cref="KnightResponseOptions"/> from DI.</param>
+    /// <returns>An <see cref="IActionResult"/> with status/body chosen by the configured pipeline.</returns>
+    public static IActionResult ToActionResult(this Result result, HttpContext? http = null)
+        => ApiResults.Ok(result, http);
+
+    /// <summary>
+    /// Converts a <see cref="Result{T}"/> to an <see cref="IActionResult"/> using the configured
+    /// resolvers (Status/Code→HTTP mapping, ProblemDetails preferences, payload shape, etc.).
+    /// <para>
+    /// Global “determine the right HTTP response for me” helper.
+    /// May return any status (2xx/4xx/5xx) depending on the <paramref name="result"/> and options.
+    /// Internally defers to <see cref="ApiResults.Ok{T}(Result{T}, HttpContext?)"/>.
+    /// </para>
+    /// </summary>
+    /// <typeparam name="T">The value type carried by the result.</typeparam>
+    /// <param name="result">The domain result to convert.</param>
+    /// <param name="http">Optional <see cref="HttpContext"/> to resolve <see cref="KnightResponseOptions"/> from DI.</param>
+    /// <returns>An <see cref="IActionResult"/> with status/body chosen by the configured pipeline.</returns>
+    public static IActionResult ToActionResult<T>(this Result<T> result, HttpContext? http = null)
+        => ApiResults.Ok(result, http);
+
+    /// <summary>
     /// Converts a non-generic <see cref="Result"/> to a 200 OK <see cref="IActionResult"/>.
     /// </summary>
     /// <param name="result">The domain result to convert.</param>

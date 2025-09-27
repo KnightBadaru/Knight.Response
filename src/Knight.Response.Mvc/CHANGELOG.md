@@ -22,6 +22,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ---
 
+## [2.0.0-preview04] - 2025-09-27
+
+### Added
+
+* **ProblemDetails enrichment:** `ProblemFactory` now includes `Result.Code` in the `extensions` bag when available, giving clients richer error context alongside `svcStatus` and `messages`.
+
+### Changed
+
+* Aligns with **Knight.Response.Abstractions.Http 2.0.0-preview03** for consistent `ResultHttpResolver` usage and defaults.
+
+---
+
 ## [2.0.0-preview03] - 2025-09-25
 
 ### Changed
@@ -92,3 +104,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 [2.0.0-preview01]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview01
 [2.0.0-preview02]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview02
 [2.0.0-preview03]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview03
+[2.0.0-preview04]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview04

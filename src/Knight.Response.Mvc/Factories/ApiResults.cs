@@ -54,6 +54,13 @@ public static class ApiResults
         BuildSuccessOrFailure(http, StatusCodes.Status201Created, result, location);
 
     /// <summary>
+    /// Returns 201 Created with a <c>Location</c> header. On success, returns full Result or empty body
+    /// based on options; on failure emits a client error (ProblemDetails/messages).
+    /// </summary>
+    public static IActionResult CreatedAt(Result result, string location, HttpContext? http = null) =>
+        BuildSuccessOrFailure(http, StatusCodes.Status201Created, result, location);
+
+    /// <summary>
     /// Returns 201 Created. On success, returns either the full <see cref="Result{T}"/> payload
     /// or just the <c>Value</c>, depending on <see cref="KnightResponseOptions.IncludeFullResultPayload"/>.
     /// On failure, emits a client error (ProblemDetails / ValidationProblemDetails when enabled).
@@ -66,6 +73,13 @@ public static class ApiResults
     /// </param>
     /// <param name="location">Optional <c>Location</c> header to include in the response.</param>
     public static IActionResult Created<T>(Result<T> result, HttpContext? http = null, string? location = null) =>
+        BuildSuccessOrFailure(http, StatusCodes.Status201Created, result, location);
+
+    /// <summary>
+    /// Returns 201 Created with a <c>Location</c> header. On success, returns Value (or full Result if configured);
+    /// on failure emits a client error (ProblemDetails/messages).
+    /// </summary>
+    public static IActionResult CreatedAt<T>(Result<T> result, string location, HttpContext? http = null) =>
         BuildSuccessOrFailure(http, StatusCodes.Status201Created, result, location);
 
     // ----------------------- 202 / Accepted -----------------------
@@ -85,6 +99,13 @@ public static class ApiResults
         BuildSuccessOrFailure(http, StatusCodes.Status202Accepted, result, location);
 
     /// <summary>
+    /// Returns 202 Accepted with a <c>Location</c> header. On success, returns full Result or empty body
+    /// based on options; on failure emits a client error (ProblemDetails/messages).
+    /// </summary>
+    public static IActionResult AcceptedAt(Result result, string location, HttpContext? http = null) =>
+        BuildSuccessOrFailure(http, StatusCodes.Status202Accepted, result, location);
+
+    /// <summary>
     /// Returns 202 Accepted. On success, returns either the full <see cref="Result{T}"/> payload
     /// or just the <c>Value</c>, depending on <see cref="KnightResponseOptions.IncludeFullResultPayload"/>.
     /// On failure, emits a client error (ProblemDetails / ValidationProblemDetails when enabled).
@@ -97,6 +118,13 @@ public static class ApiResults
     /// </param>
     /// <param name="location">Optional <c>Location</c> header (e.g., status resource URL).</param>
     public static IActionResult Accepted<T>(Result<T> result, HttpContext? http = null, string? location = null) =>
+        BuildSuccessOrFailure(http, StatusCodes.Status202Accepted, result, location);
+
+    /// <summary>
+    /// Returns 202 Accepted with a <c>Location</c> header. On success, returns Value (or full Result if configured);
+    /// on failure emits a client error (ProblemDetails/messages).
+    /// </summary>
+    public static IActionResult AcceptedAt<T>(Result<T> result, string location, HttpContext? http = null) =>
         BuildSuccessOrFailure(http, StatusCodes.Status202Accepted, result, location);
 
     // ----------------------- 204 / No Content ----------------
@@ -117,23 +145,88 @@ public static class ApiResults
 
     // ----------------------- Explicit failure shorthands -----
 
-    /// <summary>Returns 400 Bad Request populated from <paramref name="result"/>.</summary>
+    /// <summary>
+    /// Returns 400 Bad Request populated from <paramref name="result"/>.
+    /// </summary>
     public static IActionResult BadRequest(Result result, HttpContext? http = null) =>
         BuildSuccessOrFailure(http, StatusCodes.Status400BadRequest, result);
 
-    /// <summary>Returns 404 Not Found populated from <paramref name="result"/>.</summary>
+    /// <summary>
+    /// Returns 404 Not Found populated from <paramref name="result"/>
+    /// .</summary>
     public static IActionResult NotFound(Result result, HttpContext? http = null) =>
         BuildSuccessOrFailure(http, StatusCodes.Status404NotFound, result);
 
-    /// <summary>Returns 409 Conflict populated from <paramref name="result"/>.</summary>
+    /// <summary>
+    /// Returns 409 Conflict populated from <paramref name="result"/>.
+    /// </summary>
     public static IActionResult Conflict(Result result, HttpContext? http = null) =>
         BuildSuccessOrFailure(http, StatusCodes.Status409Conflict, result);
 
-    /// <summary>Returns 401 Unauthorized.</summary>
+    /// <summary>
+    /// Returns 401 Unauthorized.
+    /// </summary>
     public static IActionResult Unauthorized() => new UnauthorizedResult();
 
     /// <summary>Returns 403 Forbidden.</summary>
     public static IActionResult Forbidden() => new ForbidResult();
+
+    // ----------------------- 422 / Unprocessable Entity -----------------------
+
+    /// <summary>
+    /// Returns 422 Unprocessable Entity populated from <paramref name="result"/>.
+    /// </summary>
+    public static IActionResult UnprocessableEntity(Result result, HttpContext? http = null) =>
+        BuildSuccessOrFailure(http, StatusCodes.Status422UnprocessableEntity, result);
+
+    /// <summary>
+    /// Returns 422 Unprocessable Entity populated from <paramref name="result"/>.
+    /// </summary>
+    public static IActionResult UnprocessableEntity<T>(Result<T> result, HttpContext? http = null) =>
+        BuildSuccessOrFailure(http, StatusCodes.Status422UnprocessableEntity, result);
+
+    // ----------------------- 429 / Too Many Requests --------------------------
+
+    /// <summary>
+    /// Returns 429 Too Many Requests populated from <paramref name="result"/>.
+    /// </summary>
+    public static IActionResult TooManyRequests(Result result, HttpContext? http = null) =>
+        BuildSuccessOrFailure(http, StatusCodes.Status429TooManyRequests, result);
+
+    /// <summary>
+    /// Returns 429 Too Many Requests populated from <paramref name="result"/>.
+    /// </summary>
+    public static IActionResult TooManyRequests<T>(Result<T> result, HttpContext? http = null) =>
+        BuildSuccessOrFailure(http, StatusCodes.Status429TooManyRequests, result);
+
+    // ----------------------- 503 / Service Unavailable ------------------------
+
+    /// <summary>
+    /// Returns 503 Service Unavailable populated from <paramref name="result"/>.
+    /// </summary>
+    public static IActionResult ServiceUnavailable(Result result, HttpContext? http = null) =>
+        BuildSuccessOrFailure(http, StatusCodes.Status503ServiceUnavailable, result);
+
+    /// <summary>
+    /// Returns 503 Service Unavailable populated from <paramref name="result"/>.
+    /// </summary>
+    public static IActionResult ServiceUnavailable<T>(Result<T> result, HttpContext? http = null) =>
+        BuildSuccessOrFailure(http, StatusCodes.Status503ServiceUnavailable, result);
+
+    // ----------------------- ProblemDetails -----------------------------
+
+    /// <summary>
+    /// Forces an RFC7807 response from <paramref name="result"/> using the configured options
+    /// (ValidationProblemDetails if mappable and enabled, otherwise ProblemDetails), ignoring
+    /// the default Ok/Created/Accepted/NoContent shaping.
+    /// </summary>
+    public static IActionResult Problem(Result result, HttpContext http, int? statusCode = null)
+    {
+        var opts = Resolve(http);
+        // Let the resolver pick a code (CodeToHttp -> Status fallback) when statusCode is not supplied
+        statusCode ??= ResultHttpResolver.ResolveHttpCode(result, opts);
+        return ProblemFactory.FromResult(http, opts, result, statusCode);
+    }
 
     // ======================= Core builders ====================
 
