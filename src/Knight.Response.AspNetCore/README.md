@@ -1,6 +1,6 @@
 # Knight.Response.AspNetCore
 
-ASP.NET Core integration for [Knight.Response]. It converts `Result` / `Result<T>` to HTTP responses, supports RFC7807 ProblemDetails (including validation errors), and provides an exception middleware for consistent error payloads.
+ASP.NET Core integration for [Knight.Response]. It converts `Result` / `Result<T>` to HTTP responses, supports RFC7807 ProblemDetails (including validation errors), and provides exception middleware for consistent error payloads.
 
 [![NuGet Version](https://img.shields.io/nuget/v/Knight.Response.AspNetCore.svg)](https://www.nuget.org/packages/Knight.Response.AspNetCore)
 [![ci](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml/badge.svg)](https://github.com/KnightBadaru/Knight.Response/actions/workflows/ci.yml)
@@ -16,7 +16,7 @@ ASP.NET Core integration for [Knight.Response]. It converts `Result` / `Result<T
 ## Install
 
 ```bash
-dotnet add package Knight.Response.AspNetCore
+dotnet add package Knight.Response.AspNetCore --version 2.0.0-preview01
 ```
 
 ---
@@ -37,44 +37,36 @@ builder.Services.AddSwaggerGen();
 // Add Knight.Response HTTP integration (optional inline configuration)
 builder.Services.AddKnightResponse(options =>
 {
-    // Defaults shown; override as needed
     options.IncludeFullResultPayload    = true;
     options.UseProblemDetails           = false;
     options.UseValidationProblemDetails = false;
-    options.IncludeExceptionDetails     = false; // keep false in production
-
-    // Inline override (not common; prefer the typed overload below)
-    options.ValidationMapper = new MyValidationErrorMapper();
+    options.IncludeExceptionDetails     = false;
 });
 
 // Option A: register a custom validation mapper separately
 builder.Services.AddScoped<IValidationErrorMapper, MyValidationErrorMapper>();
 
-// Option B: use the typed overload
+// Option B: typed overload
 builder.Services.AddKnightResponse<MyValidationErrorMapper>(options =>
 {
     options.UseValidationProblemDetails = true;
 });
 ```
 
-### 2) Add the exception middleware (optional)
+### 2) Exception middleware (optional)
 
 ```csharp
 var app = builder.Build();
 
-app.UseKnightResponseExceptionMiddleware(); // must be registered before endpoints
+app.UseKnightResponseExceptionMiddleware();
 
 app.MapGet("/", () => "OK");
 app.Run();
 ```
 
-The middleware catches unhandled exceptions and returns a consistent payload (ProblemDetails or JSON), honoring your configured options.
-
 ---
 
-## Using results in endpoints and controllers
-
-You can return a `Result`/`Result<T>` as an ASP.NET Core `IResult` via helpers or extensions.
+## Returning results in endpoints/controllers
 
 ### Minimal APIs
 
@@ -82,21 +74,10 @@ You can return a `Result`/`Result<T>` as an ASP.NET Core `IResult` via helpers o
 using Knight.Response.AspNetCore.Extensions;
 using Knight.Response.Factories;
 
-// Example domain service
-public interface IUserService
+app.MapGet("/users/{id:int}", async (int id, HttpContext http, IUserService users, CancellationToken ct) =>
 {
-    Task<Result<UserDto>> GetByIdAsync(int id, CancellationToken ct);
-}
-
-public record UserDto(int Id, string Name);
-
-// Minimal API endpoint
-app.MapGet("/users/{id:int}", async (int id, HttpContext http, IUserService userService, CancellationToken ct) =>
-{
-    var result = await userService.GetByIdAsync(id, ct);
-
-    // Converts Result<UserDto> → IResult (200 if success, 400/ProblemDetails otherwise)
-    return result.ToIResult(http);
+    var result = await users.GetByIdAsync(id, ct);
+    return result.ToIResult(http); // maps to 200/ProblemDetails
 });
 ```
 
@@ -104,48 +85,25 @@ app.MapGet("/users/{id:int}", async (int id, HttpContext http, IUserService user
 
 ```csharp
 using Knight.Response.AspNetCore.Factories;
-using Knight.Response.Core;
-using Microsoft.AspNetCore.Mvc;
-
-// Example DTOs
-public record CreateUserRequest(string Name);
-public record UserDto(int Id, string Name);
-
-// Example domain service
-public interface IUserService
-{
-    Task<Result<UserDto>> CreateAsync(CreateUserRequest request, CancellationToken ct);
-    Task<Result<UserDto>> GetByIdAsync(int id, CancellationToken ct);
-}
 
 [ApiController]
 [Route("api/users")]
 public class UsersController : ControllerBase
 {
-    private readonly IUserService _userService;
-
-    public UsersController(IUserService userService)
-    {
-        _userService = userService;
-    }
+    private readonly IUserService _users;
+    public UsersController(IUserService users) => _users = users;
 
     [HttpPost]
-    public async Task<IResult> Create([FromBody] CreateUserRequest request, CancellationToken ct)
+    public async Task<IResult> Create([FromBody] CreateUserRequest req, CancellationToken ct)
     {
-        var result = await _userService.CreateAsync(request, ct);
-
-        // Maps Result<UserDto> → 201 Created or error
-        return ApiResults.Created(result, HttpContext, location: result.IsSuccess 
-            ? $"/api/users/{result.Value.Id}" 
-            : null);
+        var result = await _users.CreateAsync(req, ct);
+        return ApiResults.Created(result, HttpContext, location: result.IsSuccess ? $"/api/users/{result.Value.Id}" : null);
     }
 
     [HttpGet("{id:int}")]
     public async Task<IResult> Get(int id, CancellationToken ct)
     {
-        var result = await _userService.GetByIdAsync(id, ct);
-
-        // Maps Result<UserDto> → 200 OK if found, otherwise 400/ProblemDetails
+        var result = await _users.GetByIdAsync(id, ct);
         return ApiResults.Ok(result, HttpContext);
     }
 }
@@ -153,136 +111,80 @@ public class UsersController : ControllerBase
 
 ---
 
-## What gets returned
-
-Behavior depends on `KnightResponseOptions`:
+## Behavior
 
 * **Success (2xx):**
 
-    * `IncludeFullResultPayload = true`
-      Returns the full `Result`/`Result<T>` as JSON (`201 Created` uses the body and optional `Location` header).
-    * `IncludeFullResultPayload = false`
-      Returns `Value` (for `Result<T>`) or an empty 2xx with the chosen status.
-
+    * `IncludeFullResultPayload = true` → returns full `Result`.
+    * `IncludeFullResultPayload = false` → returns `Value` (for `Result<T>`) or empty body.
 * **Failure (non-2xx):**
 
-    * `UseProblemDetails = true`
-      Returns RFC7807 `ProblemDetails`. If `UseValidationProblemDetails = true` and the validation mapper produces field errors, returns `ValidationProblemDetails`.
-    * `UseProblemDetails = false`
-      Returns a simple JSON array of messages with the chosen status.
-
-* **Status codes:**
-  Determined by `StatusCodeResolver` (defaults shown below).
+    * `UseProblemDetails = true` → RFC7807 ProblemDetails (ValidationProblemDetails if enabled + errors).
+    * `UseProblemDetails = false` → simple JSON messages.
+* **Status codes:** determined by `CodeToHttp` (for domain codes) or fallback `StatusCodeResolver`.
 
 ---
 
-## Default status code mapping
+## Default status mapping
 
-| Knight.Response Status | Default HTTP Status Code              |
-| ---------------------- | ------------------------------------- |
-| `Success`              | 200 (or requested 2xx, e.g. 201, 204) |
-| `Failed`               | 400                                   |
-| `Cancelled`            | 409                                   |
-| `Error`                | 500                                   |
-
-You can override this mapping via `KnightResponseOptions.StatusCodeResolver`.
+| Result Code / Status  | Default HTTP code |
+| --------------------- | ----------------- |
+| `Created`             | 201               |
+| `Updated`             | 200               |
+| `Deleted`             | 200               |
+| `NoContent`           | 204               |
+| `ValidationFailed`    | 400               |
+| `Unauthorized`        | 401               |
+| `Forbidden`           | 403               |
+| `NotFound`            | 404               |
+| `AlreadyExists`       | 409               |
+| `PreconditionFailed`  | 412               |
+| `ConcurrencyConflict` | 409               |
+| `NotSupported`        | 405               |
+| `ServiceUnavailable`  | 503               |
+| `UnexpectedError`     | 500               |
+| `Status.Failed`       | 400               |
+| `Status.Cancelled`    | 409               |
+| `Status.Error`        | 500               |
+| `Status.Completed`    | 200               |
 
 ---
 
-## API surface
+## Factories / helpers
 
-### Result → IResult conversion
+* `ApiResults.Ok`, `.Created`, `.Accepted`, `.NoContent`
+* `ApiResults.BadRequest`, `.NotFound`, `.Conflict`, `.Unauthorized`, `.Forbidden`
+* `ApiResults.UnprocessableEntity`, `.TooManyRequests`, `.ServiceUnavailable`
+* `ApiResults.Problem` → force ProblemDetails regardless of success/failure
 
-Use either the **extensions** or the **factory**:
-
-* Extensions (Minimal API friendly)
-
-    * `Result.ToIResult(HttpContext? http = null)`
-    * `Result<T>.ToIResult(HttpContext? http = null)`
-
-* Factory methods (works everywhere)
-
-    * `ApiResults.Ok(Result|Result<T>, HttpContext? http = null)`
-    * `ApiResults.Created(Result|Result<T>, HttpContext? http = null, string? location = null)`
-    * `ApiResults.Accepted(Result|Result<T>, HttpContext? http = null, string? location = null)`
-    * `ApiResults.NoContent(Result, HttpContext? http = null)`
-    * `ApiResults.BadRequest(Result, HttpContext? http = null)`
-    * `ApiResults.NotFound(Result, HttpContext? http = null)`
-    * `ApiResults.Conflict(Result, HttpContext? http = null)`
-    * `ApiResults.Unauthorized()`, `ApiResults.Forbidden()`
-
-All methods consult DI for `KnightResponseOptions` if `HttpContext` is provided; otherwise defaults are used.
+Extensions: `Result.ToIResult(HttpContext?)`, `Result<T>.ToIResult(HttpContext?)`
 
 ---
 
 ## Options
 
-Options type comes from
-
 ```csharp
 public sealed class KnightResponseOptions
-    : KnightResponseBaseOptions<ProblemDetails, ValidationProblemDetails>
+    : KnightResponseBaseOptions<HttpContext, ProblemDetails, ValidationProblemDetails>
 {
-    // Same core properties:
-    // - IncludeFullResultPayload
-    // - UseProblemDetails
-    // - UseValidationProblemDetails
-    // - IncludeExceptionDetails
-    // - StatusCodeResolver
-    // - ValidationMapper (default: DefaultValidationErrorMapper from Abstractions)
-    // - ProblemDetailsBuilder, ValidationBuilder
+    // IncludeFullResultPayload
+    // UseProblemDetails
+    // UseValidationProblemDetails
+    // IncludeExceptionDetails
+    // CodeToHttp, StatusCodeResolver
+    // ValidationMapper (default)
+    // ProblemDetailsBuilder, ValidationBuilder
 }
 ```
 
-Register and customize:
-
-```csharp
-builder.Services.AddKnightResponse(options =>
-{
-    options.IncludeFullResultPayload    = true;
-    options.UseProblemDetails           = true;
-    options.UseValidationProblemDetails = true;
-
-    options.StatusCodeResolver = status => status switch
-    {
-        Status.Failed    => StatusCodes.Status400BadRequest,
-        Status.Cancelled => StatusCodes.Status409Conflict,
-        Status.Error     => StatusCodes.Status500InternalServerError,
-        _                => StatusCodes.Status400BadRequest
-    };
-
-    // Optional customization of ProblemDetails payload
-    options.ProblemDetailsBuilder = (http, result, pd) =>
-    {
-        pd.Extensions["svcStatus"] = result.Status.ToString();
-    };
-});
-```
-
 ---
 
-## Validation mapping
+## Middleware
 
-By default, validation messages are projected to a simple `Dictionary<string, string[]>` using `DefaultValidationErrorMapper`. Plug in your own:
-
-```csharp
-builder.Services.AddKnightResponse();
-builder.Services.AddScoped<IValidationErrorMapper, MyCustomMapper>();
-```
-
-If the mapper returns one or more field errors and `UseValidationProblemDetails` is enabled, responses use `ValidationProblemDetails`. Otherwise, they fall back to standard `ProblemDetails`.
-
----
-
-## Exception middleware
-
-`UseKnightResponseExceptionMiddleware()` wraps the pipeline and converts unhandled exceptions to a consistent error response:
-
-* Logs exceptions via `ILogger<KnightResponseExceptionMiddleware>`
-* Honors `UseProblemDetails` and `IncludeExceptionDetails`
-* Uses `StatusCodeResolver` to select the HTTP status (default 500)
-
-Register early in the pipeline (after logging, before endpoints):
+* Logs exceptions with `ILogger`
+* Converts to ProblemDetails/JSON
+* Honors `IncludeExceptionDetails`
+* Uses `ResultHttpResolver` to determine HTTP status
 
 ```csharp
 app.UseKnightResponseExceptionMiddleware();
@@ -290,18 +192,10 @@ app.UseKnightResponseExceptionMiddleware();
 
 ---
 
-## Notes
-
-* Works with both Minimal APIs and MVC controllers. `IResult` is first-class in .NET 8 and can be returned from controllers as well.
-* If you prefer `IActionResult`, you can wrap `IResult` via `Results.Extensions.ToActionResult()` in .NET 8+, but this library focuses on `IResult` for modern apps.
-* For consistent payloads across your app, prefer returning `Result`/`Result<T>` and translating via these helpers everywhere.
-
----
-
 ## License
 
-This project is licensed under the [MIT License](../../LICENSE).
+MIT License – see [LICENSE](../../LICENSE)
 
 ## Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](../../CONTRIBUTING.md).
+Contributions welcome via [CONTRIBUTING.md](../../CONTRIBUTING.md).
