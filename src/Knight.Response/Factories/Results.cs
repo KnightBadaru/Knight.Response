@@ -21,7 +21,7 @@ public static partial class Results
 
         foreach (var result in resultList)
         {
-            if (!result.IsSuccess())
+            if (result.IsUnsuccessful())
             {
                 foreach (var message in result.Messages)
                 {

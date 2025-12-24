@@ -12,8 +12,8 @@ public class ValidationTests
     public void TryGetValidationResults_Finds_Single_And_Many()
     {
         // Arrange
-        var vr1 = new ValidationResult("Name required", new[] { "Name" });
-        var vr2 = new ValidationResult("Amount > 0", new[] { "Amount" });
+        var vr1 = new ValidationResult("Name required", ["Name"]);
+        var vr2 = new ValidationResult("Amount > 0", ["Amount"]);
 
         var msg1 = new Message(MessageType.Error, "Name: Name required",
             new Dictionary<string, object?> { ["ValidationResult"] = vr1 });
@@ -21,7 +21,7 @@ public class ValidationTests
         var msg2 = new Message(MessageType.Error, "Amount: Amount > 0",
             new Dictionary<string, object?> { ["ValidationResults"] = new[] { vr2 } });
 
-        var result = Results.Error(new[] { msg1, msg2 });
+        var result = Results.Error([msg1, msg2]);
 
         // Act
         var ok = result.TryGetValidationResults(out var list);
@@ -65,9 +65,10 @@ public class ValidationTests
     public void Validation_Maps_To_Error_Result_With_Prefixed_Messages()
     {
         // Arrange
+        var error = "Name required";
         var errors = new[]
         {
-            new ValidationResult("Name is required", ["Name"]),
+            new ValidationResult(error, ["Name"]),
             new ValidationResult("Oops")
         };
 
@@ -77,7 +78,7 @@ public class ValidationTests
         // Assert
         result.IsFailure().ShouldBeTrue();
         result.Messages.Count.ShouldBe(2);
-        result.Messages[0].Content.ShouldStartWith("Name:");
+        result.Messages[0].Content.ShouldBe(error);
     }
 
     [Fact]
@@ -112,12 +113,11 @@ public class ValidationTests
     public void TryGetValidationResults_Finds_Single_And_Many_CaseInsensitive()
     {
         // Arrange
-        var vr1 = new ValidationResult("E1", new[] { "Name" });
+        var vr1 = new ValidationResult("E1", ["Name"]);
         var vr2 = new ValidationResult("E2");
         var vr3 = new ValidationResult("E3");
 
-        var result = Results.Failure(new[]
-        {
+        var result = Results.Failure([
             new Message(MessageType.Error, "m1",
                 new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
                 {
@@ -128,7 +128,7 @@ public class ValidationTests
                 {
                     ["ValidationResults"] = new[] { vr2, vr3 }
                 })
-        });
+        ]);
 
         // Act
         var ok = result.TryGetValidationResults(out var found);
@@ -158,11 +158,11 @@ public class ValidationTests
     public void TryGetValidationResults_Should_Collect_Single_And_Many()
     {
         // Arrange
-        var single = new ValidationResult("Name required", new[] { "Name" });
+        var single = new ValidationResult("Name required", ["Name"]);
         var many = new[]
         {
-            new ValidationResult("Amount > 0", new[] { "Amount" }),
-            new ValidationResult("Date required", new[] { "Date" })
+            new ValidationResult("Amount > 0", ["Amount"]),
+            new ValidationResult("Date required", ["Date"])
         };
 
         var result = Results.Error(new List<Message>

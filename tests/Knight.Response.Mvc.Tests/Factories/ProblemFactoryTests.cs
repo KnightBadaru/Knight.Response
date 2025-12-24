@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using Knight.Response.Abstractions.Http.Mappers;
 using Knight.Response.Factories;
 using Knight.Response.Models;
 using Knight.Response.Mvc.Factories;
@@ -32,31 +34,37 @@ public class ProblemFactoryTests
         objectResult.Value.ShouldBeOfType<CompatProblemDetails>();
     }
 
-    // This is for next version when using Knight.Response v2
-    // [Fact]
-    // public void ValidationProblemDetails_WhenEnabled_AndValidationPresent_UsesCompatValidationProblemDetails()
-    // {
-    //     // Arrange
-    //     const string errorKey1 = "Name";
-    //     const string errorKey2 = "Amount";
-    //     const string errorMessage1 = "Name is required.";
-    //     const string errorMessage2 = "Amount: Must be greater than 0";
-    //
-    //     var opts = new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
-    //     var http = TestHost.CreateHttpContext(opts);
-    //     var result = TestHelpers.Failure($"{errorKey1}: {errorMessage1}", $"{errorKey2}: {errorMessage2}");
-    //     const int status = StatusCodes.Status400BadRequest;
-    //
-    //     // Act
-    //     var actionResult = ProblemFactory.FromResult(http, opts, result, status);
-    //
-    //     // Assert
-    //     var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
-    //     objectResult.StatusCode.ShouldBe(status);
-    //     var response = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
-    //     response.Errors.Keys.ShouldContain(errorKey1);
-    //     response.Errors.Keys.ShouldContain(errorKey2);
-    // }
+    //This is for next version when using Knight.Response v2
+    [Fact]
+    public void ValidationProblemDetails_WhenEnabled_AndValidationPresent_UsesCompatValidationProblemDetails()
+    {
+        // Arrange
+        const string errorKey1 = "Name";
+        const string errorKey2 = "Amount";
+        const string errorMessage1 = "Name is required.";
+        const string errorMessage2 = "Amount: Must be greater than 0";
+
+        var opts = new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
+        var http = TestHost.CreateHttpContext<DefaultValidationErrorMapper>(opts);
+        // var result = TestHelpers.Failure($"{errorKey1}: {errorMessage1}", $"{errorKey2}: {errorMessage2}");
+        var validationResults = new List<ValidationResult>
+        {
+            new(errorMessage1, [errorKey1]),
+            new(errorMessage2, [errorKey2])
+        };
+        var result = Results.ValidationFailure(validationResults);
+        const int status = StatusCodes.Status400BadRequest;
+
+        // Act
+        var actionResult = ProblemFactory.FromResult(http, opts, result, status);
+
+        // Assert
+        var objectResult = actionResult.ShouldBeOfType<ObjectResult>();
+        objectResult.StatusCode.ShouldBe(status);
+        var response = objectResult.Value.ShouldBeOfType<CompatValidationProblemDetails>();
+        response.Errors.Keys.ShouldContain(errorKey1);
+        response.Errors.Keys.ShouldContain(errorKey2);
+    }
 
     [Fact]
     public void ValidationEnabled_ButNoValidationErrors_FallsBackToCompatProblemDetails()

@@ -16,7 +16,7 @@ public class CancelTests
         var messages = new List<Message> { Warn(message) };
 
         // Act
-        var result = Results.Cancel(messages);
+        var result = Results.Cancel(messages: messages);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -32,7 +32,7 @@ public class CancelTests
         const string reason = "stop";
 
         // Act
-        var result = Results.Cancel(reason);
+        var result = Results.Cancel(reason: reason);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -48,7 +48,7 @@ public class CancelTests
         const string reason = "halt";
 
         // Act
-        var result = Results.Cancel<string>(reason);
+        var result = Results.Cancel<string>(reason: reason);
 
         // Assert
         result.IsSuccess().ShouldBeFalse();
@@ -95,7 +95,7 @@ public class CancelTests
     public void Cancel_DefaultsToWarningMessage()
     {
         // Arrange & Act
-        var result = Results.Cancel("cancelled");
+        var result = Results.Cancel(reason: "cancelled");
 
         // Assert
         result.Status.ShouldBe(Status.Cancelled);

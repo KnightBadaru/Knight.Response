@@ -9,7 +9,7 @@ namespace Knight.Response.Extensions;
 internal static class ValidationMappingExtensions
 {
     /// <summary>
-    /// Converts validation results to error messages using "Field: message" when a field is present.
+    /// Converts validation results to error messages using "Field: Validation error" when a error message is not present.
     /// </summary>
     public static IReadOnlyList<Message> ToMessagesPrefixed(IEnumerable<ValidationResult> errors)
     {
@@ -25,9 +25,9 @@ internal static class ValidationMappingExtensions
                 ? "Validation error."
                 : e.ErrorMessage!.Trim();
 
-            var content = string.IsNullOrWhiteSpace(field)
-                ? baseText
-                : $"{field?.Trim()}: {baseText.Trim()}";
+            var content = string.IsNullOrWhiteSpace(e.ErrorMessage)
+                ? $"{field?.Trim()}: {baseText.Trim()}"
+                : e.ErrorMessage.Trim();
 
             var metadata = new Dictionary<string, object?>{["ValidationResult"] = e};
             list.Add(new Message(MessageType.Error, content, metadata));

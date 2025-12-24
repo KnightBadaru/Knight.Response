@@ -45,10 +45,12 @@ public class ValidationTests
     public void Validation_WithFieldNames_MapsToErrorMessages_WithFieldPrefix()
     {
         // Arrange
+        var errorName = "Name is required.";
+        var errorAccount = "Amount must be greater than 0.";
         var errors = new List<ValidationResult>
         {
-            new("Name is required.", ["Name"]),
-            new("Amount must be greater than 0.", ["Amount"]),
+            new(errorName, ["Name"]),
+            new(errorAccount, ["Amount"]),
         };
 
         // Act
@@ -59,8 +61,8 @@ public class ValidationTests
         result.Messages.Count.ShouldBe(2);
 
         var texts = result.Messages.Select(m => m.Content).ToList();
-        texts[0].ShouldBe("Name: Name is required.");
-        texts[1].ShouldBe("Amount: Amount must be greater than 0.");
+        texts[0].ShouldBe(errorName);
+        texts[1].ShouldBe(errorAccount);
         result.Messages.All(m => m.Type == MessageType.Error).ShouldBeTrue();
     }
 
@@ -87,10 +89,12 @@ public class ValidationTests
     public void Validation_MixedFieldAndNonField_ProducesCorrectContents()
     {
         // Arrange
+        var error = "Name is required.";
+        var error2 = "General validation failed.";
         var errors = new List<ValidationResult>
         {
-            new("Name is required.", ["Name"]),
-            new("General validation failed.") // no member
+            new(error, ["Name"]),
+            new(error2) // no member
         };
 
         // Act
@@ -101,17 +105,18 @@ public class ValidationTests
         result.Messages.Count.ShouldBe(2);
 
         var ordered = result.Messages.Select(m => m.Content).ToList();
-        ordered[0].ShouldBe("Name: Name is required.");
-        ordered[1].ShouldBe("General validation failed.");
+        ordered[0].ShouldBe(error);
+        ordered[1].ShouldBe(error2);
     }
 
     [Fact]
-    public void Validation_MultipleMemberNames_PicksFirstMemberForPrefix()
+    public void Validation_MultipleMemberNames_ProducesCorrectContents()
     {
         // Arrange
+        var error = "Value invalid.";
         var errors = new List<ValidationResult>
         {
-            new("Value invalid.", ["Primary", "Secondary"])
+            new(error, ["Primary", "Secondary"])
         };
 
         // Act
@@ -120,7 +125,7 @@ public class ValidationTests
         // Assert
         result.IsSuccess().ShouldBeFalse();
         result.Messages.Count.ShouldBe(1);
-        result.Messages[0].Content.ShouldBe("Primary: Value invalid.");
+        result.Messages[0].Content.ShouldBe(error);
     }
 
     [Fact]
@@ -235,26 +240,6 @@ public class ValidationTests
     }
 
     [Fact]
-    public void ValidationT_WithErrors_ReturnsError_WithMappedMessages()
-    {
-        // Arrange
-        var errors = new List<ValidationResult>
-        {
-            new("Id must be > 0.", ["Id"]),
-            new("Name is required.", ["Name"])
-        };
-
-        // Act
-        var result = Results.ValidationFailure<Widget>(errors);
-
-        // Assert
-        result.IsSuccess().ShouldBeFalse();
-        result.Messages.Count.ShouldBe(2);
-        result.Messages[0].Content.ShouldBe("Id: Id must be > 0.");
-        result.Messages[1].Content.ShouldBe("Name: Name is required.");
-    }
-
-    [Fact]
     public void ValidationT_WithMetadataEnricher_CallsDelegateAndKeepsRawContent()
     {
         // Arrange
@@ -330,29 +315,13 @@ public class ValidationTests
     }
 
     [Fact]
-    public void Validation_Prefixed_TrimsSpacesAroundFieldAndMessage()
+    public void Validation_Trims_Message()
     {
         // Arrange
+        var error = "must not be blank";
         var errors = new[]
         {
-            new ValidationResult("  must not be blank  ", ["  Name  "])
-        };
-
-        // Act
-        var result = Results.ValidationFailure(errors);
-
-        // Assert
-        result.IsSuccess().ShouldBeFalse();
-        result.Messages[0].Content.ShouldBe("Name: must not be blank");
-    }
-
-    [Fact]
-    public void Validation_Prefixed_Trims_Field_And_Message_And_Picks_First_Member()
-    {
-        // Arrange
-        var errors = new[]
-        {
-            new ValidationResult("  must not be blank  ", ["  Name  ", "Other"])
+            new ValidationResult($"  {error} ", ["  Name  ", "Other"])
         };
 
         // Act
@@ -361,7 +330,7 @@ public class ValidationTests
         // Assert
         result.IsSuccess().ShouldBeFalse();
         result.Messages.ShouldHaveSingleItem();
-        result.Messages[0].Content.ShouldBe("Name: must not be blank");
+        result.Messages[0].Content.ShouldBe(error);
     }
 
     [Fact]
