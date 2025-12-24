@@ -32,23 +32,36 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore tools & packages
+      - name: Install Stryker.NET (pinned)
         run: |
-          dotnet tool restore
-          dotnet restore Knight.Response.sln
+          dotnet tool install -g dotnet-stryker --version 4.9.1
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Restore packages
+        run: dotnet restore Knight.Response.sln
 
       - name: Build
         run: dotnet build Knight.Response.sln -c Release --no-restore
-        
+
       - name: Run Stryker (${{ matrix.name }}) — PR
         if: github.event_name == 'pull_request'
         run: |
           if git grep -Iq -- '-preview' -- '**/*.csproj' '**/Directory.Build.props' '**/Directory.Packages.props'; then
             echo "Preview detected -> lowering thresholds"
-            dotnet stryker --config-file ./${{ matrix.config }} --reporter html --reporter json \
-              --threshold-high 80 --threshold-low 65 --break-at 50
+            dotnet stryker \
+              --solution-path Knight.Response.sln \
+              --config-file ./${{ matrix.config }} \
+              --reporter html \
+              --reporter json \
+              --threshold-high 80 \
+              --threshold-low 65 \
+              --break-at 50
           else
-            dotnet stryker --config-file ./${{ matrix.config }} --reporter html --reporter json
+            dotnet stryker \
+              --solution-path Knight.Response.sln \
+              --config-file ./${{ matrix.config }} \
+              --reporter html \
+              --reporter json
           fi
 
       - name: Check Dashboard secret (debug)
@@ -59,7 +72,7 @@ jobs:
           fi
           echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
           echo "Expecting dashboard name: github.com/$GITHUB_REPOSITORY"
-        
+
       - name: Run Stryker (${{ matrix.name }}) — main (upload)
         if: github.ref == 'refs/heads/main'
         env:
@@ -67,10 +80,16 @@ jobs:
         run: |
           if git grep -Iq -- '-preview' -- '**/*.csproj' '**/Directory.Build.props' '**/Directory.Packages.props'; then
             echo "Preview detected -> lowering thresholds"
-            dotnet stryker --config-file ./${{ matrix.config }} \
-              --threshold-high 80 --threshold-low 65 --break-at 50
+            dotnet stryker \
+              --solution-path Knight.Response.sln \
+              --config-file ./${{ matrix.config }} \
+              --threshold-high 80 \
+              --threshold-low 65 \
+              --break-at 50
           else
-            dotnet stryker --config-file ./${{ matrix.config }}
+            dotnet stryker \
+              --solution-path Knight.Response.sln \
+              --config-file ./${{ matrix.config }}
           fi
 
       - name: Upload Stryker report (artifact)
