@@ -32,10 +32,8 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Install Stryker.NET (pinned)
-        run: |
-          dotnet tool install -g dotnet-stryker --version 4.9.1
-          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+      - name: Restore local tools
+        run: dotnet tool restore
 
       - name: Restore packages
         run: dotnet restore Knight.Response.sln
@@ -48,7 +46,7 @@ jobs:
         run: |
           if git grep -Iq -- '-preview' -- '**/*.csproj' '**/Directory.Build.props' '**/Directory.Packages.props'; then
             echo "Preview detected -> lowering thresholds"
-            dotnet stryker \
+            dotnet tool run dotnet-stryker \
               --solution-path Knight.Response.sln \
               --config-file ./${{ matrix.config }} \
               --reporter html \
@@ -57,7 +55,7 @@ jobs:
               --threshold-low 65 \
               --break-at 50
           else
-            dotnet stryker \
+            dotnet tool run dotnet-stryker \
               --solution-path Knight.Response.sln \
               --config-file ./${{ matrix.config }} \
               --reporter html \
@@ -80,14 +78,14 @@ jobs:
         run: |
           if git grep -Iq -- '-preview' -- '**/*.csproj' '**/Directory.Build.props' '**/Directory.Packages.props'; then
             echo "Preview detected -> lowering thresholds"
-            dotnet stryker \
+            dotnet tool run dotnet-stryker \
               --solution-path Knight.Response.sln \
               --config-file ./${{ matrix.config }} \
               --threshold-high 80 \
               --threshold-low 65 \
               --break-at 50
           else
-            dotnet stryker \
+            dotnet tool run dotnet-stryker \
               --solution-path Knight.Response.sln \
               --config-file ./${{ matrix.config }}
           fi
