@@ -47,6 +47,7 @@ jobs:
           if git grep -Iq -- '-preview' -- '**/*.csproj' '**/Directory.Build.props' '**/Directory.Packages.props'; then
             echo "Preview detected -> lowering thresholds"
             dotnet tool run dotnet-stryker \
+              --concurrency 1 \
               --solution-path Knight.Response.sln \
               --config-file ./${{ matrix.config }} \
               --reporter html \
