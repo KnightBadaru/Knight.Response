@@ -48,7 +48,7 @@ jobs:
             echo "Preview detected -> lowering thresholds"
             dotnet tool run dotnet-stryker \
               --concurrency 1 \
-              --solution-path Knight.Response.sln \
+              --solution Knight.Response.sln \
               --config-file ./${{ matrix.config }} \
               --reporter html \
               --reporter json \
@@ -57,7 +57,7 @@ jobs:
               --break-at 50
           else
             dotnet tool run dotnet-stryker \
-              --solution-path Knight.Response.sln \
+              --solution Knight.Response.sln \
               --config-file ./${{ matrix.config }} \
               --reporter html \
               --reporter json
@@ -80,14 +80,14 @@ jobs:
           if git grep -Iq -- '-preview' -- '**/*.csproj' '**/Directory.Build.props' '**/Directory.Packages.props'; then
             echo "Preview detected -> lowering thresholds"
             dotnet tool run dotnet-stryker \
-              --solution-path Knight.Response.sln \
+              --solution Knight.Response.sln \
               --config-file ./${{ matrix.config }} \
               --threshold-high 80 \
               --threshold-low 65 \
               --break-at 50
           else
             dotnet tool run dotnet-stryker \
-              --solution-path Knight.Response.sln \
+              --solution Knight.Response.sln \
               --config-file ./${{ matrix.config }}
           fi
 
