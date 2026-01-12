@@ -145,4 +145,18 @@ public class ResultsTests
         d.Code.ShouldBe(ResultCodes.Deleted);
         d.Messages.ShouldBeEmpty();
     }
+
+    [Theory]
+    [InlineData("Created")]
+    [InlineData("Updated")]
+    [InlineData("Deleted")]
+    public void Factory_Respects_Custom_Code_Value(string value)
+    {
+        var code = new ResultCode(value);
+
+        var result = Results.Created(123, "ok", code: code);
+
+        result.Code.ShouldNotBeNull();
+        result.Code!.Value.ShouldBe(value);
+    }
 }

@@ -1,19 +1,17 @@
 using System.Collections;
 using Knight.Response.Core;
-using Knight.Response.Models;
 
 namespace Knight.Response.Extensions;
 
 /// <summary>
-/// Composable, immutable helpers for <see cref="Result"/> and <see cref="Result&lt;T&gt;"/>:
-/// predicates, observation hooks, functional composition, validation, code &amp; message helpers,
-/// and ergonomic value accessors. All methods are pure (they return new instances).
+/// Value-centric helpers for <see cref="Result{T}"/>.
+/// These methods are side-effect free and focus on inspecting / comparing values.
 /// </summary>
 public static class ValueExtensions
 {
     /// <summary>
     /// Determines whether the typed result's value is <c>null</c>.
-    /// This does not consider <see cref="Status"/>; it only checks the value reference.
+    /// This does not consider <see cref="Result.Status"/>; it only checks the value reference.
     /// </summary>
     /// <typeparam name="T">The carried value type.</typeparam>
     /// <param name="result">The typed result to inspect.</param>
@@ -21,31 +19,20 @@ public static class ValueExtensions
     public static bool ValueIsNull<T>(this Result<T> result) => result.Value is null;
 
     /// <summary>
-    /// Returns <c>true</c> if the result's <see cref="Result{T}.Value"/> is <c>null</c>
-    /// or is an empty string / empty collection.
+    /// Determines whether the result's value is <c>null</c> or "empty" (empty string / empty collection).
+    /// This does not consider <see cref="Result.Status"/>; it only inspects the value.
     /// </summary>
     /// <typeparam name="T">The type of the result value.</typeparam>
     /// <param name="result">The result to inspect.</param>
     /// <returns>
-    /// <c>true</c> if <paramref name="result"/>.Value is:
-    /// <list type="bullet">
-    ///   <item><description><c>null</c></description></item>
-    ///   <item><description>an empty <see cref="string"/></description></item>
-    ///   <item><description>an empty <see cref="ICollection"/> (non-generic)</description></item>
-    ///   <item><description>an empty <see cref="IEnumerable{T}"/> (generic)</description></item>
-    /// </list>
-    /// Otherwise, returns <c>false</c>.
+    /// <c>true</c> if the value is <c>null</c>, an empty <see cref="string"/>,
+    /// an empty <see cref="ICollection"/> (non-generic), or an empty <see cref="IEnumerable"/>; otherwise <c>false</c>.
     /// </returns>
     /// <remarks>
-    /// This is especially useful when your domain treats "empty" as equivalent to "no value".
+    /// Useful when your domain treats "empty" as equivalent to "no value".
     /// </remarks>
     public static bool ValueIsNullOrEmpty<T>(this Result<T> result)
     {
-        if (result == null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
         var value = result.Value;
 
         if (value is null)
@@ -53,53 +40,55 @@ public static class ValueExtensions
             return true;
         }
 
-        // string
         if (value is string s)
         {
             return string.IsNullOrEmpty(s);
         }
 
-        // non-generic collection
         if (value is ICollection coll)
         {
             return coll.Count == 0;
         }
 
-        // generic collection
-        if (value is IEnumerable<object> gen)
+        // Non-generic enumerable (covers most IEnumerable<T> values too, via IEnumerable)
+        if (value is IEnumerable seq)
         {
-            return !gen.Any();
+            var e = seq.GetEnumerator();
+            try
+            {
+                return !e.MoveNext();
+            }
+            finally
+            {
+                (e as IDisposable)?.Dispose();
+            }
         }
 
         return false;
     }
 
     /// <summary>
-    /// Determines whether the result is unsuccessful, or if successful, whether
-    /// its value is <c>null</c> or an empty sequence.
+    /// Determines whether the result's collection value is <c>null</c> or contains no items.
+    /// This does not consider <see cref="Result.Status"/>; it only inspects the value.
     /// </summary>
     /// <typeparam name="T">The collection type (must implement <see cref="IEnumerable{TItem}"/>).</typeparam>
     /// <typeparam name="TItem">The element type of the collection.</typeparam>
     /// <param name="result">The result to inspect.</param>
     /// <returns>
-    /// <c>true</c> if the result is unsuccessful, or if its value is <c>null</c> or contains no items;
-    /// otherwise <c>false</c>.
+    /// <c>true</c> if the value is <c>null</c> or empty; otherwise <c>false</c>.
     /// </returns>
     public static bool ValueIsNullOrEmpty<T, TItem>(this Result<T> result)
         where T : IEnumerable<TItem>?
-        => result.IsUnsuccessful() || result.Value is null || !result.Value.Any();
+        => result.Value is null || !result.Value.Any();
 
     /// <summary>
-    /// Determines whether the result is unsuccessful, or if successful,
-    /// whether its string value is <c>null</c>, empty, or consists only of whitespace.
+    /// Determines whether the result's string value is <c>null</c>, empty, or whitespace.
+    /// This does not consider <see cref="Result.Status"/>; it only inspects the value.
     /// </summary>
     /// <param name="result">The string result to inspect.</param>
-    /// <returns>
-    /// <c>true</c> if the result is unsuccessful, or if its value is <c>null</c>, empty,
-    /// or contains only whitespace characters; otherwise <c>false</c>.
-    /// </returns>
+    /// <returns><c>true</c> if the string value is <c>null</c>, empty, or whitespace; otherwise <c>false</c>.</returns>
     public static bool ValueIsNullOrWhiteSpace(this Result<string> result)
-        => result.IsUnsuccessful() || string.IsNullOrWhiteSpace(result.Value);
+        => string.IsNullOrWhiteSpace(result.Value);
 
     /// <summary>
     /// Determines whether the typed result's value is <b>not</b> <c>null</c>.
@@ -111,86 +100,49 @@ public static class ValueExtensions
     public static bool ValueIsNotNull<T>(this Result<T> result) => result.Value is not null;
 
     /// <summary>
-    /// Determines whether the result is successful and its collection value is <b>not</b> <c>null</c>
-    /// and contains at least one element.
+    /// Determines whether the result's collection value is non-<c>null</c> and contains at least one item.
+    /// This does not consider <see cref="Result.Status"/>; it only inspects the value.
     /// </summary>
-    /// <typeparam name="T">The collection type (e.g., <c>IEnumerable&lt;TItem&gt;</c>).</typeparam>
+    /// <typeparam name="T">The collection type (must implement <see cref="IEnumerable{TItem}"/>).</typeparam>
     /// <typeparam name="TItem">The element type of the collection.</typeparam>
     /// <param name="result">The result to inspect.</param>
-    /// <returns>
-    /// <c>true</c> if the result is <see cref="Status.Completed"/> and <paramref name="result"/>.Value
-    /// is a non-<c>null</c> collection with at least one element; otherwise <c>false</c>.
-    /// </returns>
-    /// <remarks>
-    /// This is the logical opposite of <c>ValueIsNullOrEmpty</c>, which treats an unsuccessful result as "null/empty".
-    /// </remarks>
+    /// <returns><c>true</c> if the collection is non-<c>null</c> and non-empty; otherwise <c>false</c>.</returns>
     public static bool ValueIsNotNullOrEmpty<T, TItem>(this Result<T> result)
         where T : IEnumerable<TItem>?
-        => result.IsSuccess() && result.Value is not null && result.Value.Any();
+        => result.Value is not null && result.Value.Any();
 
     /// <summary>
-    /// Determines whether the result is successful and its string value is <b>not</b> <c>null</c>,
-    /// empty, or whitespace.
+    /// Determines whether the result's string value contains non-whitespace content.
+    /// This does not consider <see cref="Result.Status"/>; it only inspects the value.
     /// </summary>
     /// <param name="result">The string result to inspect.</param>
-    /// <returns>
-    /// <c>true</c> if the result is <see cref="Status.Completed"/> and its string value has
-    /// non-whitespace content; otherwise <c>false</c>.
-    /// </returns>
-    /// <remarks>
-    /// This is the logical opposite of <c>ValueIsNullOrWhiteSpace</c>, which returns <c>true</c>
-    /// when the result is unsuccessful or the string is null/whitespace.
-    /// </remarks>
+    /// <returns><c>true</c> if the string value has non-whitespace content; otherwise <c>false</c>.</returns>
     public static bool ValueIsNotNullOrWhiteSpace(this Result<string> result)
-        => result.IsSuccess() && !string.IsNullOrWhiteSpace(result.Value);
+        => !string.IsNullOrWhiteSpace(result.Value);
 
     /// <summary>
-    /// Determines whether the result is unsuccessful, or if successful,
-    /// whether its boolean value is <c>true</c>.
+    /// Determines whether the result's boolean value is <c>true</c>.
+    /// This does not consider <see cref="Result.Status"/>; it only inspects the value.
     /// </summary>
-    /// <param name="result">The boolean result to inspect.</param>
-    /// <returns>
-    /// <c>true</c> if the result is unsuccessful, or if its value is <c>true</c>;
-    /// otherwise <c>false</c>.
-    /// </returns>
-    public static bool ValueIsTrue(this Result<bool> result)
-        => result.IsUnsuccessful() || result.Value;
+    public static bool ValueIsTrue(this Result<bool> result) => result.Value;
 
     /// <summary>
-    /// Determines whether the result is unsuccessful, or if successful,
-    /// whether its nullable boolean value is <c>true</c>.
+    /// Determines whether the result's nullable boolean value is <c>true</c>.
+    /// This does not consider <see cref="Result.Status"/>; it only inspects the value.
     /// </summary>
-    /// <param name="result">The nullable boolean result to inspect.</param>
-    /// <returns>
-    /// <c>true</c> if the result is unsuccessful, or if its value is <c>true</c>;
-    /// otherwise <c>false</c>.
-    /// </returns>
-    public static bool ValueIsTrue(this Result<bool?> result)
-        => result.IsUnsuccessful() || result.Value == true;
+    public static bool ValueIsTrue(this Result<bool?> result) => result.Value == true;
 
     /// <summary>
-    /// Determines whether the result is unsuccessful, or if successful,
-    /// whether its boolean value is <c>false</c>.
+    /// Determines whether the result's boolean value is <c>false</c>.
+    /// This does not consider <see cref="Result.Status"/>; it only inspects the value.
     /// </summary>
-    /// <param name="result">The boolean result to inspect.</param>
-    /// <returns>
-    /// <c>true</c> if the result is unsuccessful, or if its value is <c>false</c>;
-    /// otherwise <c>false</c>.
-    /// </returns>
-    public static bool ValueIsFalse(this Result<bool> result)
-        => result.IsUnsuccessful() || !result.Value;
+    public static bool ValueIsFalse(this Result<bool> result) => !result.Value;
 
     /// <summary>
-    /// Determines whether the result is unsuccessful, or if successful,
-    /// whether its nullable boolean value is <c>false</c> or <c>null</c>.
+    /// Determines whether the result's nullable boolean value is <c>false</c>.
+    /// This does not consider <see cref="Result.Status"/>; it only inspects the value.
     /// </summary>
-    /// <param name="result">The nullable boolean result to inspect.</param>
-    /// <returns>
-    /// <c>true</c> if the result is unsuccessful, or if its value is <c>false</c> or <c>null</c>;
-    /// otherwise <c>false</c>.
-    /// </returns>
-    public static bool ValueIsFalse(this Result<bool?> result)
-        => result.IsUnsuccessful() || result.Value != true;
+    public static bool ValueIsFalse(this Result<bool?> result) => result.Value == false;
 
     // -------------------- Equality --------------------
 
@@ -209,14 +161,14 @@ public static class ValueExtensions
         !EqualityComparer<T>.Default.Equals(result.Value, other);
 
     /// <summary>
-    /// Returns whether the result's value equals the other result's value.
+    /// Returns whether the left result's value equals the right result's value.
     /// Uses <see cref="EqualityComparer{T}.Default"/> and handles nulls.
     /// </summary>
     public static bool ValueEquals<T>(this Result<T> left, Result<T> right) =>
         EqualityComparer<T>.Default.Equals(left.Value, right.Value);
 
     /// <summary>
-    /// Returns whether the result's value does not equal the other result's value.
+    /// Returns whether the left result's value does not equal the right result's value.
     /// Uses <see cref="EqualityComparer{T}.Default"/> and handles nulls.
     /// </summary>
     public static bool ValueNotEquals<T>(this Result<T> left, Result<T> right) =>
@@ -229,9 +181,6 @@ public static class ValueExtensions
     /// Returns whether the result's value is greater than <paramref name="other"/>.
     /// Returns <c>false</c> if the value is <c>null</c>.
     /// </summary>
-    /// <remarks>
-    /// Does not check if result is successful or not.
-    /// </remarks>
     public static bool ValueGreaterThan<T>(this Result<T> result, T other) where T : IComparable<T> =>
         result.Value is T v && Comparer<T>.Default.Compare(v, other) > 0;
 
@@ -239,9 +188,6 @@ public static class ValueExtensions
     /// Returns whether the result's value is greater than or equal to <paramref name="other"/>.
     /// Returns <c>false</c> if the value is <c>null</c>.
     /// </summary>
-    /// <remarks>
-    /// Does not check if result is successful or not.
-    /// </remarks>
     public static bool ValueGreaterThanOrEqual<T>(this Result<T> result, T other) where T : IComparable<T> =>
         result.Value is T v && Comparer<T>.Default.Compare(v, other) >= 0;
 
@@ -249,9 +195,6 @@ public static class ValueExtensions
     /// Returns whether the result's value is less than <paramref name="other"/>.
     /// Returns <c>false</c> if the value is <c>null</c>.
     /// </summary>
-    /// <remarks>
-    /// Does not check if result is successful or not.
-    /// </remarks>
     public static bool ValueLessThan<T>(this Result<T> result, T other) where T : IComparable<T> =>
         result.Value is T v && Comparer<T>.Default.Compare(v, other) < 0;
 
@@ -259,21 +202,13 @@ public static class ValueExtensions
     /// Returns whether the result's value is less than or equal to <paramref name="other"/>.
     /// Returns <c>false</c> if the value is <c>null</c>.
     /// </summary>
-    /// <remarks>
-    /// Does not check if result is successful or not.
-    /// </remarks>
     public static bool ValueLessThanOrEqual<T>(this Result<T> result, T other) where T : IComparable<T> =>
         result.Value is T v && Comparer<T>.Default.Compare(v, other) <= 0;
-
-    // -------- Result vs Result ordering (convenience) --------
 
     /// <summary>
     /// Returns whether the left result's value is greater than the right result's value.
     /// Returns <c>false</c> if either value is <c>null</c>.
     /// </summary>
-    /// <remarks>
-    /// Does not check if result is successful or not.
-    /// </remarks>
     public static bool ValueGreaterThan<T>(this Result<T> left, Result<T> right) where T : IComparable<T> =>
         left.Value is T lv && right.Value is T rv && Comparer<T>.Default.Compare(lv, rv) > 0;
 
@@ -281,58 +216,35 @@ public static class ValueExtensions
     /// Returns whether the left result's value is less than the right result's value.
     /// Returns <c>false</c> if either value is <c>null</c>.
     /// </summary>
-    /// <remarks>
-    /// Does not check if result is successful or not.
-    /// </remarks>
     public static bool ValueLessThan<T>(this Result<T> left, Result<T> right) where T : IComparable<T> =>
         left.Value is T lv && right.Value is T rv && Comparer<T>.Default.Compare(lv, rv) < 0;
 
     /// <summary>
-    /// Determines whether the result is successful and its value lies within
-    /// the inclusive range [<paramref name="minInclusive"/>, <paramref name="maxInclusive"/>].
+    /// Determines whether the result's value lies within the inclusive range
+    /// [<paramref name="minInclusive"/>, <paramref name="maxInclusive"/>].
+    /// Returns <c>false</c> if the value is <c>null</c>.
     /// </summary>
-    /// <remarks>
-    /// Does not check if result is successful.
-    /// </remarks>
-    /// <typeparam name="T">A value type that supports ordering.</typeparam>
-    /// <param name="result">The result to inspect.</param>
-    /// <param name="minInclusive">Lower bound (inclusive).</param>
-    /// <param name="maxInclusive">Upper bound (inclusive).</param>
-    /// <returns><c>true</c> if the value lies within the range; otherwise <c>false</c>.</returns>
     public static bool ValueBetween<T>(this Result<T> result, T minInclusive, T maxInclusive)
         where T : IComparable<T>
     {
         var v = result.Value;
-        if (v == null)
-        {
-            return false;
-        }
-
-        return v.CompareTo(minInclusive) >= 0 && v.CompareTo(maxInclusive) <= 0;
+        return v is not null
+               && v.CompareTo(minInclusive) >= 0
+               && v.CompareTo(maxInclusive) <= 0;
     }
 
     /// <summary>
-    /// Determines whether the result is successful and its value lies within
-    /// the exclusive range (<paramref name="minExclusive"/>, <paramref name="maxExclusive"/>).
+    /// Determines whether the result's value lies within the exclusive range
+    /// (<paramref name="minExclusive"/>, <paramref name="maxExclusive"/>).
+    /// Returns <c>false</c> if the value is <c>null</c>.
     /// </summary>
-    /// <remarks>
-    /// Does not check if result is successful.
-    /// </remarks>
-    /// <typeparam name="T">A value type that supports ordering.</typeparam>
-    /// <param name="result">The result to inspect.</param>
-    /// <param name="minExclusive">Lower bound (exclusive).</param>
-    /// <param name="maxExclusive">Upper bound (exclusive).</param>
-    /// <returns><c>true</c> if the value lies strictly between the bounds; otherwise <c>false</c>.</returns>
     public static bool ValueBetweenExclusive<T>(this Result<T> result, T minExclusive, T maxExclusive)
         where T : IComparable<T>
     {
         var v = result.Value;
-        if (v == null)
-        {
-            return false;
-        }
-
-        return v.CompareTo(minExclusive) > 0 && v.CompareTo(maxExclusive) < 0;
+        return v is not null
+               && v.CompareTo(minExclusive) > 0
+               && v.CompareTo(maxExclusive) < 0;
     }
 
     /// <summary>

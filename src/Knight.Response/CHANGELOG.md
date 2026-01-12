@@ -23,6 +23,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-preview06] - 2026-01-02
+
+### Added
+
+* **Value-centric inspection helpers** for typed `Result<T>` values (status-agnostic by default):
+
+    * `ValueIsNull()` – true when the carried value is `null`.
+    * `ValueIsNotNull()` – true when the carried value is non-null.
+    * `ValueIsNullOrEmpty()` – true when the value is `null`, an empty string, or an empty collection.
+    * `ValueIsNullOrWhiteSpace()` – true when the string value is `null`, empty, or whitespace.
+    * `ValueIsNotNullOrEmpty<T>()` – true when a collection value is non-null and contains at least one element.
+    * `ValueIsNotNullOrWhiteSpace()` – true when the string value contains non-whitespace content.
+    * `ValueIsTrue()` – true when the carried value is `true`.
+    * `ValueIsFalse()` – true when the carried value is `false`.
+
+* **Equality helpers** (null-safe, value-only):
+
+    * `ValueEquals(...)` and `ValueNotEquals(...)` for comparing result values to raw values or other results.
+
+* **Ordering helpers** (null-safe, value-only):
+
+    * `ValueGreaterThan(...)`, `ValueGreaterThanOrEqual(...)`
+    * `ValueLessThan(...)`, `ValueLessThanOrEqual(...)`
+    * Result-vs-Result comparison variants
+    * Range helpers:
+        * `ValueBetween(min, max)` (inclusive)
+        * `ValueBetweenExclusive(min, max)` (exclusive)
+
+* **Explicit success-aware value helpers** introduced to avoid ambiguity:
+
+    * `IsSuccessAndValueIs...(...)` variants that combine `IsSuccess()` with value inspection.
+
+### Notes
+
+* Value helpers are intentionally **status-agnostic by default**; they inspect values only.
+* Success-aware checks are explicitly named (`IsSuccessAndValueIs...`) to avoid hidden control flow.
+* This split improves readability, composability, and prevents accidental coupling of value semantics to result status.
+
+---
+
 ## [2.0.0-preview05] - 2025-09-26
 
 ### Added
@@ -230,3 +270,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [2.0.0-preview03]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview03
 [2.0.0-preview04]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview04
 [2.0.0-preview05]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview05
+[2.0.0-preview06]: https://github.com/KnightBadaru/Knight.Response/releases/tag/response-v2.0.0-preview06

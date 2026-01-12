@@ -43,4 +43,31 @@ public class CreatedTests
         result.Messages[0].Content.ShouldBe("made");
         result.Messages[0].Type.ShouldBe(MessageType.Warning);
     }
+
+    [Fact]
+    public void Created_Adds_Single_Message()
+    {
+        var result = Results.Created(1, "created");
+
+        result.Messages.ShouldHaveSingleItem();
+    }
+
+    [Fact]
+    public void Created_Defaults_To_Created_Code()
+    {
+        var result = Results.Created(123, "ok");
+
+        result.Code.ShouldNotBeNull();
+        result.Code!.Value.ShouldBe(ResultCodes.Created.Value);
+    }
+
+    [Fact]
+    public void Created_Uses_Custom_Code_When_Provided()
+    {
+        var custom = new ResultCode("MyCode");
+
+        var result = Results.Created(123, "ok", code: custom);
+
+        result.Code!.Value.ShouldBe(custom.Value);
+    }
 }
