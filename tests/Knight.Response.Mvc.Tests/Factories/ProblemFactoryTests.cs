@@ -46,13 +46,14 @@ public class ProblemFactoryTests
 
         var opts = new KnightResponseOptions { UseProblemDetails = true, UseValidationProblemDetails = true };
         var http = TestHost.CreateHttpContext<DefaultValidationErrorMapper>(opts);
-        // var result = TestHelpers.Failure($"{errorKey1}: {errorMessage1}", $"{errorKey2}: {errorMessage2}");
-        var validationResults = new List<ValidationResult>
-        {
-            new(errorMessage1, [errorKey1]),
-            new(errorMessage2, [errorKey2])
-        };
-        var result = Results.ValidationFailure(validationResults);
+
+        var result = Results.ValidationFailure([
+            new Message(
+                MessageType.Error, errorMessage1, metadata: new Dictionary<string, object?> { ["field"] = errorKey1 }),
+            new Message(
+                MessageType.Error, errorMessage2, metadata: new Dictionary<string, object?> { ["field"] = errorKey2 })
+        ]);
+
         const int status = StatusCodes.Status400BadRequest;
 
         // Act
