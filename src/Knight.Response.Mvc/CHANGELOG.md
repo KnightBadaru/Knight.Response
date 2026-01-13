@@ -22,6 +22,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ---
 
+## [2.0.0-preview05] - 2025-01-13
+
+### Added
+
+
+### Changed
+
+* Aligns with **Knight.Response.Abstractions.Http 2.0.0-preview04** for consistent `ResultHttpResolver` usage and defaults.
+
+---
+
 ## [2.0.0-preview04] - 2025-09-27
 
 ### Added
@@ -105,3 +116,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 [2.0.0-preview02]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview02
 [2.0.0-preview03]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview03
 [2.0.0-preview04]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview04
+[2.0.0-preview05]: https://github.com/KnightBadaru/Knight.Response/releases/tag/mvc-v2.0.0-preview05
