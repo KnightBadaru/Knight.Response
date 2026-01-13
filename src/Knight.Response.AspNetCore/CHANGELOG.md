@@ -23,6 +23,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-preview02] - 2025-01-13
+
+### Added
+
+### Changed
+
+* Aligns with **Knight.Response.Abstractions.Http 2.0.0-preview04** for updated **Knight.Response**.
+
+### Fixed
+
+* Ensured consistent mapping of `ResultCodes.NotSupported` → HTTP 405 (Method Not Allowed).
+
+---
+
 ## [2.0.0-preview01] - 2025-09-27
 
 ### Added
@@ -107,3 +121,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.0.1]: https://github.com/KnightBadaru/Knight.Response/releases/tag/aspnetcore-v1.0.1
 [1.0.2]: https://github.com/KnightBadaru/Knight.Response/releases/tag/aspnetcore-v1.0.2
 [2.0.0-preview01]: https://github.com/KnightBadaru/Knight.Response/releases/tag/aspnetcore-v2.0.0-preview01
+[2.0.0-preview02]: https://github.com/KnightBadaru/Knight.Response/releases/tag/aspnetcore-v2.0.0-preview02

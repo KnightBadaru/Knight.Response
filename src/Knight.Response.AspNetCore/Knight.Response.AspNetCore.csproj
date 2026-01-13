@@ -7,7 +7,7 @@
 
         <!-- NuGet metadata -->
         <PackageId>Knight.Response.AspNetCore</PackageId>
-        <Version>2.0.0-preview01</Version>
+        <Version>2.0.0-preview02</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response.AspNetCore</Title>
         <Description>ASP.NET Core helpers for Knight.Response: map Result/Result&lt;T&gt; to IResult/ActionResult with consistent HTTP semantics.</Description>
@@ -27,7 +27,7 @@
         <Deterministic>true</Deterministic>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
@@ -37,7 +37,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Knight.Response.Abstractions.Http" Version="2.0.0-preview03" />
+        <PackageReference Include="Knight.Response.Abstractions.Http" Version="2.0.0-preview04" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" PrivateAssets="all" />
     </ItemGroup>

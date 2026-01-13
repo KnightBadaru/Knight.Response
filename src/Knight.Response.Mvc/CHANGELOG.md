@@ -29,7 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ### Changed
 
-* Aligns with **Knight.Response.Abstractions.Http 2.0.0-preview04** for consistent `ResultHttpResolver` usage and defaults.
+* Aligns with **Knight.Response.Abstractions.Http 2.0.0-preview04** for updated **Knight.Response**.
 
 ---
 
