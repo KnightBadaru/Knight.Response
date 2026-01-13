@@ -7,7 +7,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
 
         <PackageId>Knight.Response.Abstractions.Http</PackageId>
-        <Version>2.0.0-preview03</Version>
+        <Version>2.0.0-preview04</Version>
         <Authors>Knight</Authors>
         <Title>Knight.Response.Abstractions.Http</Title>
         <Description>Framework-agnostic HTTP abstractions for Knight.Response (shared options and validation mapping).</Description>
@@ -23,7 +23,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Knight.Response" Version="2.0.0-preview05" />
+        <PackageReference Include="Knight.Response" Version="2.0.0-preview06" />
     </ItemGroup>
 
     <ItemGroup>
